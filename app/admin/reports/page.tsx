@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { RevenueTrendChart } from './revenue-trend-chart'
 import { TopServicesChart } from './top-services-chart'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 function startOfWeek(date: Date) {
   const d = new Date(date)
@@ -53,21 +54,32 @@ export default async function AdminReportsPage() {
     .slice(0, 5)
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Reports</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Reports</h1>
+        <p className="text-sm text-muted-foreground">Revenue and service demand at a glance.</p>
+      </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <div className="rounded-lg border border-border p-4">
-          <h2 className="font-semibold">Revenue, last 8 weeks</h2>
-          <RevenueTrendChart
-            data={weekBuckets.map((b) => ({ label: b.weekStart, value: b.total }))}
-          />
-        </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Revenue, last 8 weeks</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RevenueTrendChart
+              data={weekBuckets.map((b) => ({ label: b.weekStart, value: b.total }))}
+            />
+          </CardContent>
+        </Card>
 
-        <div className="rounded-lg border border-border p-4">
-          <h2 className="font-semibold">Top services by bookings</h2>
-          <TopServicesChart data={topServices} />
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Top services by bookings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TopServicesChart data={topServices} />
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

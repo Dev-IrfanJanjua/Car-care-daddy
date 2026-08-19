@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { ServiceSelector } from './service-selector'
 import type { Database } from '@/lib/types/database.types'
+import { QuoteProgress } from '@/components/quote-progress'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']
 
@@ -35,15 +37,22 @@ export default async function ServicesStepPage({
     .map((s) => ({ ...s, price: priceByService.get(s.id)! }))
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-12">
-      <h1 className="text-2xl font-bold">Select your services</h1>
-      <p className="mt-2 text-muted-foreground">
-        {year} {make} {model}
-      </p>
-      <ServiceSelector
-        services={servicesWithPrice}
-        vehicleParams={{ make, model, year, class: vehicleClass }}
-      />
+    <main className="mx-auto w-full max-w-xl px-4 py-12">
+      <QuoteProgress step={2} />
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Select your services</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {year} {make} {model}
+          </p>
+        </CardHeader>
+        <CardContent>
+          <ServiceSelector
+            services={servicesWithPrice}
+            vehicleParams={{ make, model, year, class: vehicleClass }}
+          />
+        </CardContent>
+      </Card>
     </main>
   )
 }

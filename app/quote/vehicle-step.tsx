@@ -2,6 +2,16 @@
 
 import { useMemo, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 type Make = { id: string; name: string }
 type Model = { id: string; make_id: string; name: string; vehicle_class: string }
@@ -31,56 +41,56 @@ export function VehicleStep({ makes, models }: { makes: Make[]; models: Model[] 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-      <div>
-        <label htmlFor="make" className="block text-sm font-medium">
-          Make
-        </label>
-        <select
-          id="make"
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-1.5">
+        <Label htmlFor="make">Make</Label>
+        <Select
           value={makeId}
-          onChange={(e) => {
-            setMakeId(e.target.value)
+          onValueChange={(value) => {
+            setMakeId(value ?? '')
             setModelId('')
           }}
-          required
-          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2"
         >
-          <option value="">Select a make</option>
-          {makes.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger id="make" className="w-full">
+            <SelectValue placeholder="Select a make">
+              {(value) => makes.find((m) => m.id === value)?.name}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {makes.map((m) => (
+              <SelectItem key={m.id} value={m.id}>
+                {m.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div>
-        <label htmlFor="model" className="block text-sm font-medium">
-          Model
-        </label>
-        <select
-          id="model"
+      <div className="space-y-1.5">
+        <Label htmlFor="model">Model</Label>
+        <Select
           value={modelId}
-          onChange={(e) => setModelId(e.target.value)}
+          onValueChange={(value) => setModelId(value ?? '')}
           disabled={!makeId}
-          required
-          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 disabled:opacity-50"
         >
-          <option value="">Select a model</option>
-          {modelsForMake.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger id="model" className="w-full">
+            <SelectValue placeholder="Select a model">
+              {(value) => modelsForMake.find((m) => m.id === value)?.name}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {modelsForMake.map((m) => (
+              <SelectItem key={m.id} value={m.id}>
+                {m.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div>
-        <label htmlFor="year" className="block text-sm font-medium">
-          Year
-        </label>
-        <input
+      <div className="space-y-1.5">
+        <Label htmlFor="year">Year</Label>
+        <Input
           id="year"
           type="number"
           value={year}
@@ -89,17 +99,12 @@ export function VehicleStep({ makes, models }: { makes: Make[]; models: Model[] 
           max={new Date().getFullYear() + 1}
           placeholder="2022"
           required
-          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2"
         />
       </div>
 
-      <button
-        type="submit"
-        disabled={!canSubmit}
-        className="w-full rounded-md bg-brand px-4 py-2.5 font-semibold text-brand-foreground disabled:opacity-50"
-      >
+      <Button type="submit" disabled={!canSubmit} className="w-full">
         Continue
-      </button>
+      </Button>
     </form>
   )
 }

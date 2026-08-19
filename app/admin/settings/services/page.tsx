@@ -1,6 +1,19 @@
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { updateServicePrices, toggleServiceActive } from '@/lib/actions/admin/settings'
 import type { Database } from '@/lib/types/database.types'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']
 const VEHICLE_CLASSES: VehicleClass[] = ['sedan', 'coupe', 'suv', 'van', 'truck', 'luxury']
@@ -18,73 +31,94 @@ export default async function ServiceSettingsPage() {
   )
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Service catalog &amp; pricing</h1>
+    <div className="space-y-6">
+      <div>
+        <Link
+          href="/admin/settings"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-3.5" />
+          Back to settings
+        </Link>
+        <h1 className="mt-2 text-2xl font-bold">Service catalog &amp; pricing</h1>
+      </div>
 
-      <ul className="mt-6 divide-y divide-border rounded-lg border border-border">
-        {(services ?? []).map((s) => {
-          const toggleAction = toggleServiceActive.bind(null, s.id, !s.is_active)
-          return (
-            <li key={s.id} className="flex items-center justify-between px-4 py-3">
-              <span className="font-medium">{s.name}</span>
-              <form action={toggleAction}>
-                <button
-                  type="submit"
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    s.is_active ? 'bg-brand/10 text-brand' : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  {s.is_active ? 'Active' : 'Inactive'}
-                </button>
-              </form>
-            </li>
-          )
-        })}
-      </ul>
+      <Card>
+        <CardHeader>
+          <CardTitle>Services</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <ul className="divide-y divide-border">
+            {(services ?? []).map((s) => {
+              const toggleAction = toggleServiceActive.bind(null, s.id, !s.is_active)
+              return (
+                <li key={s.id} className="flex items-center justify-between px-6 py-3">
+                  <span className="font-medium">{s.name}</span>
+                  <form action={toggleAction}>
+                    <Button
+                      type="submit"
+                      size="sm"
+                      variant="ghost"
+                      className={
+                        s.is_active
+                          ? 'bg-brand/10 text-brand hover:bg-brand/20'
+                          : 'bg-muted text-muted-foreground'
+                      }
+                    >
+                      {s.is_active ? 'Active' : 'Inactive'}
+                    </Button>
+                  </form>
+                </li>
+              )
+            })}
+          </ul>
+        </CardContent>
+      </Card>
 
-      <form
-        action={updateServicePrices}
-        className="mt-8 overflow-x-auto rounded-lg border border-border"
-      >
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-border text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3">Service</th>
-              {VEHICLE_CLASSES.map((c) => (
-                <th key={c} className="px-4 py-3 capitalize">
-                  {c}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {(services ?? []).map((s) => (
-              <tr key={s.id}>
-                <td className="px-4 py-3 font-medium">{s.name}</td>
-                {VEHICLE_CLASSES.map((c) => (
-                  <td key={c} className="px-4 py-3">
-                    <input
-                      type="number"
-                      step="0.01"
-                      name={`price:${s.id}:${c}`}
-                      defaultValue={priceLookup.get(`${s.id}:${c}`) ?? ''}
-                      className="w-20 rounded-md border border-border bg-background px-2 py-1"
-                    />
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="p-4">
-          <button
-            type="submit"
-            className="rounded-md bg-brand px-4 py-2 font-semibold text-brand-foreground"
-          >
-            Save prices
-          </button>
-        </div>
-      </form>
+      <Card>
+        <CardHeader>
+          <CardTitle>Pricing matrix</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <form action={updateServicePrices}>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Service</TableHead>
+                    {VEHICLE_CLASSES.map((c) => (
+                      <TableHead key={c} className="capitalize">
+                        {c}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(services ?? []).map((s) => (
+                    <TableRow key={s.id}>
+                      <TableCell className="font-medium">{s.name}</TableCell>
+                      {VEHICLE_CLASSES.map((c) => (
+                        <TableCell key={c}>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            name={`price:${s.id}:${c}`}
+                            defaultValue={priceLookup.get(`${s.id}:${c}`) ?? ''}
+                            className="w-20"
+                          />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="p-6 pt-4">
+              <Button type="submit">Save prices</Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }

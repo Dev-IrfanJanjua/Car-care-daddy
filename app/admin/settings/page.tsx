@@ -1,6 +1,11 @@
 import Link from 'next/link'
+import { Wrench } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { updateBusinessSettings } from '@/lib/actions/admin/settings'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 
 export default async function AdminSettingsPage() {
   const supabase = await createClient()
@@ -11,49 +16,54 @@ export default async function AdminSettingsPage() {
     .single()
 
   return (
-    <div className="max-w-xl">
-      <h1 className="text-2xl font-bold">Settings</h1>
+    <div className="max-w-xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Settings</h1>
+        <p className="text-sm text-muted-foreground">Business info, service catalog, and pricing.</p>
+      </div>
 
-      <form
-        action={updateBusinessSettings}
-        className="mt-6 space-y-3 rounded-lg border border-border p-4"
-      >
-        <h2 className="font-semibold">Business info</h2>
-        <input
-          name="businessName"
-          placeholder="Business name"
-          defaultValue={settings?.business_name ?? ''}
-          required
-          className="w-full rounded-md border border-border bg-background px-3 py-2"
-        />
-        <input
-          name="contactEmail"
-          type="email"
-          placeholder="Contact email"
-          defaultValue={settings?.contact_email ?? ''}
-          className="w-full rounded-md border border-border bg-background px-3 py-2"
-        />
-        <input
-          name="contactPhone"
-          type="tel"
-          placeholder="Contact phone"
-          defaultValue={settings?.contact_phone ?? ''}
-          className="w-full rounded-md border border-border bg-background px-3 py-2"
-        />
-        <button
-          type="submit"
-          className="rounded-md bg-brand px-4 py-2 font-semibold text-brand-foreground"
-        >
-          Save
-        </button>
-      </form>
+      <Card>
+        <CardHeader>
+          <CardTitle>Business info</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form action={updateBusinessSettings} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="businessName">Business name</Label>
+              <Input
+                id="businessName"
+                name="businessName"
+                defaultValue={settings?.business_name ?? ''}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="contactEmail">Contact email</Label>
+              <Input
+                id="contactEmail"
+                name="contactEmail"
+                type="email"
+                defaultValue={settings?.contact_email ?? ''}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="contactPhone">Contact phone</Label>
+              <Input
+                id="contactPhone"
+                name="contactPhone"
+                type="tel"
+                defaultValue={settings?.contact_phone ?? ''}
+              />
+            </div>
+            <Button type="submit">Save</Button>
+          </form>
+        </CardContent>
+      </Card>
 
-      <Link
-        href="/admin/settings/services"
-        className="mt-4 inline-block text-sm text-brand hover:underline"
-      >
-        Manage service catalog &amp; pricing →
-      </Link>
+      <Button variant="outline" render={<Link href="/admin/settings/services" />}>
+        <Wrench className="size-4" />
+        Manage service catalog &amp; pricing
+      </Button>
     </div>
   )
 }

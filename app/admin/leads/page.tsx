@@ -1,10 +1,28 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import type { Database } from '@/lib/types/database.types'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 type LeadStatus = Database['public']['Enums']['lead_status']
 
 const STATUS_OPTIONS: LeadStatus[] = ['new', 'contacted', 'converted', 'lost']
+
+const LEAD_STATUS_STYLES: Record<LeadStatus, string> = {
+  new: 'bg-brand/10 text-brand',
+  contacted: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+  converted: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  lost: 'bg-muted text-muted-foreground',
+}
 
 export default async function AdminLeadsPage({
   searchParams,
@@ -28,46 +46,78 @@ export default async function AdminLeadsPage({
   const { data: leads } = await query
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Leads</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Leads</h1>
+        <p className="text-sm text-muted-foreground">
+          Contacts captured from incomplete quote flows.
+        </p>
+      </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Link
-          href="/admin/leads"
-          className={`rounded-full px-3 py-1 text-sm ${!status ? 'bg-brand text-brand-foreground' : 'border border-border'}`}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant={!status ? 'default' : 'outline'}
+          size="sm"
+          render={<Link href="/admin/leads" />}
         >
           All
-        </Link>
+        </Button>
         {STATUS_OPTIONS.map((s) => (
-          <Link
+          <Button
             key={s}
-            href={`/admin/leads?status=${s}`}
-            className={`rounded-full px-3 py-1 text-sm capitalize ${status === s ? 'bg-brand text-brand-foreground' : 'border border-border'}`}
+            variant={status === s ? 'default' : 'outline'}
+            size="sm"
+            className="capitalize"
+            render={<Link href={`/admin/leads?status=${s}`} />}
           >
             {s}
-          </Link>
+          </Button>
         ))}
       </div>
 
-      <ul className="mt-6 divide-y divide-border rounded-lg border border-border">
-        {(leads ?? []).map((lead) => (
-          <li key={lead.id} className="flex items-center justify-between px-4 py-3">
-            <div>
-              <Link href={`/admin/leads/${lead.id}`} className="font-medium hover:underline">
-                {lead.full_name || lead.email || 'Unknown contact'}
-              </Link>
-              <p className="text-sm text-muted-foreground">
-                {lead.vehicle_make} {lead.vehicle_model}
-                {lead.quote_total ? ` · $${Number(lead.quote_total).toFixed(2)}` : ''}
-              </p>
-            </div>
-            <span className="text-sm capitalize text-muted-foreground">{lead.status}</span>
-          </li>
-        ))}
-        {(leads ?? []).length === 0 && (
-          <li className="px-4 py-3 text-sm text-muted-foreground">No leads found.</li>
-        )}
-      </ul>
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Contact</TableHead>
+                <TableHead>Vehicle</TableHead>
+                <TableHead>Quote</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(leads ?? []).map((lead) => (
+                <TableRow key={lead.id}>
+                  <TableCell>
+                    <Link href={`/admin/leads/${lead.id}`} className="font-medium hover:underline">
+                      {lead.full_name || lead.email || 'Unknown contact'}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {lead.vehicle_make} {lead.vehicle_model}
+                  </TableCell>
+                  <TableCell className="tabular-nums">
+                    {lead.quote_total ? `$${Number(lead.quote_total).toFixed(2)}` : '—'}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={`capitalize ${LEAD_STATUS_STYLES[lead.status]}`}>
+                      {lead.status}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(leads ?? []).length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                    No leads found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   )
 }

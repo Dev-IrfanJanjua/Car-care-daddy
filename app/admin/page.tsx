@@ -1,5 +1,10 @@
+import Link from 'next/link'
+import { CalendarCheck, CalendarRange, DollarSign, Target, Wrench } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { formatCompactNumber, formatCompactCurrency } from '@/lib/format'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { BOOKING_STATUS_STYLES, formatBookingStatus } from '@/lib/booking-status'
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient()
@@ -48,48 +53,76 @@ export default async function AdminDashboardPage() {
   )
 
   const tiles = [
-    { label: 'Bookings today', value: formatCompactNumber(bookingsToday ?? 0) },
-    { label: 'Bookings this week', value: formatCompactNumber(bookingsThisWeek ?? 0) },
-    { label: 'Revenue this month', value: formatCompactCurrency(revenueThisMonth) },
-    { label: 'Pending leads', value: formatCompactNumber(pendingLeads ?? 0) },
-    { label: 'Active technicians', value: formatCompactNumber(activeTechnicians ?? 0) },
+    { label: 'Bookings today', value: formatCompactNumber(bookingsToday ?? 0), icon: CalendarCheck },
+    {
+      label: 'Bookings this week',
+      value: formatCompactNumber(bookingsThisWeek ?? 0),
+      icon: CalendarRange,
+    },
+    { label: 'Revenue this month', value: formatCompactCurrency(revenueThisMonth), icon: DollarSign },
+    { label: 'Pending leads', value: formatCompactNumber(pendingLeads ?? 0), icon: Target },
+    {
+      label: 'Active technicians',
+      value: formatCompactNumber(activeTechnicians ?? 0),
+      icon: Wrench,
+    },
   ]
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <p className="text-sm text-muted-foreground">A snapshot of how the business is running.</p>
+      </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {tiles.map((tile) => (
-          <div key={tile.label} className="rounded-lg border border-border p-4">
-            <p className="text-sm text-muted-foreground">{tile.label}</p>
-            <p className="mt-1 text-2xl font-semibold">{tile.value}</p>
-          </div>
+          <Card key={tile.label}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-normal text-muted-foreground">
+                {tile.label}
+              </CardTitle>
+              <tile.icon className="size-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-semibold">{tile.value}</p>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      <div className="mt-8">
-        <h2 className="font-semibold">Recent bookings</h2>
-        <ul className="mt-3 divide-y divide-border rounded-lg border border-border">
-          {(recentBookings ?? []).map((b) => (
-            <li key={b.id} className="flex items-center justify-between px-4 py-3">
-              <div>
-                <p className="font-medium">{b.customer_name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {new Date(b.scheduled_at).toLocaleString()}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm capitalize">{b.status.replace('_', ' ')}</p>
-                <p className="font-semibold">${Number(b.total_amount).toFixed(2)}</p>
-              </div>
-            </li>
-          ))}
-          {(recentBookings ?? []).length === 0 && (
-            <li className="px-4 py-3 text-sm text-muted-foreground">No bookings yet.</li>
-          )}
-        </ul>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent bookings</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <ul className="divide-y divide-border">
+            {(recentBookings ?? []).map((b) => (
+              <li key={b.id} className="flex items-center justify-between px-6 py-3">
+                <Link href={`/admin/bookings/${b.id}`} className="min-w-0">
+                  <p className="truncate font-medium hover:underline">{b.customer_name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(b.scheduled_at).toLocaleString()}
+                  </p>
+                </Link>
+                <div className="flex items-center gap-3">
+                  <Badge variant="outline" className={BOOKING_STATUS_STYLES[b.status]}>
+                    {formatBookingStatus(b.status)}
+                  </Badge>
+                  <span className="font-semibold tabular-nums">
+                    ${Number(b.total_amount).toFixed(2)}
+                  </span>
+                </div>
+              </li>
+            ))}
+            {(recentBookings ?? []).length === 0 && (
+              <li className="px-6 py-8 text-center text-sm text-muted-foreground">
+                No bookings yet.
+              </li>
+            )}
+          </ul>
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -1,6 +1,10 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { ArrowLeft, Car, MapPin, Wrench } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { BookingDetailActions } from './booking-detail-actions'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 
 export default async function BookingDetailPage({
   params,
@@ -45,61 +49,92 @@ export default async function BookingDetailPage({
   )
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold">{booking.customer_name}</h1>
-      <p className="text-muted-foreground">
-        {booking.customer_email} &middot; {booking.customer_phone}
-      </p>
-
-      <div className="mt-6 rounded-lg border border-border p-4">
-        <h2 className="font-semibold">Vehicle &amp; services</h2>
-        <p className="mt-1 text-sm">
-          {booking.vehicle_year} {booking.vehicle_make} {booking.vehicle_model} (
-          {booking.vehicle_class})
+    <div className="max-w-2xl space-y-6">
+      <div>
+        <Link
+          href="/admin/bookings"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-3.5" />
+          Back to bookings
+        </Link>
+        <h1 className="mt-2 text-2xl font-bold">{booking.customer_name}</h1>
+        <p className="text-sm text-muted-foreground">
+          {booking.customer_email} &middot; {booking.customer_phone}
         </p>
-        <ul className="mt-3 space-y-1 text-sm">
-          {lineItems.map((item) => (
-            <li key={item.id} className="flex justify-between">
-              <span>{item.name}</span>
-              <span>${item.price.toFixed(2)}</span>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-3 flex justify-between border-t border-border pt-3 font-semibold">
-          <span>Total</span>
-          <span>${Number(booking.total_amount).toFixed(2)}</span>
-        </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Car className="size-4 text-muted-foreground" />
+            Vehicle &amp; services
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            {booking.vehicle_year} {booking.vehicle_make} {booking.vehicle_model} &middot;{' '}
+            <span className="capitalize">{booking.vehicle_class}</span>
+          </p>
+          <ul className="mt-3 space-y-1.5 text-sm">
+            {lineItems.map((item) => (
+              <li key={item.id} className="flex justify-between">
+                <span>{item.name}</span>
+                <span className="tabular-nums">${item.price.toFixed(2)}</span>
+              </li>
+            ))}
+          </ul>
+          <Separator className="my-3" />
+          <div className="flex justify-between font-semibold">
+            <span>Total</span>
+            <span className="tabular-nums">${Number(booking.total_amount).toFixed(2)}</span>
+          </div>
+        </CardContent>
+      </Card>
 
       {photoUrls.length > 0 && (
-        <div className="mt-6 rounded-lg border border-border p-4">
-          <h2 className="font-semibold">Damage photos</h2>
-          <div className="mt-3 grid grid-cols-3 gap-2">
-            {photoUrls.map(
-              (p) =>
-                p.url && (
-                  // eslint-disable-next-line @next/next/no-img-element -- signed URL, not worth remotePatterns config
-                  <img
-                    key={p.id}
-                    src={p.url}
-                    alt="Damage photo submitted with quote"
-                    className="aspect-square rounded-md border border-border object-cover"
-                  />
-                )
-            )}
-          </div>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Wrench className="size-4 text-muted-foreground" />
+              Damage photos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-2">
+              {photoUrls.map(
+                (p) =>
+                  p.url && (
+                    // eslint-disable-next-line @next/next/no-img-element -- signed URL, not worth remotePatterns config
+                    <img
+                      key={p.id}
+                      src={p.url}
+                      alt="Damage photo submitted with quote"
+                      className="aspect-square rounded-md border border-border object-cover"
+                    />
+                  )
+              )}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      <div className="mt-6 rounded-lg border border-border p-4">
-        <h2 className="font-semibold">Location &amp; time</h2>
-        <p className="mt-1 text-sm">
-          {booking.service_address}, {booking.service_city} {booking.service_zip}
-        </p>
-        <p className="text-sm text-muted-foreground">
-          {new Date(booking.scheduled_at).toLocaleString()}
-        </p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <MapPin className="size-4 text-muted-foreground" />
+            Location &amp; time
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm">
+            {booking.service_address}, {booking.service_city} {booking.service_zip}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {new Date(booking.scheduled_at).toLocaleString()}
+          </p>
+        </CardContent>
+      </Card>
 
       <BookingDetailActions
         bookingId={booking.id}

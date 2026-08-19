@@ -2,6 +2,10 @@
 
 import { useMemo, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { Label } from '@/components/ui/label'
 
 type Service = {
   id: string
@@ -26,11 +30,11 @@ export function ServiceSelector({
     [services, selected]
   )
 
-  function toggle(id: string) {
+  function toggle(id: string, checked: boolean) {
     setSelected((prev) => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      if (checked) next.add(id)
+      else next.delete(id)
       return next
     })
   }
@@ -47,16 +51,19 @@ export function ServiceSelector({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <ul className="space-y-3">
         {services.map((s) => (
           <li key={s.id}>
-            <label className="flex cursor-pointer items-start gap-3 rounded-md border border-border p-4 hover:bg-muted">
-              <input
-                type="checkbox"
+            <Label
+              htmlFor={`service-${s.id}`}
+              className="flex cursor-pointer items-start gap-3 rounded-md border border-border p-4 font-normal hover:bg-muted"
+            >
+              <Checkbox
+                id={`service-${s.id}`}
                 checked={selected.has(s.id)}
-                onChange={() => toggle(s.id)}
-                className="mt-1"
+                onCheckedChange={(checked) => toggle(s.id, checked === true)}
+                className="mt-0.5"
               />
               <span className="flex-1">
                 <span className="block font-medium">{s.name}</span>
@@ -64,24 +71,22 @@ export function ServiceSelector({
                   <span className="block text-sm text-muted-foreground">{s.description}</span>
                 )}
               </span>
-              <span className="font-semibold">${s.price.toFixed(2)}</span>
-            </label>
+              <span className="font-semibold tabular-nums">${s.price.toFixed(2)}</span>
+            </Label>
           </li>
         ))}
       </ul>
 
-      <div className="flex items-center justify-between border-t border-border pt-4">
+      <Separator />
+
+      <div className="flex items-center justify-between">
         <span className="text-lg font-semibold">Total</span>
-        <span className="text-lg font-bold">${total.toFixed(2)}</span>
+        <span className="text-lg font-bold tabular-nums">${total.toFixed(2)}</span>
       </div>
 
-      <button
-        type="submit"
-        disabled={selected.size === 0}
-        className="w-full rounded-md bg-brand px-4 py-2.5 font-semibold text-brand-foreground disabled:opacity-50"
-      >
+      <Button type="submit" disabled={selected.size === 0} className="w-full">
         See my quote
-      </button>
+      </Button>
     </form>
   )
 }

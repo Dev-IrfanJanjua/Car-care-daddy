@@ -1,6 +1,17 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createTechnician } from '@/lib/actions/admin/technicians'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+
+const TECHNICIAN_STATUS_STYLES: Record<string, string> = {
+  active: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  inactive: 'bg-muted text-muted-foreground',
+  on_leave: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+}
 
 export default async function AdminTechniciansPage() {
   const supabase = await createClient()
@@ -10,58 +21,62 @@ export default async function AdminTechniciansPage() {
     .order('full_name')
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold">Technicians</h1>
+    <div className="max-w-2xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Technicians</h1>
+        <p className="text-sm text-muted-foreground">Your mobile repair team.</p>
+      </div>
 
-      <ul className="mt-6 divide-y divide-border rounded-lg border border-border">
-        {(technicians ?? []).map((t) => (
-          <li key={t.id} className="flex items-center justify-between px-4 py-3">
-            <div>
-              <Link href={`/admin/technicians/${t.id}`} className="font-medium hover:underline">
-                {t.full_name}
-              </Link>
-              <p className="text-sm text-muted-foreground">{t.email ?? t.phone ?? '—'}</p>
+      <Card>
+        <CardContent className="p-0">
+          <ul className="divide-y divide-border">
+            {(technicians ?? []).map((t) => (
+              <li key={t.id} className="flex items-center justify-between px-6 py-3">
+                <div>
+                  <Link
+                    href={`/admin/technicians/${t.id}`}
+                    className="font-medium hover:underline"
+                  >
+                    {t.full_name}
+                  </Link>
+                  <p className="text-sm text-muted-foreground">{t.email ?? t.phone ?? '—'}</p>
+                </div>
+                <Badge variant="outline" className={`capitalize ${TECHNICIAN_STATUS_STYLES[t.status]}`}>
+                  {t.status.replace('_', ' ')}
+                </Badge>
+              </li>
+            ))}
+            {(technicians ?? []).length === 0 && (
+              <li className="px-6 py-8 text-center text-sm text-muted-foreground">
+                No technicians yet.
+              </li>
+            )}
+          </ul>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Add a technician</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form action={createTechnician} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="fullName">Full name</Label>
+              <Input id="fullName" name="fullName" required />
             </div>
-            <span className="text-sm capitalize text-muted-foreground">
-              {t.status.replace('_', ' ')}
-            </span>
-          </li>
-        ))}
-        {(technicians ?? []).length === 0 && (
-          <li className="px-4 py-3 text-sm text-muted-foreground">No technicians yet.</li>
-        )}
-      </ul>
-
-      <form
-        action={createTechnician}
-        className="mt-8 space-y-3 rounded-lg border border-border p-4"
-      >
-        <h2 className="font-semibold">Add a technician</h2>
-        <input
-          name="fullName"
-          placeholder="Full name"
-          required
-          className="w-full rounded-md border border-border bg-background px-3 py-2"
-        />
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          className="w-full rounded-md border border-border bg-background px-3 py-2"
-        />
-        <input
-          name="phone"
-          type="tel"
-          placeholder="Phone"
-          className="w-full rounded-md border border-border bg-background px-3 py-2"
-        />
-        <button
-          type="submit"
-          className="rounded-md bg-brand px-4 py-2 font-semibold text-brand-foreground"
-        >
-          Add technician
-        </button>
-      </form>
+            <div className="space-y-1.5">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" name="email" type="email" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="phone">Phone</Label>
+              <Input id="phone" name="phone" type="tel" />
+            </div>
+            <Button type="submit">Add technician</Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }

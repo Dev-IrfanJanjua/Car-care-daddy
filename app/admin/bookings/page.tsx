@@ -1,6 +1,18 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import type { Database } from '@/lib/types/database.types'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { BOOKING_STATUS_STYLES, formatBookingStatus } from '@/lib/booking-status'
 
 type BookingStatus = Database['public']['Enums']['booking_status']
 
@@ -23,9 +35,7 @@ export default async function AdminBookingsPage({
 
   let query = supabase
     .from('bookings')
-    .select(
-      'id, customer_name, vehicle_make, vehicle_model, scheduled_at, status, total_amount'
-    )
+    .select('id, customer_name, vehicle_make, vehicle_model, scheduled_at, status, total_amount')
     .order('scheduled_at', { ascending: true })
 
   if (status) {
@@ -35,64 +45,80 @@ export default async function AdminBookingsPage({
   const { data: bookings } = await query
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Bookings</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Bookings</h1>
+        <p className="text-sm text-muted-foreground">All customer appointments.</p>
+      </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Link
-          href="/admin/bookings"
-          className={`rounded-full px-3 py-1 text-sm ${!status ? 'bg-brand text-brand-foreground' : 'border border-border'}`}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant={!status ? 'default' : 'outline'}
+          size="sm"
+          render={<Link href="/admin/bookings" />}
         >
           All
-        </Link>
+        </Button>
         {STATUS_OPTIONS.map((s) => (
-          <Link
+          <Button
             key={s}
-            href={`/admin/bookings?status=${s}`}
-            className={`rounded-full px-3 py-1 text-sm capitalize ${status === s ? 'bg-brand text-brand-foreground' : 'border border-border'}`}
+            variant={status === s ? 'default' : 'outline'}
+            size="sm"
+            className="capitalize"
+            render={<Link href={`/admin/bookings?status=${s}`} />}
           >
-            {s.replace('_', ' ')}
-          </Link>
+            {formatBookingStatus(s)}
+          </Button>
         ))}
       </div>
 
-      <div className="mt-6 overflow-x-auto rounded-lg border border-border">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-border text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3">Customer</th>
-              <th className="px-4 py-3">Vehicle</th>
-              <th className="px-4 py-3">Scheduled</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Total</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {(bookings ?? []).map((b) => (
-              <tr key={b.id} className="hover:bg-muted">
-                <td className="px-4 py-3">
-                  <Link href={`/admin/bookings/${b.id}`} className="font-medium hover:underline">
-                    {b.customer_name}
-                  </Link>
-                </td>
-                <td className="px-4 py-3">
-                  {b.vehicle_make} {b.vehicle_model}
-                </td>
-                <td className="px-4 py-3">{new Date(b.scheduled_at).toLocaleString()}</td>
-                <td className="px-4 py-3 capitalize">{b.status.replace('_', ' ')}</td>
-                <td className="px-4 py-3">${Number(b.total_amount).toFixed(2)}</td>
-              </tr>
-            ))}
-            {(bookings ?? []).length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">
-                  No bookings found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Customer</TableHead>
+                <TableHead>Vehicle</TableHead>
+                <TableHead>Scheduled</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(bookings ?? []).map((b) => (
+                <TableRow key={b.id}>
+                  <TableCell>
+                    <Link href={`/admin/bookings/${b.id}`} className="font-medium hover:underline">
+                      {b.customer_name}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {b.vehicle_make} {b.vehicle_model}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {new Date(b.scheduled_at).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={BOOKING_STATUS_STYLES[b.status]}>
+                      {formatBookingStatus(b.status)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right font-medium tabular-nums">
+                    ${Number(b.total_amount).toFixed(2)}
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(bookings ?? []).length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                    No bookings found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   )
 }
