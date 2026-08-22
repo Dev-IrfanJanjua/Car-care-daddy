@@ -12,15 +12,25 @@ headlight restoration, and more. Next.js (App Router) + Supabase.
    - `supabase/migrations/0002_rls_policies.sql`
    - `supabase/migrations/0003_seed.sql`
    - `supabase/migrations/0004_storage.sql` (damage-photo upload bucket)
+   - `supabase/migrations/0005_security_hardening.sql` (role-escalation guard,
+     per-booking access tokens, one-review-per-booking)
+   - `supabase/migrations/0006_booking_integrity.sql` (atomic booking creation,
+     reminder idempotency)
 3. **Copy env vars**: `cp .env.local.example .env.local`, then fill in the values from
    your Supabase project's Settings → API page (`NEXT_PUBLIC_SUPABASE_URL`,
    `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`).
-4. **Create your first admin user**: sign up once through Supabase Auth (dashboard →
-   Authentication → Add user, or build/use the app's own sign-up flow), then promote it:
+4. **Create your first admin user**: add the user through Supabase Auth (dashboard →
+   Authentication → Add user), then promote it from the dashboard SQL editor:
    ```sql
    update public.profiles set role = 'admin' where id = '<the user's uuid>';
    ```
-5. Install dependencies and run the dev server:
+   The `profiles_guard_role` trigger from `0005` blocks a signed-in user from
+   changing their own role, but deliberately allows it from the SQL editor and
+   the service-role client (no `auth.uid()`), so this step still works.
+5. **Turn off public signups** (dashboard → Authentication → Providers → Email).
+   There is no customer-facing sign-up flow — `/login` is staff-only — so leaving
+   signups open is unnecessary attack surface.
+6. Install dependencies and run the dev server:
    ```bash
    npm install
    npm run dev

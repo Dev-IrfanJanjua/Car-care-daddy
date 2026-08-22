@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createPartner, togglePartnerActive } from '@/lib/actions/admin/partners'
 import type { Database } from '@/lib/types/database.types'
@@ -5,13 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 
 type PartnerType = Database['public']['Enums']['partner_type']
 const PARTNER_TYPES: PartnerType[] = ['insurance', 'dealership', 'fleet', 'referral']
@@ -39,8 +33,13 @@ export default async function AdminPartnersPage() {
               const toggleAction = togglePartnerActive.bind(null, p.id, !p.is_active)
               return (
                 <li key={p.id} className="flex items-center justify-between px-6 py-3">
-                  <div>
-                    <p className="font-medium">{p.name}</p>
+                  <div className="min-w-0">
+                    <Link
+                      href={`/admin/partners/${p.id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {p.name}
+                    </Link>
                     <p className="text-sm capitalize text-muted-foreground">
                       {p.type} {p.contact_email && `· ${p.contact_email}`}
                     </p>
@@ -83,20 +82,21 @@ export default async function AdminPartnersPage() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="type">Type</Label>
-              <Select name="type" defaultValue={PARTNER_TYPES[0]}>
-                <SelectTrigger id="type" className="w-full">
-                  <SelectValue className="capitalize">
-                    {(value: PartnerType | null) => value}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {PARTNER_TYPES.map((t) => (
-                    <SelectItem key={t} value={t} className="capitalize">
-                      {t}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* Native select: the Select primitive's render-prop SelectValue
+                  takes a function child, which a Server Component can't pass to
+                  a Client Component. */}
+              <select
+                id="type"
+                name="type"
+                defaultValue={PARTNER_TYPES[0]}
+                className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm capitalize"
+              >
+                {PARTNER_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="contactName">Contact name</Label>

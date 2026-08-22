@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { BookingForm } from './booking-form'
-import { QuoteProgress } from '@/components/quote-progress'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { QuoteShell } from '@/components/quote/quote-shell'
 
 export default async function BookPage({
   searchParams,
@@ -14,27 +13,31 @@ export default async function BookPage({
     redirect('/quote')
   }
 
+  const vehicleQuery = new URLSearchParams({ make, model, year, class: vehicleClass }).toString()
+  const servicesQuery = new URLSearchParams({
+    make,
+    model,
+    year,
+    class: vehicleClass,
+    services,
+  }).toString()
+
   return (
-    <main className="mx-auto w-full max-w-xl px-4 py-12">
-      <QuoteProgress step={4} />
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Book your appointment</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            {year} {make} {model} &middot; ${Number(total).toFixed(2)}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <BookingForm
-            quoteId={quoteId}
-            make={make}
-            model={model}
-            year={year}
-            vehicleClass={vehicleClass}
-            services={services}
-          />
-        </CardContent>
-      </Card>
-    </main>
+    <QuoteShell
+      step={4}
+      backHref={`/quote/summary?${servicesQuery}`}
+      hrefs={[`/quote?${vehicleQuery}`, `/quote/services?${servicesQuery}`, `/quote/summary?${servicesQuery}`]}
+      title="Book your appointment"
+      description={`${year} ${make} ${model} · $${Number(total).toFixed(2)}`}
+    >
+      <BookingForm
+        quoteId={quoteId}
+        make={make}
+        model={model}
+        year={year}
+        vehicleClass={vehicleClass}
+        services={services}
+      />
+    </QuoteShell>
   )
 }

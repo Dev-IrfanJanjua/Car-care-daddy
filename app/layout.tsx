@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { RegisterServiceWorker } from "./register-sw";
-import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -20,22 +19,19 @@ export const metadata: Metadata = {
 
 export const viewport = {
   themeColor: "#0d9488",
+  // Light-only app. Declaring it stops the browser from auto-darkening form
+  // controls, scrollbars, and other UA-painted chrome on a dark-mode OS.
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} h-full antialiased`}
-      suppressHydrationWarning
-    >
+    <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <TooltipProvider delay={200}>
-            {children}
-            <Toaster />
-          </TooltipProvider>
-        </ThemeProvider>
+        <TooltipProvider delay={200}>
+          {children}
+          <Toaster />
+        </TooltipProvider>
         <RegisterServiceWorker />
       </body>
     </html>

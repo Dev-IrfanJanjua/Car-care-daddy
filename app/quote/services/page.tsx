@@ -2,17 +2,22 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { ServiceSelector } from './service-selector'
 import type { Database } from '@/lib/types/database.types'
-import { QuoteProgress } from '@/components/quote-progress'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { QuoteShell } from '@/components/quote/quote-shell'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']
 
 export default async function ServicesStepPage({
   searchParams,
 }: {
-  searchParams: Promise<{ make?: string; model?: string; year?: string; class?: string }>
+  searchParams: Promise<{
+    make?: string
+    model?: string
+    year?: string
+    class?: string
+    services?: string
+  }>
 }) {
-  const { make, model, year, class: vehicleClass } = await searchParams
+  const { make, model, year, class: vehicleClass, services: preselected } = await searchParams
 
   if (!make || !model || !year || !vehicleClass) {
     redirect('/quote')
@@ -36,23 +41,21 @@ export default async function ServicesStepPage({
     .filter((s) => priceByService.has(s.id))
     .map((s) => ({ ...s, price: priceByService.get(s.id)! }))
 
+  const vehicleQuery = new URLSearchParams({ make, model, year, class: vehicleClass }).toString()
+
   return (
-    <main className="mx-auto w-full max-w-xl px-4 py-12">
-      <QuoteProgress step={2} />
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Select your services</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            {year} {make} {model}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <ServiceSelector
-            services={servicesWithPrice}
-            vehicleParams={{ make, model, year, class: vehicleClass }}
-          />
-        </CardContent>
-      </Card>
-    </main>
+    <QuoteShell
+      step={2}
+      backHref={`/quote?${vehicleQuery}`}
+      hrefs={[`/quote?${vehicleQuery}`]}
+      title="Select your services"
+      description={`${year} ${make} ${model}`}
+    >
+      <ServiceSelector
+        services={servicesWithPrice}
+        vehicleParams={{ make, model, year, class: vehicleClass }}
+        initialSelectedIds={preselected ? preselected.split(',').filter(Boolean) : []}
+      />
+    </QuoteShell>
   )
 }

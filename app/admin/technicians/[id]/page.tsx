@@ -2,18 +2,12 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { updateTechnicianStatus } from '@/lib/actions/admin/technicians'
+import { updateTechnician, updateTechnicianStatus } from '@/lib/actions/admin/technicians'
 import type { Database } from '@/lib/types/database.types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 
 type TechnicianStatus = Database['public']['Enums']['technician_status']
 
@@ -59,26 +53,69 @@ export default async function TechnicianDetailPage({
 
       <Card>
         <CardHeader>
+          <CardTitle>Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form action={updateTechnician.bind(null, id)} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="fullName">Full name</Label>
+              <Input id="fullName" name="fullName" defaultValue={technician.full_name} required />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                defaultValue={technician.email ?? ''}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="phone">Phone</Label>
+              <Input id="phone" name="phone" type="tel" defaultValue={technician.phone ?? ''} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="skills">Skills</Label>
+              <Input
+                id="skills"
+                name="skills"
+                defaultValue={(technician.skills ?? []).join(', ')}
+                placeholder="windshield, headlights"
+              />
+              <p className="text-xs text-muted-foreground">Comma-separated.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="photoUrl">Photo URL</Label>
+              <Input id="photoUrl" name="photoUrl" defaultValue={technician.photo_url ?? ''} />
+            </div>
+            <Button type="submit">Save details</Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Status</CardTitle>
         </CardHeader>
         <CardContent>
           <form action={updateStatusForThisTechnician} className="space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="status">Availability</Label>
-              <Select name="status" defaultValue={technician.status}>
-                <SelectTrigger id="status" className="w-full">
-                  <SelectValue className="capitalize">
-                    {(value: TechnicianStatus | null) => value?.replace('_', ' ') ?? ''}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {STATUS_OPTIONS.map((s) => (
-                    <SelectItem key={s} value={s} className="capitalize">
-                      {s.replace('_', ' ')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* Native select: the Select primitive's render-prop SelectValue
+                  takes a function child, which a Server Component can't pass to
+                  a Client Component. */}
+              <select
+                id="status"
+                name="status"
+                defaultValue={technician.status}
+                className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm capitalize"
+              >
+                {STATUS_OPTIONS.map((s) => (
+                  <option key={s} value={s}>
+                    {s.replace('_', ' ')}
+                  </option>
+                ))}
+              </select>
             </div>
             <Button type="submit" variant="outline">
               Update status

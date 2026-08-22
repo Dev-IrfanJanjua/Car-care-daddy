@@ -141,6 +141,7 @@ export default async function BookingDetailPage({
         currentStatus={booking.status}
         currentTechnicianId={booking.assigned_technician_id}
         currentNotes={booking.notes ?? ''}
+        currentScheduledAt={booking.scheduled_at}
         technicians={technicians ?? []}
       />
     </div>

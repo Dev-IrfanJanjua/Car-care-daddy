@@ -19,8 +19,8 @@ const STATUS_OPTIONS: LeadStatus[] = ['new', 'contacted', 'converted', 'lost']
 
 const LEAD_STATUS_STYLES: Record<LeadStatus, string> = {
   new: 'bg-brand/10 text-brand',
-  contacted: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
-  converted: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  contacted: 'bg-blue-500/10 text-blue-600',
+  converted: 'bg-emerald-500/10 text-emerald-600',
   lost: 'bg-muted text-muted-foreground',
 }
 

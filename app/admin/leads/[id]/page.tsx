@@ -2,23 +2,19 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { convertLeadToBooking } from '@/lib/actions/admin/leads'
+import { convertLeadToBooking, updateLeadStatus } from '@/lib/actions/admin/leads'
 import type { Database } from '@/lib/types/database.types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']
+type LeadStatus = Database['public']['Enums']['lead_status']
 const VEHICLE_CLASSES: VehicleClass[] = ['sedan', 'suv', 'truck', 'van', 'coupe', 'luxury']
+// 'converted' is set by the conversion flow itself, not picked by hand.
+const MANUAL_LEAD_STATUSES: LeadStatus[] = ['new', 'contacted', 'lost']
 
 export default async function LeadDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -74,6 +70,23 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
         </CardContent>
       </Card>
 
+      {lead.status !== 'converted' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Update status</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            {MANUAL_LEAD_STATUSES.filter((s) => s !== lead.status).map((s) => (
+              <form key={s} action={updateLeadStatus.bind(null, id, s)}>
+                <Button type="submit" size="sm" variant="outline" className="capitalize">
+                  Mark {s}
+                </Button>
+              </form>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       {canConvert ? (
         <Card>
           <CardHeader>
@@ -112,20 +125,28 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="vehicleClass">Vehicle class</Label>
-                <Select name="vehicleClass" defaultValue={guessedClass ?? undefined} required>
-                  <SelectTrigger id="vehicleClass" className="w-full">
-                    <SelectValue placeholder="Confirm vehicle class" className="capitalize">
-                      {(value: VehicleClass | null) => value}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {VEHICLE_CLASSES.map((c) => (
-                      <SelectItem key={c} value={c} className="capitalize">
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {/* Native select: the Select primitive's render-prop SelectValue
+                    takes a function child, which a Server Component can't pass
+                    to a Client Component. */}
+                <select
+                  id="vehicleClass"
+                  name="vehicleClass"
+                  defaultValue={guessedClass ?? ''}
+                  required
+                  className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm capitalize"
+                >
+                  <option value="">Confirm vehicle class…</option>
+                  {VEHICLE_CLASSES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+                {guessedClass && (
+                  <p className="text-xs text-muted-foreground">
+                    Guessed from the model name — confirm before converting, it sets the price.
+                  </p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="serviceAddress">Street address</Label>

@@ -10,6 +10,9 @@ import {
   Handshake,
   BarChart3,
   Settings,
+  Star,
+  Car,
+  Tags,
   LogOut,
 } from 'lucide-react'
 import {
@@ -31,11 +34,28 @@ const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/bookings', label: 'Bookings', icon: CalendarCheck },
   { href: '/admin/leads', label: 'Leads', icon: Target },
+  { href: '/admin/reviews', label: 'Reviews', icon: Star },
   { href: '/admin/technicians', label: 'Technicians', icon: Wrench },
   { href: '/admin/partners', label: 'Partners', icon: Handshake },
   { href: '/admin/reports', label: 'Reports', icon: BarChart3 },
+]
+
+// The catalog pages used to be reachable only via a button buried inside
+// Settings, which is where the day-to-day pricing work actually happens.
+const CATALOG_ITEMS = [
+  { href: '/admin/settings/services', label: 'Services & pricing', icon: Tags },
+  { href: '/admin/settings/vehicles', label: 'Vehicles', icon: Car },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
+
+// /admin and /admin/settings are both prefixes of other nav hrefs, so they only
+// highlight on an exact match -- otherwise Settings would look active while
+// you're on Services or Vehicles.
+const EXACT_ONLY = ['/admin', '/admin/settings']
+
+function isActiveHref(pathname: string, href: string) {
+  return EXACT_ONLY.includes(href) ? pathname === href : pathname.startsWith(href)
+}
 
 export function AppSidebar({ user }: { user: { name: string; email: string } }) {
   const pathname = usePathname()
@@ -60,27 +80,29 @@ export function AppSidebar({ user }: { user: { name: string; email: string } }) 
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Operations</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {NAV_ITEMS.map((item) => {
-                const isActive =
-                  item.href === '/admin'
-                    ? pathname === '/admin'
-                    : pathname.startsWith(item.href)
-                return (
+        {[
+          { label: 'Operations', items: NAV_ITEMS },
+          { label: 'Catalog', items: CATALOG_ITEMS },
+        ].map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => (
                   <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton isActive={isActive} render={<Link href={item.href} />}>
+                    <SidebarMenuButton
+                      isActive={isActiveHref(pathname, item.href)}
+                      render={<Link href={item.href} />}
+                    >
                       <item.icon />
                       <span>{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter>

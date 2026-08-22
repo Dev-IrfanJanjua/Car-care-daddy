@@ -267,6 +267,8 @@ export type Database = {
           deposit_amount: number | null
           deposit_paid: boolean
           notes: string | null
+          access_token: string
+          reminder_sent_at: string | null
         }
         Insert: {
           id?: string
@@ -291,6 +293,8 @@ export type Database = {
           deposit_amount?: number | null
           deposit_paid?: boolean
           notes?: string | null
+          access_token?: string
+          reminder_sent_at?: string | null
         }
         Update: {
           id?: string
@@ -315,6 +319,8 @@ export type Database = {
           deposit_amount?: number | null
           deposit_paid?: boolean
           notes?: string | null
+          access_token?: string
+          reminder_sent_at?: string | null
         }
         Relationships: []
       }
@@ -479,7 +485,27 @@ export type Database = {
       }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      create_booking_with_services: {
+        Args: {
+          p_quote_id: string | null
+          p_customer_name: string
+          p_customer_email: string
+          p_customer_phone: string
+          p_vehicle_make: string
+          p_vehicle_model: string
+          p_vehicle_year: number
+          p_vehicle_class: Database['public']['Enums']['vehicle_class']
+          p_service_address: string
+          p_service_city: string
+          p_service_zip: string
+          p_scheduled_at: string
+          p_total_amount: number
+          p_line_items: Json
+        }
+        Returns: { new_booking_id: string; new_access_token: string }[]
+      }
+    }
     Enums: {
       user_role: 'customer' | 'admin'
       vehicle_class: 'sedan' | 'suv' | 'truck' | 'van' | 'coupe' | 'luxury'

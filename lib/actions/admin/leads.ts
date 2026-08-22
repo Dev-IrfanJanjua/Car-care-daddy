@@ -3,7 +3,9 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/auth/require-admin'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { calculateQuote } from '@/lib/pricing/calculate-quote'
+import { sendBookingConfirmationEmail } from '@/lib/email/send-booking-confirmation'
 import type { Database } from '@/lib/types/database.types'
 
 type LeadStatus = Database['public']['Enums']['lead_status']
@@ -40,7 +42,12 @@ export async function convertLeadToBooking(leadId: string, formData: FormData) {
     throw new Error('Lead has no valid services to convert')
   }
 
-  const { data: booking, error: bookingError } = await supabase
+  // bookings/booking_services have no INSERT policy -- by design, per 0002's
+  // header comment, every booking insert goes through the service-role client.
+  // requireAdmin() above is still what authorizes this action.
+  const admin = createAdminClient()
+
+  const { data: booking, error: bookingError } = await admin
     .from('bookings')
     .insert({
       customer_name: customerName,
@@ -56,12 +63,12 @@ export async function convertLeadToBooking(leadId: string, formData: FormData) {
       scheduled_at: new Date(scheduledAt).toISOString(),
       total_amount: quote.total,
     })
-    .select('id')
+    .select('id, access_token')
     .single()
 
   if (bookingError) throw bookingError
 
-  const { error: servicesError } = await supabase.from('booking_services').insert(
+  const { error: servicesError } = await admin.from('booking_services').insert(
     quote.lineItems.map((item) => ({
       booking_id: booking.id,
       service_id: item.serviceId,
@@ -75,6 +82,19 @@ export async function convertLeadToBooking(leadId: string, formData: FormData) {
     .update({ status: 'converted', converted_booking_id: booking.id })
     .eq('id', leadId)
   if (leadError) throw leadError
+
+  // The public booking path emails a confirmation; this one didn't. Same
+  // best-effort contract -- a failed send never blocks the conversion.
+  await sendBookingConfirmationEmail({
+    bookingId: booking.id,
+    accessToken: booking.access_token,
+    customerEmail,
+    customerName,
+    scheduledAt: new Date(scheduledAt).toISOString(),
+    serviceAddress,
+    serviceCity,
+    totalAmount: quote.total,
+  })
 
   redirect(`/admin/bookings/${booking.id}`)
 }

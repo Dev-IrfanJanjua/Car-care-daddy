@@ -2,6 +2,12 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* This app is light-only -- there is no theme switcher and nothing ever adds a
+   `.dark` class, which makes every `dark:` utility permanently inert.
+   Keep this line. Deleting it does NOT remove dark mode: `dark:` would fall
+   back to Tailwind's default `prefers-color-scheme: dark` media query, and the
+   ~30 `dark:` utilities still inside components/ui would suddenly activate for
+   anyone whose OS is in dark mode. */
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -86,47 +92,6 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Dark mode is class-based (.dark), matching shadcn's convention -- no
-   theme toggle is wired up yet, so this is inert until one exists. It used
-   to also be driven by prefers-color-scheme for --brand/--muted/--border,
-   which fought this block (light shadcn tokens + dark brand tokens at the
-   same time) whenever the OS was in dark mode -- removed for consistency. */
-.dark {
-  --brand: #2dd4bf;
-  --brand-foreground: #042f2e;
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: var(--brand);
-  --primary-foreground: var(--brand-foreground);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: var(--brand);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: var(--brand);
-  --sidebar-primary-foreground: var(--brand-foreground);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: var(--brand);
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -136,5 +101,21 @@
   }
   html {
     @apply font-sans;
+    /* Belt and braces with the viewport colorScheme in app/layout.tsx: keeps
+       UA-painted chrome (form controls, scrollbars) light regardless of OS. */
+    color-scheme: light;
   }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 40s linear infinite;
 }

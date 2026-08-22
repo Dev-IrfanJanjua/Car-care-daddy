@@ -8,9 +8,9 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 
 const TECHNICIAN_STATUS_STYLES: Record<string, string> = {
-  active: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  active: 'bg-emerald-500/10 text-emerald-600',
   inactive: 'bg-muted text-muted-foreground',
-  on_leave: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  on_leave: 'bg-amber-500/10 text-amber-600',
 }
 
 export default async function AdminTechniciansPage() {

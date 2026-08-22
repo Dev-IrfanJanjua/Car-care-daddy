@@ -9,42 +9,43 @@ type VehicleClass = Database['public']['Enums']['vehicle_class']
 export async function updateServicePrices(formData: FormData) {
   const { supabase } = await requireAdmin()
 
-  const updates: { serviceId: string; vehicleClass: string; basePrice: number }[] = []
+  const rows: { service_id: string; vehicle_class: VehicleClass; base_price: number }[] = []
   for (const [key, value] of formData.entries()) {
     const match = key.match(/^price:(.+):(.+)$/)
     if (!match) continue
     const [, serviceId, vehicleClass] = match
-    const basePrice = Number(value)
-    if (Number.isFinite(basePrice)) {
-      updates.push({ serviceId, vehicleClass, basePrice })
-    }
+
+    // A blank cell means "leave this alone". Without this guard Number('') is 0
+    // and Number.isFinite(0) is true, so clearing a field silently priced the
+    // service at $0.00.
+    const raw = String(value).trim()
+    if (raw === '') continue
+
+    const basePrice = Number(raw)
+    if (!Number.isFinite(basePrice) || basePrice < 0) continue
+
+    rows.push({
+      service_id: serviceId,
+      vehicle_class: vehicleClass as VehicleClass,
+      base_price: basePrice,
+    })
   }
 
-  const results = await Promise.all(
-    updates.map((u) =>
-      supabase
-        .from('service_prices')
-        .update({ base_price: u.basePrice })
-        .eq('service_id', u.serviceId)
-        .eq('vehicle_class', u.vehicleClass as VehicleClass)
-    )
-  )
-  const firstError = results.find((r) => r.error)?.error
-  if (firstError) throw firstError
+  if (rows.length === 0) {
+    revalidatePath('/admin/settings/services')
+    return
+  }
 
-  revalidatePath('/admin/settings/services')
-}
-
-export async function toggleServiceActive(serviceId: string, isActive: boolean) {
-  const { supabase } = await requireAdmin()
-
+  // Upsert, not update: a service created without its price rows had no row to
+  // match, so editing its price silently affected zero rows. The unique
+  // (service_id, vehicle_class) constraint backs the conflict target.
   const { error } = await supabase
-    .from('services')
-    .update({ is_active: isActive })
-    .eq('id', serviceId)
+    .from('service_prices')
+    .upsert(rows, { onConflict: 'service_id,vehicle_class' })
   if (error) throw error
 
   revalidatePath('/admin/settings/services')
+  revalidatePath('/quote/services')
 }
 
 export async function updateBusinessSettings(formData: FormData) {
@@ -61,6 +62,40 @@ export async function updateBusinessSettings(formData: FormData) {
       contact_email: contactEmail,
       contact_phone: contactPhone,
     })
+    .eq('id', true)
+  if (error) throw error
+
+  revalidatePath('/admin/settings')
+}
+
+// hours and service_area are schemaless jsonb columns that previously had no UI
+// at all -- they were seeded once and only changeable via SQL. These write the
+// same shapes the seed uses, so nothing downstream has to change.
+export async function updateBusinessHours(formData: FormData) {
+  const { supabase } = await requireAdmin()
+
+  const hours = {
+    mon_fri: String(formData.get('monFri') || ''),
+    sat: String(formData.get('sat') || ''),
+    sun: String(formData.get('sun') || ''),
+  }
+
+  const { error } = await supabase.from('business_settings').update({ hours }).eq('id', true)
+  if (error) throw error
+
+  revalidatePath('/admin/settings')
+}
+
+export async function updateServiceArea(formData: FormData) {
+  const { supabase } = await requireAdmin()
+
+  const centerZip = String(formData.get('centerZip') || '')
+  const radiusRaw = Number(formData.get('radiusMiles'))
+  const radiusMiles = Number.isFinite(radiusRaw) && radiusRaw > 0 ? radiusRaw : 25
+
+  const { error } = await supabase
+    .from('business_settings')
+    .update({ service_area: { type: 'radius', center_zip: centerZip, radius_miles: radiusMiles } })
     .eq('id', true)
   if (error) throw error
 

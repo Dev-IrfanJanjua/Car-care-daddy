@@ -9,16 +9,24 @@ import { Label } from '@/components/ui/label'
 
 export default async function ReviewPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ bookingId: string }>
+  searchParams: Promise<{ t?: string }>
 }) {
   const { bookingId } = await params
+  const { t: accessToken } = await searchParams
   const admin = createAdminClient()
+
+  // This page reads with the service-role key (a guest has no session), so the
+  // booking id alone must not be enough -- the per-booking token gates it.
+  if (!accessToken) notFound()
 
   const { data: booking } = await admin
     .from('bookings')
     .select('id, customer_name, status, vehicle_make, vehicle_model')
     .eq('id', bookingId)
+    .eq('access_token', accessToken)
     .single()
 
   if (!booking) notFound()
@@ -38,7 +46,7 @@ export default async function ReviewPage({
     )
   }
 
-  const action = submitReview.bind(null, bookingId)
+  const action = submitReview.bind(null, bookingId, accessToken)
 
   return (
     <main className="mx-auto w-full max-w-md px-4 py-16">
