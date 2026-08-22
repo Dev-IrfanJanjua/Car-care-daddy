@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { BookingForm } from './booking-form'
 import { QuoteShell } from '@/components/quote/quote-shell'
-import { formatPrice } from '@/lib/format'
 
 export default async function BookPage({
   searchParams,
@@ -29,7 +28,9 @@ export default async function BookPage({
       backHref={`/quote/summary?${servicesQuery}`}
       hrefs={[`/quote?${vehicleQuery}`, `/quote/services?${servicesQuery}`, `/quote/summary?${servicesQuery}`]}
       title="Book your appointment"
-      description={`${year} ${make} ${model} · ${formatPrice(Number(total))}`}
+      // The vehicle and total now lead the form itself as a summary panel, so
+      // repeating them here would just say the same thing twice.
+      description="Tell us where and when, and we'll come to you."
     >
       <BookingForm
         quoteId={quoteId}
@@ -38,6 +39,7 @@ export default async function BookPage({
         year={year}
         vehicleClass={vehicleClass}
         services={services}
+        total={Number(total)}
       />
     </QuoteShell>
   )

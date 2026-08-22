@@ -1,10 +1,6 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { CircleCheck } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { formatPrice } from '@/lib/format'
+import { BookingSuccessCard } from './success-card'
 
 export default async function BookingSuccessPage({
   params,
@@ -34,24 +30,7 @@ export default async function BookingSuccessPage({
 
   return (
     <main className="mx-auto w-full max-w-xl px-4 py-12">
-      <Card>
-        <CardContent className="flex flex-col items-center py-10 text-center">
-          <CircleCheck className="size-12 text-brand" />
-          <h1 className="mt-4 text-2xl font-bold">
-            You&apos;re all set, {booking.customer_name.split(' ')[0]}!
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            We&apos;ll see you at {booking.service_address}, {booking.service_city} on{' '}
-            {new Date(booking.scheduled_at).toLocaleString()}.
-          </p>
-          <p className="mt-4 text-lg font-semibold tabular-nums">
-            Total: {formatPrice(Number(booking.total_amount))}
-          </p>
-          <Button variant="outline" className="mt-6" render={<Link href="/" />}>
-            Back to home
-          </Button>
-        </CardContent>
-      </Card>
+      <BookingSuccessCard booking={booking} />
     </main>
   )
 }

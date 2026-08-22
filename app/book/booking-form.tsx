@@ -3,10 +3,13 @@
 import { useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { motion } from 'motion/react'
-import { CalendarClock, CircleCheck, MapPin, User } from 'lucide-react'
+import { CircleCheck, ShieldCheck } from 'lucide-react'
 import { createBooking } from '@/lib/actions/bookings'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { formatPrice } from '@/lib/format'
+import { SERVICE_CITY, WARRANTY_YEARS } from '@/lib/contact'
 
 // useFormStatus resets itself when the action settles, including on error --
 // the previous manual `pending` state was never cleared, so a failed booking
@@ -15,7 +18,7 @@ function SubmitButton() {
   const { pending } = useFormStatus()
 
   return (
-    <Button type="submit" disabled={pending} size="lg" className="h-11 w-full text-base">
+    <Button type="submit" disabled={pending} size="lg" className="h-12 w-full text-base">
       {pending ? (
         'Booking…'
       ) : (
@@ -49,6 +52,38 @@ const section = (i: number) => ({
   transition: { duration: 0.35, delay: 0.08 * i, ease: [0.22, 1, 0.36, 1] as const },
 })
 
+/** Numbered marker, echoing the step circles on the homepage. */
+function StepLegend({ index, children }: { index: number; children: string }) {
+  return (
+    <legend className="mb-4 flex items-center gap-2.5">
+      <span className="flex size-7 items-center justify-center rounded-full border border-gold-700/50 bg-linear-to-br from-navy-700 to-navy-950 text-[11px] font-bold text-gold">
+        {index}
+      </span>
+      <span className="font-semibold">{children}</span>
+    </legend>
+  )
+}
+
+/**
+ * A labelled input. The form used to be placeholder-only, so every label
+ * vanished the moment you typed into the field.
+ */
+function Field({
+  id,
+  label,
+  className,
+  ...props
+}: React.ComponentProps<typeof Input> & { id: string; label: string }) {
+  return (
+    <div className={className}>
+      <Label htmlFor={id} className="mb-1.5 text-muted-foreground">
+        {label}
+      </Label>
+      <Input id={id} className="h-11" {...props} />
+    </div>
+  )
+}
+
 export function BookingForm(props: {
   quoteId?: string
   make: string
@@ -56,6 +91,7 @@ export function BookingForm(props: {
   year: string
   vehicleClass: string
   services: string
+  total: number
 }) {
   const [localWhen, setLocalWhen] = useState('')
 
@@ -64,7 +100,7 @@ export function BookingForm(props: {
     parsed && !Number.isNaN(parsed.getTime()) ? parsed.toISOString() : ''
 
   return (
-    <form action={createBooking} className="space-y-7">
+    <form action={createBooking} className="space-y-6">
       <input type="hidden" name="quoteId" value={props.quoteId ?? ''} />
       <input type="hidden" name="make" value={props.make} />
       <input type="hidden" name="model" value={props.model} />
@@ -73,49 +109,122 @@ export function BookingForm(props: {
       <input type="hidden" name="services" value={props.services} />
       <input type="hidden" name="scheduledAt" value={scheduledAtUtc} />
 
-      <motion.fieldset {...section(0)} className="space-y-3">
-        <legend className="mb-2 flex items-center gap-1.5 font-semibold">
-          <User className="size-4 text-brand" />
-          Your contact info
-        </legend>
-        <Input name="customerName" placeholder="Full name" className="h-11" required />
-        <Input name="customerEmail" type="email" placeholder="Email" className="h-11" required />
-        <Input name="customerPhone" type="tel" placeholder="Phone" className="h-11" required />
-      </motion.fieldset>
+      {/* Last step before committing, so what's being booked and what it costs
+          stay on screen rather than sitting in the header as a grey aside. */}
+      <motion.div
+        {...section(0)}
+        className="flex items-end justify-between gap-4 rounded-lg border border-border/60 bg-muted/50 px-4 py-3"
+      >
+        <div>
+          <p className="text-[11px] font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+            Your vehicle
+          </p>
+          <p className="mt-1 font-semibold">
+            {props.year} {props.make} {props.model}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-[11px] font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+            Total
+          </p>
+          <p className="mt-1 text-xl font-bold text-gold-ink tabular-nums">
+            {formatPrice(props.total)}
+          </p>
+        </div>
+      </motion.div>
 
       <motion.fieldset {...section(1)} className="space-y-3">
-        <legend className="mb-2 flex items-center gap-1.5 font-semibold">
-          <MapPin className="size-4 text-brand" />
-          Where should we come?
-        </legend>
-        <Input name="serviceAddress" placeholder="Street address" className="h-11" required />
-        <div className="flex gap-3">
-          <Input name="serviceCity" placeholder="City" className="h-11" required />
-          <Input name="serviceZip" placeholder="ZIP" required className="h-11 w-32" />
-        </div>
-      </motion.fieldset>
-
-      <motion.fieldset {...section(2)} className="space-y-3">
-        <legend className="mb-2 flex items-center gap-1.5 font-semibold">
-          <CalendarClock className="size-4 text-brand" />
-          When works best?
-        </legend>
-        <Input
-          type="datetime-local"
-          value={localWhen}
-          onChange={(e) => setLocalWhen(e.target.value)}
-          min={localMinValue()}
-          className="h-11"
-          aria-label="Appointment date and time"
+        <StepLegend index={1}>Your contact info</StepLegend>
+        <Field
+          id="customerName"
+          name="customerName"
+          label="Full name"
+          placeholder="Ayesha Khan"
+          autoComplete="name"
           required
         />
-        <p className="text-xs text-muted-foreground">
-          Times are in your local timezone.
-        </p>
+        <Field
+          id="customerEmail"
+          name="customerEmail"
+          type="email"
+          label="Email"
+          placeholder="you@example.com"
+          autoComplete="email"
+          required
+        />
+        <Field
+          id="customerPhone"
+          name="customerPhone"
+          type="tel"
+          label="Phone"
+          placeholder="0300 1234567"
+          autoComplete="tel"
+          required
+        />
       </motion.fieldset>
 
-      <motion.div {...section(3)}>
+      {/* The separating rule sits on a wrapper rather than the <fieldset>: a
+          bordered fieldset has its border notched around the <legend>, which
+          renders as a stray line shooting out of the heading. */}
+      <motion.div {...section(2)} className="border-t border-border/60 pt-6">
+        <fieldset className="space-y-3">
+          <StepLegend index={2}>Where should we come?</StepLegend>
+          <Field
+            id="serviceAddress"
+            name="serviceAddress"
+            label="Street address"
+            placeholder="House 12, Street 4, DHA Phase 5"
+            autoComplete="street-address"
+            required
+          />
+          <div className="flex gap-3">
+            {/* One city is the whole service area, so pre-filling it saves a
+                field's worth of typing. Still editable. */}
+            <Field
+              id="serviceCity"
+              name="serviceCity"
+              label="City"
+              defaultValue={SERVICE_CITY}
+              autoComplete="address-level2"
+              className="flex-1"
+              required
+            />
+            <Field
+              id="serviceZip"
+              name="serviceZip"
+              label="Postal code"
+              placeholder="54000"
+              autoComplete="postal-code"
+              inputMode="numeric"
+              className="w-32 shrink-0"
+              required
+            />
+          </div>
+        </fieldset>
+      </motion.div>
+
+      <motion.div {...section(3)} className="border-t border-border/60 pt-6">
+        <fieldset className="space-y-3">
+          <StepLegend index={3}>When works best?</StepLegend>
+          <Field
+            id="scheduledAtLocal"
+            type="datetime-local"
+            label="Appointment date and time"
+            value={localWhen}
+            onChange={(e) => setLocalWhen(e.target.value)}
+            min={localMinValue()}
+            required
+          />
+          <p className="text-xs text-muted-foreground">Times are in your local timezone.</p>
+        </fieldset>
+      </motion.div>
+
+      <motion.div {...section(4)} className="space-y-3 border-t border-border/60 pt-6">
         <SubmitButton />
+        <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
+          <ShieldCheck className="size-3.5 shrink-0 text-gold-ink" />
+          {WARRANTY_YEARS}-year warranty · instant email confirmation
+        </p>
       </motion.div>
     </form>
   )
