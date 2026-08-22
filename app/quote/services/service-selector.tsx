@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import { formatPrice } from '@/lib/format'
 
 type Service = {
   id: string
@@ -105,7 +106,7 @@ export function ServiceSelector({
                           </span>
                         )}
                       </span>
-                      <span className="font-semibold tabular-nums">${s.price.toFixed(2)}</span>
+                      <span className="font-semibold tabular-nums">{formatPrice(s.price)}</span>
                     </Label>
                   </li>
                 )
@@ -122,7 +123,7 @@ export function ServiceSelector({
           {selected.size > 0 && <Check className="size-4 text-brand" />}
           {selected.size} service{selected.size === 1 ? '' : 's'} selected
         </span>
-        <span className="text-lg font-bold tabular-nums">${total.toFixed(2)}</span>
+        <span className="text-lg font-bold tabular-nums">{formatPrice(total)}</span>
       </div>
 
       <Button type="submit" disabled={selected.size === 0} size="lg" className="h-11 w-full text-base">

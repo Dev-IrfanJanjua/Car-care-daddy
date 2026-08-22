@@ -1,5 +1,6 @@
 import { getResendClient } from './resend'
 import { bookingSuccessUrl, escapeHtml } from './booking-links'
+import { formatPrice } from '@/lib/format'
 import type { BookingEmailInfo } from './send-booking-confirmation'
 
 const FROM_ADDRESS = 'Car Care <onboarding@resend.dev>'
@@ -21,7 +22,7 @@ export async function sendBookingReminderEmail(booking: BookingEmailInfo) {
       html: `
         <p>Hi ${firstName},</p>
         <p>Just a reminder that we'll see you <strong>tomorrow, ${when}</strong> at ${where}.</p>
-        <p>Total: $${booking.totalAmount.toFixed(2)}</p>
+        <p>Total: ${formatPrice(booking.totalAmount)}</p>
         <p><a href="${detailsUrl}">View your booking</a></p>
       `,
     })

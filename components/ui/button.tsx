@@ -8,7 +8,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
+        // The gold hairline rides the border the base class already reserves
+        // (`border border-transparent`), so turning it on costs no layout
+        // shift -- and unlike a ring it never collides with the focus ring.
+        default:
+          // Faded to 50%, gold still reads brighter than the muted navy fill,
+          // so a disabled button drops the hairline entirely and goes flat.
+          "border-gold-600 bg-primary text-primary-foreground hover:border-gold-500 hover:bg-brand-hover disabled:border-transparent",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:

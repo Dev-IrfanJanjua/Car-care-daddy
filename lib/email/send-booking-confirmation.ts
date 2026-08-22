@@ -1,5 +1,6 @@
 import { getResendClient } from './resend'
 import { bookingSuccessUrl, escapeHtml } from './booking-links'
+import { formatPrice } from '@/lib/format'
 
 // Uses Resend's shared sandbox sender so this works with just an API key --
 // swap for a verified domain address before going to production.
@@ -33,7 +34,7 @@ export async function sendBookingConfirmationEmail(booking: BookingEmailInfo) {
       html: `
         <p>Hi ${firstName},</p>
         <p>Your appointment is confirmed for <strong>${when}</strong> at ${where}.</p>
-        <p>Total: $${booking.totalAmount.toFixed(2)}</p>
+        <p>Total: ${formatPrice(booking.totalAmount)}</p>
         <p><a href="${detailsUrl}">View your booking</a></p>
         <p>See you then!</p>
       `,

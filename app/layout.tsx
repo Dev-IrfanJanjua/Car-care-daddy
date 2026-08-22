@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { RegisterServiceWorker } from "./register-sw";
+import { MotionProvider } from "@/components/motion-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -12,13 +13,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Car Care",
+  title: "Car Care Daddy",
   description:
-    "Instant transparent pricing for windshield chip repair, polishing, headlight restoration, and other mobile auto-glass services.",
+    "Professional CeO₂ windshield restoration and full glass polishing at your doorstep in Lahore. Instant transparent pricing, 3-year results warranty.",
 };
 
 export const viewport = {
-  themeColor: "#0d9488",
+  // Midnight navy -- matches the hero band the browser chrome sits above.
+  themeColor: "#0a1128",
   // Light-only app. Declaring it stops the browser from auto-darkening form
   // controls, scrollbars, and other UA-painted chrome on a dark-mode OS.
   colorScheme: "light",
@@ -28,10 +30,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <TooltipProvider delay={200}>
-          {children}
-          <Toaster />
-        </TooltipProvider>
+        <MotionProvider>
+          <TooltipProvider delay={200}>
+            {children}
+            <Toaster />
+          </TooltipProvider>
+        </MotionProvider>
         <RegisterServiceWorker />
       </body>
     </html>

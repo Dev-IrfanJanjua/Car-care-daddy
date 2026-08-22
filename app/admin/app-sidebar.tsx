@@ -26,6 +26,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { signOut } from '@/lib/actions/auth'
@@ -59,6 +60,12 @@ function isActiveHref(pathname: string, href: string) {
 
 export function AppSidebar({ user }: { user: { name: string; email: string } }) {
   const pathname = usePathname()
+  // On mobile the sidebar is an overlay drawer -- leaving it open on top of the
+  // page you just navigated to means you have to dismiss it manually every time.
+  const { isMobile, setOpenMobile } = useSidebar()
+  const closeOnMobile = () => {
+    if (isMobile) setOpenMobile(false)
+  }
 
   const initials =
     user.name
@@ -72,10 +79,12 @@ export function AppSidebar({ user }: { user: { name: string; email: string } }) 
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1.5">
-          <div className="flex size-7 items-center justify-center rounded-md bg-brand text-sm font-bold text-brand-foreground">
+          {/* The sidebar surface is navy, so the mark has to be gold -- a
+              `bg-brand` chip here would be navy on navy. */}
+          <div className="flex size-7 items-center justify-center rounded-md bg-linear-to-br from-gold-300 via-gold-500 to-gold-700 text-sm font-bold text-navy-900">
             C
           </div>
-          <span className="font-semibold">Car Care</span>
+          <span className="font-semibold text-white">Car Care Daddy</span>
         </div>
       </SidebarHeader>
 
@@ -92,6 +101,8 @@ export function AppSidebar({ user }: { user: { name: string; email: string } }) 
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       isActive={isActiveHref(pathname, item.href)}
+                      onClick={closeOnMobile}
+                      className="data-active:bg-white/8 data-active:text-gold"
                       render={<Link href={item.href} />}
                     >
                       <item.icon />
@@ -107,12 +118,14 @@ export function AppSidebar({ user }: { user: { name: string; email: string } }) 
 
       <SidebarFooter>
         <div className="flex items-center gap-2 px-2 py-1.5">
-          <Avatar className="size-7">
-            <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+          <Avatar className="size-7 after:border-white/15">
+            <AvatarFallback className="bg-white/10 text-xs text-gold">{initials}</AvatarFallback>
           </Avatar>
           <div className="flex-1 overflow-hidden">
-            <p className="truncate text-sm font-medium">{user.name}</p>
-            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+            <p className="truncate text-sm font-medium text-white">{user.name}</p>
+            {/* --muted-foreground is tuned for the light pages; on navy it
+                falls under 3:1. */}
+            <p className="truncate text-xs text-chrome-500">{user.email}</p>
           </div>
         </div>
         <SidebarMenu>

@@ -48,7 +48,9 @@ export default async function Home() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <SiteHeader />
+      {/* The homepage is the only route with a dark full-bleed hero, so it's
+          the only one that floats the header over the top of it. */}
+      <SiteHeader overlay />
 
       <main className="flex-1">
         <HeroSection />

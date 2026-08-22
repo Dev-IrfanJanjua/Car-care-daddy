@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { BookingDetailActions } from './booking-detail-actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { formatPrice } from '@/lib/format'
 
 export default async function BookingDetailPage({
   params,
@@ -80,14 +81,14 @@ export default async function BookingDetailPage({
             {lineItems.map((item) => (
               <li key={item.id} className="flex justify-between">
                 <span>{item.name}</span>
-                <span className="tabular-nums">${item.price.toFixed(2)}</span>
+                <span className="tabular-nums">{formatPrice(item.price)}</span>
               </li>
             ))}
           </ul>
           <Separator className="my-3" />
           <div className="flex justify-between font-semibold">
             <span>Total</span>
-            <span className="tabular-nums">${Number(booking.total_amount).toFixed(2)}</span>
+            <span className="tabular-nums">{formatPrice(Number(booking.total_amount))}</span>
           </div>
         </CardContent>
       </Card>

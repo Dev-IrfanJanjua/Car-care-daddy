@@ -8,12 +8,13 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from '@/components/ui/combobox'
 
 type Make = { id: string; name: string }
 type Model = { id: string; make_id: string; name: string; vehicle_class: string }
@@ -32,28 +33,29 @@ export function VehicleStep({
   initialYear?: string
 }) {
   const router = useRouter()
-  const [makeId, setMakeId] = useState(
-    () => makes.find((m) => m.name === initialMake)?.id ?? ''
+  const [make, setMake] = useState<Make | null>(
+    () => makes.find((m) => m.name === initialMake) ?? null
   )
-  const [modelId, setModelId] = useState(
-    () => models.find((m) => m.name === initialModel && m.make_id === makeId)?.id ?? ''
+  const [model, setModel] = useState<Model | null>(
+    () => models.find((m) => m.name === initialModel && m.make_id === make?.id) ?? null
   )
   const [year, setYear] = useState(initialYear ?? '')
 
-  const modelsForMake = useMemo(() => models.filter((m) => m.make_id === makeId), [models, makeId])
-  const selectedMake = makes.find((m) => m.id === makeId)
-  const selectedModel = modelsForMake.find((m) => m.id === modelId)
-  const canSubmit = Boolean(selectedMake && selectedModel && year.length === 4)
+  const modelsForMake = useMemo(
+    () => (make ? models.filter((m) => m.make_id === make.id) : []),
+    [models, make]
+  )
+  const canSubmit = Boolean(make && model && year.length === 4)
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!selectedMake || !selectedModel) return
+    if (!make || !model) return
 
     const params = new URLSearchParams({
-      make: selectedMake.name,
-      model: selectedModel.name,
+      make: make.name,
+      model: model.name,
       year,
-      class: selectedModel.vehicle_class,
+      class: model.vehicle_class,
     })
     router.push(`/quote/services?${params.toString()}`)
   }
@@ -65,33 +67,34 @@ export function VehicleStep({
           <Car className="size-3.5 text-brand" />
           Car Brand
         </Label>
-        <Select
-          value={makeId}
+        {/* items= is what Base UI filters against as the customer types; the
+            chevron still opens the full list for anyone who'd rather browse. */}
+        <Combobox
+          items={makes}
+          value={make}
           onValueChange={(value) => {
-            setMakeId(value ?? '')
-            setModelId('')
+            setMake(value)
+            setModel(null) // a model from the old brand would be wrong
           }}
+          itemToStringLabel={(m: Make) => m.name}
         >
-          <SelectTrigger id="make" className="h-11 w-full">
-            {/* Base UI: a `children` function overrides the `placeholder` prop
-                entirely, so the empty case must be handled here -- otherwise the
-                trigger renders blank with no hint of what to pick. */}
-            <SelectValue>
-              {(value: string | null) =>
-                makes.find((m) => m.id === value)?.name ?? (
-                  <span className="text-muted-foreground">Select a car brand</span>
-                )
-              }
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {makes.map((m) => (
-              <SelectItem key={m.id} value={m.id}>
-                {m.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <ComboboxInput id="make" placeholder="Search or select a brand…" />
+          <ComboboxContent>
+            <ComboboxEmpty>
+              No brand matches that.{' '}
+              <Link href="/quote/not-listed" className="font-medium text-brand hover:underline">
+                Request a quote by hand
+              </Link>
+            </ComboboxEmpty>
+            <ComboboxList>
+              {(m: Make) => (
+                <ComboboxItem key={m.id} value={m}>
+                  {m.name}
+                </ComboboxItem>
+              )}
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
       </div>
 
       <div className="space-y-1.5">
@@ -99,29 +102,33 @@ export function VehicleStep({
           <ListChecks className="size-3.5 text-brand" />
           Model
         </Label>
-        <Select
-          value={modelId}
-          onValueChange={(value) => setModelId(value ?? '')}
-          disabled={!makeId}
+        <Combobox
+          items={modelsForMake}
+          value={model}
+          onValueChange={setModel}
+          itemToStringLabel={(m: Model) => m.name}
+          disabled={!make}
         >
-          <SelectTrigger id="model" className="h-11 w-full">
-            <SelectValue>
-              {(value: string | null) =>
-                modelsForMake.find((m) => m.id === value)?.name ?? (
-                  <span className="text-muted-foreground">Select a model</span>
-                )
-              }
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {modelsForMake.map((m) => (
-              <SelectItem key={m.id} value={m.id}>
-                {m.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {!makeId && <p className="text-xs text-muted-foreground">Choose a car brand first.</p>}
+          <ComboboxInput
+            id="model"
+            placeholder={make ? 'Search or select a model…' : 'Choose a car brand first'}
+          />
+          <ComboboxContent>
+            <ComboboxEmpty>
+              No model matches that.{' '}
+              <Link href="/quote/not-listed" className="font-medium text-brand hover:underline">
+                Request a quote by hand
+              </Link>
+            </ComboboxEmpty>
+            <ComboboxList>
+              {(m: Model) => (
+                <ComboboxItem key={m.id} value={m}>
+                  {m.name}
+                </ComboboxItem>
+              )}
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
       </div>
 
       <div className="space-y-1.5">

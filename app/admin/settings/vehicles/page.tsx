@@ -13,7 +13,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 
-export default async function VehicleSettingsPage() {
+export default async function VehicleSettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>
+}) {
+  const { q } = await searchParams
+  const query = (q ?? '').trim().toLowerCase()
   const supabase = await createClient()
 
   const [{ data: makes }, { data: models }] = await Promise.all([
@@ -26,6 +32,21 @@ export default async function VehicleSettingsPage() {
     const list = modelsByMake.get(model.make_id) ?? []
     list.push(model)
     modelsByMake.set(model.make_id, list)
+  }
+
+  // Server-side filter via ?q= -- no client JS, and the URL stays shareable.
+  // A brand matches if its own name matches or any of its models do.
+  const visibleMakes = (makes ?? []).filter((make) => {
+    if (!query) return true
+    if (make.name.toLowerCase().includes(query)) return true
+    return (modelsByMake.get(make.id) ?? []).some((m) =>
+      m.name.toLowerCase().includes(query)
+    )
+  })
+  const matchingModels = (make: { id: string; name: string }) => {
+    const all = modelsByMake.get(make.id) ?? []
+    if (!query || make.name.toLowerCase().includes(query)) return all
+    return all.filter((m) => m.name.toLowerCase().includes(query))
   }
 
   return (
@@ -117,9 +138,26 @@ export default async function VehicleSettingsPage() {
         </Card>
       </div>
 
+      <form method="get" className="flex gap-2">
+        <Input
+          name="q"
+          defaultValue={q ?? ''}
+          placeholder="Search brands and models…"
+          aria-label="Search brands and models"
+        />
+        <Button type="submit" variant="outline">
+          Search
+        </Button>
+        {query && (
+          <Button variant="ghost" render={<Link href="/admin/settings/vehicles" />}>
+            Clear
+          </Button>
+        )}
+      </form>
+
       <div className="space-y-4">
-        {(makes ?? []).map((make) => {
-          const makeModels = modelsByMake.get(make.id) ?? []
+        {visibleMakes.map((make) => {
+          const makeModels = matchingModels(make)
           return (
             <Card key={make.id}>
               <CardHeader>
@@ -170,10 +208,10 @@ export default async function VehicleSettingsPage() {
             </Card>
           )
         })}
-        {(makes ?? []).length === 0 && (
+        {visibleMakes.length === 0 && (
           <Card>
             <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              No car brands yet.
+              {query ? `Nothing matches "${q}".` : 'No car brands yet.'}
             </CardContent>
           </Card>
         )}

@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { QuoteProgress } from '@/components/quote-progress'
+import { StepTransition } from './step-transition'
 
 export function QuoteShell({
   step,
@@ -32,13 +33,15 @@ export function QuoteShell({
 
       <QuoteProgress step={step} hrefs={hrefs} />
 
-      <Card className="border-border/60 shadow-lg shadow-foreground/[0.03]">
-        <CardHeader>
-          <CardTitle className="text-2xl">{title}</CardTitle>
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
-        </CardHeader>
-        <CardContent>{children}</CardContent>
-      </Card>
+      <StepTransition>
+        <Card className="border-border/60 shadow-lg shadow-foreground/[0.03]">
+          <CardHeader>
+            <CardTitle className="text-2xl">{title}</CardTitle>
+            {description && <p className="text-sm text-muted-foreground">{description}</p>}
+          </CardHeader>
+          <CardContent>{children}</CardContent>
+        </Card>
+      </StepTransition>
     </main>
   )
 }

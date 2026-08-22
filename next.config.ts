@@ -7,11 +7,10 @@ const nextConfig: NextConfig = {
   // ranges since the machine's LAN IP varies (seen both 192.168.x.x and
   // 10.x.x.x this session).
   allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "172.*.*.*"],
-  // Auto-generated placeholder imagery (marketing sections) until real photos
-  // replace them.
+  // Only the testimonial avatars are still remote placeholders; every other
+  // image is a real local file under public/images.
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "picsum.photos" },
       { protocol: "https", hostname: "i.pravatar.cc" },
     ],
   },

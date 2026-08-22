@@ -1,5 +1,6 @@
 import { getResendClient } from './resend'
 import { escapeHtml } from './booking-links'
+import { formatPrice } from '@/lib/format'
 
 const FROM_ADDRESS = 'Car Care <onboarding@resend.dev>'
 
@@ -24,7 +25,7 @@ export async function sendQuoteEmail(quote: QuoteEmailInfo) {
       (item) =>
         `<tr><td style="padding:4px 12px 4px 0">${escapeHtml(
           item.name
-        )}</td><td align="right">$${item.price.toFixed(2)}</td></tr>`
+        )}</td><td align="right">${formatPrice(item.price)}</td></tr>`
     )
     .join('')
 
@@ -37,7 +38,7 @@ export async function sendQuoteEmail(quote: QuoteEmailInfo) {
         <p>${greeting}</p>
         <p>Here's your quote for the ${escapeHtml(quote.vehicle)}:</p>
         <table>${rows}</table>
-        <p><strong>Total: $${quote.total.toFixed(2)}</strong></p>
+        <p><strong>Total: ${formatPrice(quote.total)}</strong></p>
         <p><a href="${quote.quoteUrl}">Book this quote</a></p>
         <p>Prices hold for 7 days.</p>
       `,

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useFormStatus } from 'react-dom'
+import { motion } from 'motion/react'
 import { CalendarClock, CircleCheck, MapPin, User } from 'lucide-react'
 import { createBooking } from '@/lib/actions/bookings'
 import { Input } from '@/components/ui/input'
@@ -40,6 +41,14 @@ function localMinValue() {
   )}:${pad(now.getMinutes())}`
 }
 
+// Each block slides in slightly after the one above it, so the booking step
+// resolves top-to-bottom instead of appearing all at once.
+const section = (i: number) => ({
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.35, delay: 0.08 * i, ease: [0.22, 1, 0.36, 1] as const },
+})
+
 export function BookingForm(props: {
   quoteId?: string
   make: string
@@ -64,7 +73,7 @@ export function BookingForm(props: {
       <input type="hidden" name="services" value={props.services} />
       <input type="hidden" name="scheduledAt" value={scheduledAtUtc} />
 
-      <fieldset className="space-y-3">
+      <motion.fieldset {...section(0)} className="space-y-3">
         <legend className="mb-2 flex items-center gap-1.5 font-semibold">
           <User className="size-4 text-brand" />
           Your contact info
@@ -72,9 +81,9 @@ export function BookingForm(props: {
         <Input name="customerName" placeholder="Full name" className="h-11" required />
         <Input name="customerEmail" type="email" placeholder="Email" className="h-11" required />
         <Input name="customerPhone" type="tel" placeholder="Phone" className="h-11" required />
-      </fieldset>
+      </motion.fieldset>
 
-      <fieldset className="space-y-3">
+      <motion.fieldset {...section(1)} className="space-y-3">
         <legend className="mb-2 flex items-center gap-1.5 font-semibold">
           <MapPin className="size-4 text-brand" />
           Where should we come?
@@ -84,9 +93,9 @@ export function BookingForm(props: {
           <Input name="serviceCity" placeholder="City" className="h-11" required />
           <Input name="serviceZip" placeholder="ZIP" required className="h-11 w-32" />
         </div>
-      </fieldset>
+      </motion.fieldset>
 
-      <fieldset className="space-y-3">
+      <motion.fieldset {...section(2)} className="space-y-3">
         <legend className="mb-2 flex items-center gap-1.5 font-semibold">
           <CalendarClock className="size-4 text-brand" />
           When works best?
@@ -103,9 +112,11 @@ export function BookingForm(props: {
         <p className="text-xs text-muted-foreground">
           Times are in your local timezone.
         </p>
-      </fieldset>
+      </motion.fieldset>
 
-      <SubmitButton />
+      <motion.div {...section(3)}>
+        <SubmitButton />
+      </motion.div>
     </form>
   )
 }

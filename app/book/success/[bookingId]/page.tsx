@@ -4,6 +4,7 @@ import { CircleCheck } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { formatPrice } from '@/lib/format'
 
 export default async function BookingSuccessPage({
   params,
@@ -44,7 +45,7 @@ export default async function BookingSuccessPage({
             {new Date(booking.scheduled_at).toLocaleString()}.
           </p>
           <p className="mt-4 text-lg font-semibold tabular-nums">
-            Total: ${Number(booking.total_amount).toFixed(2)}
+            Total: {formatPrice(Number(booking.total_amount))}
           </p>
           <Button variant="outline" className="mt-6" render={<Link href="/" />}>
             Back to home

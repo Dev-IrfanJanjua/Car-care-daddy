@@ -1,3 +1,5 @@
+import { formatPrice } from '@/lib/format'
+
 type Point = { label: Date; value: number }
 
 export function RevenueTrendChart({ data }: { data: Point[] }) {
@@ -61,7 +63,7 @@ export function RevenueTrendChart({ data }: { data: Point[] }) {
         )}
         {points.map((p) => (
           <circle key={p.label.toISOString()} cx={p.x} cy={p.y} r={8} fill="transparent">
-            <title>{`Week of ${p.label.toLocaleDateString()}: $${p.value.toFixed(2)}`}</title>
+            <title>{`Week of ${p.label.toLocaleDateString()}: ${formatPrice(p.value)}`}</title>
           </circle>
         ))}
       </svg>
@@ -78,7 +80,7 @@ export function RevenueTrendChart({ data }: { data: Point[] }) {
           {data.map((d) => (
             <tr key={d.label.toISOString()}>
               <td className="pr-2">{d.label.toLocaleDateString()}</td>
-              <td>${d.value.toFixed(2)}</td>
+              <td>{formatPrice(d.value)}</td>
             </tr>
           ))}
         </tbody>

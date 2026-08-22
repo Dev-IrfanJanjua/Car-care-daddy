@@ -508,7 +508,19 @@ export type Database = {
     }
     Enums: {
       user_role: 'customer' | 'admin'
-      vehicle_class: 'sedan' | 'suv' | 'truck' | 'van' | 'coupe' | 'luxury'
+      // 'compact' | 'standard' | 'large' are the live price tiers (0007).
+      // The six below are retired US body classes kept because Postgres
+      // cannot drop an enum label in place. Do not use them for new rows.
+      vehicle_class:
+        | 'compact'
+        | 'standard'
+        | 'large'
+        | 'sedan'
+        | 'suv'
+        | 'truck'
+        | 'van'
+        | 'coupe'
+        | 'luxury'
       quote_status: 'active' | 'expired' | 'booked'
       lead_status: 'new' | 'contacted' | 'converted' | 'lost'
       booking_status:

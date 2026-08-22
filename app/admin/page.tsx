@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { CalendarCheck, CalendarRange, DollarSign, Target, Wrench } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { formatCompactNumber, formatCompactCurrency } from '@/lib/format'
+import { formatCompactNumber, formatCompactCurrency, formatPrice } from '@/lib/format'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { BOOKING_STATUS_STYLES, formatBookingStatus } from '@/lib/booking-status'
@@ -110,7 +110,7 @@ export default async function AdminDashboardPage() {
                     {formatBookingStatus(b.status)}
                   </Badge>
                   <span className="font-semibold tabular-nums">
-                    ${Number(b.total_amount).toFixed(2)}
+                    {formatPrice(Number(b.total_amount))}
                   </span>
                 </div>
               </li>

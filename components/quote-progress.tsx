@@ -4,6 +4,11 @@ import { cn } from '@/lib/utils'
 
 const STEPS = ['Vehicle', 'Services', 'Quote', 'Booking']
 
+// Equal-width grid columns, so a circle's centre is always at the centre of its
+// column. With N columns that's 100/(N*2)% in from each end -- which is exactly
+// where the connecting track has to start and stop.
+const TRACK_INSET = `${100 / (STEPS.length * 2)}%`
+
 export function QuoteProgress({
   step,
   hrefs = [],
@@ -14,8 +19,17 @@ export function QuoteProgress({
 }) {
   return (
     <div className="mb-8">
-      <div className="relative flex items-center justify-between">
-        <div className="absolute inset-x-4 top-1/2 h-1 -translate-y-1/2 overflow-hidden rounded-full bg-border">
+      <div
+        className="relative grid"
+        style={{ gridTemplateColumns: `repeat(${STEPS.length}, minmax(0, 1fr))` }}
+      >
+        {/* top-4 is half of the size-8 circle, so the track runs through the
+            circles' centres. (top-1/2 would centre it on the whole block --
+            circle + gap + label -- leaving it sitting ~11px too low.) */}
+        <div
+          className="absolute top-4 h-1 -translate-y-1/2 overflow-hidden rounded-full bg-border"
+          style={{ left: TRACK_INSET, right: TRACK_INSET }}
+        >
           <div
             className="h-full rounded-full bg-brand transition-[width] duration-500"
             style={{ width: `${((step - 1) / (STEPS.length - 1)) * 100}%` }}
@@ -31,10 +45,10 @@ export function QuoteProgress({
           const circle = (
             <span
               className={cn(
-                'relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border-2 bg-background text-xs font-semibold transition-colors',
+                'relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border-2 bg-background text-xs font-semibold transition-[color,background-color,border-color,box-shadow,transform] duration-300 ease-out',
                 (done || current) && 'border-brand bg-brand text-brand-foreground',
                 !done && !current && 'border-border text-muted-foreground',
-                current && 'ring-4 ring-brand/20'
+                current && 'scale-110 ring-4 ring-brand/20'
               )}
             >
               {done ? <Check className="size-4" /> : index}

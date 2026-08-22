@@ -4,15 +4,16 @@ import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { convertLeadToBooking, updateLeadStatus } from '@/lib/actions/admin/leads'
 import type { Database } from '@/lib/types/database.types'
+import { VEHICLE_CLASSES, vehicleClassLabel } from '@/lib/vehicles/classes'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { formatPrice } from '@/lib/format'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']
 type LeadStatus = Database['public']['Enums']['lead_status']
-const VEHICLE_CLASSES: VehicleClass[] = ['sedan', 'suv', 'truck', 'van', 'coupe', 'luxury']
 // 'converted' is set by the conversion flow itself, not picked by hand.
 const MANUAL_LEAD_STATUSES: LeadStatus[] = ['new', 'contacted', 'lost']
 
@@ -62,7 +63,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
             {lead.vehicle_year} {lead.vehicle_make} {lead.vehicle_model}
           </p>
           {lead.quote_total !== null && (
-            <p>Quoted total: ${Number(lead.quote_total).toFixed(2)}</p>
+            <p>Quoted total: {formatPrice(Number(lead.quote_total))}</p>
           )}
           <Badge variant="outline" className="capitalize">
             {lead.status}
@@ -138,7 +139,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                   <option value="">Confirm vehicle class…</option>
                   {VEHICLE_CLASSES.map((c) => (
                     <option key={c} value={c}>
-                      {c}
+                      {vehicleClassLabel(c)}
                     </option>
                   ))}
                 </select>

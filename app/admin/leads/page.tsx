@@ -4,6 +4,7 @@ import type { Database } from '@/lib/types/database.types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { formatPrice } from '@/lib/format'
 import {
   Table,
   TableBody,
@@ -18,8 +19,8 @@ type LeadStatus = Database['public']['Enums']['lead_status']
 const STATUS_OPTIONS: LeadStatus[] = ['new', 'contacted', 'converted', 'lost']
 
 const LEAD_STATUS_STYLES: Record<LeadStatus, string> = {
-  new: 'bg-brand/10 text-brand',
-  contacted: 'bg-blue-500/10 text-blue-600',
+  new: 'bg-gold/15 text-gold-ink',
+  contacted: 'bg-sky-500/12 text-sky-700',
   converted: 'bg-emerald-500/10 text-emerald-600',
   lost: 'bg-muted text-muted-foreground',
 }
@@ -98,7 +99,7 @@ export default async function AdminLeadsPage({
                     {lead.vehicle_make} {lead.vehicle_model}
                   </TableCell>
                   <TableCell className="tabular-nums">
-                    {lead.quote_total ? `$${Number(lead.quote_total).toFixed(2)}` : '—'}
+                    {lead.quote_total ? formatPrice(Number(lead.quote_total)) : '—'}
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className={`capitalize ${LEAD_STATUS_STYLES[lead.status]}`}>

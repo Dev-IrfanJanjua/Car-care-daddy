@@ -2,20 +2,20 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Car Care',
-    short_name: 'Car Care',
+    name: 'Car Care Daddy',
+    short_name: 'Car Care Daddy',
     description:
-      'Instant transparent pricing for windshield chip repair, polishing, headlight restoration, and other mobile auto-glass services.',
+      'Professional CeO₂ windshield restoration and full glass polishing at your doorstep in Lahore.',
     id: '/',
     start_url: '/',
     scope: '/',
     display: 'standalone',
     orientation: 'portrait',
     lang: 'en',
-    theme_color: '#0d9488',
+    theme_color: '#0a1128',
     // Light-only app, so the PWA splash background matches --background rather
     // than the near-black it used to use.
-    background_color: '#ffffff',
+    background_color: '#fbfcfe',
     icons: [
       { src: '/api/icons/192', sizes: '192x192', type: 'image/png' },
       { src: '/api/icons/512', sizes: '512x512', type: 'image/png' },

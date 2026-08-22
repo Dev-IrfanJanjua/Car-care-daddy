@@ -10,41 +10,84 @@
    anyone whose OS is in dark mode. */
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================================================
+   "Midnight & Chrome" -- the Car Care Daddy palette.
+
+   Two brand colors, one cool-neutral ramp. Deep midnight navy carries identity
+   and every primary action; champagne gold is the single accent.
+
+   Gold is never a large fill on a light surface -- #D4A24C sits at ~2:1 against
+   white and would fail on contrast. It earns its keep as hairlines, rules,
+   icons, stars, price emphasis and the logo mark, and it becomes the button
+   color on the dark hero where it hits 8.1:1 on navy. When gold has to be TEXT
+   on a light surface, use --gold-ink (#8A6A22, 5.05:1 on white), never --gold.
+   ========================================================================= */
 :root {
-  --brand: #0d9488;
+  /* ---- Brand primitives ---- */
+  --navy-950: #050b18; /* hero video base tint */
+  --navy-900: #0a1128; /* midnight navy -- the brand */
+  --navy-800: #0f1b3d; /* raised surface on dark */
+  --navy-700: #16255a; /* primary button hover */
+  --navy-600: #1e3272; /* focus ring */
+
+  --gold-300: #efd9a3; /* metallic highlight */
+  --gold-400: #e0bc72;
+  --gold-500: #d4a24c; /* champagne gold -- the accent */
+  --gold-600: #b4832f; /* gold hover on dark */
+  --gold-700: #8a6a22; /* "gold ink" -- AA-safe gold text on light */
+
+  --chrome-100: #e9eef4;
+  --chrome-300: #c9d3dd; /* body text on dark */
+  --chrome-500: #8c9aab; /* muted text on dark */
+
+  /* ---- Brand aliases ---- */
+  --brand: var(--navy-900);
   --brand-foreground: #ffffff;
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --border: oklch(0.922 0 0);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  --brand-hover: var(--navy-700);
+  --gold: var(--gold-500);
+  --gold-ink: var(--gold-700);
+  --gold-foreground: var(--navy-900);
+  --gold-hairline: color-mix(in oklch, var(--gold-500) 50%, transparent);
+  --chrome: var(--chrome-300);
+
+  /* ---- Light surfaces (cool paper, faintly navy-tinted) ---- */
+  --background: oklch(0.9925 0.0025 255);
+  --foreground: oklch(0.215 0.033 262); /* navy ink, not black */
+  --card: #ffffff;
+  --card-foreground: var(--foreground);
+  --popover: #ffffff;
+  --popover-foreground: var(--foreground);
+  --muted: oklch(0.965 0.006 255);
+  --muted-foreground: oklch(0.525 0.023 258);
+  --border: oklch(0.915 0.009 255);
+  --input: var(--border);
   --primary: var(--brand);
   --primary-foreground: var(--brand-foreground);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.965 0.006 255);
+  --secondary-foreground: oklch(0.265 0.03 262);
+  --accent: oklch(0.965 0.006 255);
+  --accent-foreground: oklch(0.265 0.03 262);
   --destructive: oklch(0.577 0.245 27.325);
-  --input: oklch(0.922 0 0);
-  --ring: var(--brand);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --ring: var(--navy-600);
+
+  /* Charts: a navy -> gold ramp, so reports read as the same brand. */
+  --chart-1: var(--navy-800);
+  --chart-2: #2a4585;
+  --chart-3: #4e74be;
+  --chart-4: var(--gold-500);
+  --chart-5: var(--gold-700);
+
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: var(--brand);
-  --sidebar-primary-foreground: var(--brand-foreground);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: var(--brand);
+
+  /* The admin sidebar is the one always-dark surface outside the hero. */
+  --sidebar: var(--navy-900);
+  --sidebar-foreground: var(--chrome-300);
+  --sidebar-primary: var(--gold-500);
+  --sidebar-primary-foreground: var(--navy-900);
+  --sidebar-accent: rgba(255, 255, 255, 0.06);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: var(--gold-500);
 }
 
 @theme inline {
@@ -52,6 +95,25 @@
   --color-foreground: var(--foreground);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-brand-hover: var(--brand-hover);
+  --color-navy-950: var(--navy-950);
+  --color-navy-900: var(--navy-900);
+  --color-navy-800: var(--navy-800);
+  --color-navy-700: var(--navy-700);
+  --color-navy-600: var(--navy-600);
+  --color-gold-300: var(--gold-300);
+  --color-gold-400: var(--gold-400);
+  --color-gold-500: var(--gold-500);
+  --color-gold-600: var(--gold-600);
+  --color-gold-700: var(--gold-700);
+  --color-gold: var(--gold);
+  --color-gold-ink: var(--gold-ink);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-gold-hairline: var(--gold-hairline);
+  --color-chrome-100: var(--chrome-100);
+  --color-chrome-300: var(--chrome-300);
+  --color-chrome-500: var(--chrome-500);
+  --color-chrome: var(--chrome);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
@@ -104,6 +166,15 @@
     /* Belt and braces with the viewport colorScheme in app/layout.tsx: keeps
        UA-painted chrome (form controls, scrollbars) light regardless of OS. */
     color-scheme: light;
+    /* The header is 61px and overlays content (fixed on the homepage, sticky
+       elsewhere), so an anchor jump would otherwise land the target's first
+       line underneath it. Respected by both `#hash` links and scrollIntoView.
+
+       Deliberately NOT paired with `scroll-behavior: smooth` here: the App
+       Router calls domNode.scrollIntoView() on every navigation, so making it
+       global would turn each route change into a slow slide. In-page anchors
+       opt into smoothness at the call site instead. */
+    scroll-padding-top: 5rem;
   }
 }
 
@@ -118,4 +189,76 @@
 
 .animate-marquee {
   animation: marquee 40s linear infinite;
+}
+
+/* The hero's legibility scrim. One element painting three stacked gradients:
+   stacking them as separate full-viewport divs made the compositor blend three
+   screen-sized layers on top of video decode every frame, which starved the
+   frame budget badly enough that motion's entrance animations visibly crawled.
+
+   Layers paint front to back: a breath of gold, the diagonal ramp that does
+   the real work under the copy, then edge darkening for the floating header
+   and the seam with the light page. */
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(65% 55% at 18% 32%, rgba(212, 162, 76, 0.12), transparent 70%),
+    linear-gradient(
+      105deg,
+      rgba(5, 11, 24, 0.94) 0%,
+      rgba(5, 11, 24, 0.87) 28%,
+      rgba(5, 11, 24, 0.58) 58%,
+      rgba(5, 11, 24, 0.3) 100%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(5, 11, 24, 0.55) 0%,
+      transparent 22%,
+      rgba(5, 11, 24, 0.35) 55%,
+      rgba(5, 11, 24, 0.88) 100%
+    );
+}
+
+/* A narrow viewport crops the clip to a sliver, and a mostly-horizontal ramp
+   then buries all of it. Lead with a vertical ramp instead, so the top of the
+   frame still reads as video and the copy still gets its dark bed. */
+@media (max-width: 639px) {
+  .hero-scrim {
+    background-image:
+      radial-gradient(70% 40% at 50% 22%, rgba(212, 162, 76, 0.12), transparent 70%),
+      linear-gradient(
+        to bottom,
+        rgba(5, 11, 24, 0.5) 0%,
+        rgba(5, 11, 24, 0.32) 28%,
+        rgba(5, 11, 24, 0.82) 60%,
+        rgba(5, 11, 24, 0.94) 100%
+      );
+  }
+}
+
+/* The recurring gold motif that carries the brand across the light sections:
+   a short hairline under every section eyebrow. */
+.rule-gold {
+  display: block;
+  height: 1px;
+  width: 2.5rem;
+  background-image: linear-gradient(to right, var(--gold-500), transparent);
+}
+
+/* Slow specular sweep -- light travelling across polished glass. Used on the
+   hero CTA. This is a CSS animation, so MotionConfig's reducedMotion="user"
+   does NOT govern it: every element using it must also carry
+   `motion-reduce:hidden`. */
+@keyframes shine {
+  from {
+    transform: translateX(-120%) skewX(-20deg);
+  }
+  to {
+    transform: translateX(220%) skewX(-20deg);
+  }
+}
+
+.animate-shine {
+  animation: shine 5.5s ease-in-out infinite;
 }

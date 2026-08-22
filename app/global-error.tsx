@@ -25,8 +25,9 @@ export default function GlobalError({ reset }: { error: Error; reset: () => void
           <button
             onClick={reset}
             style={{
-              background: '#0d9488',
+              background: '#0a1128',
               color: '#fff',
+              boxShadow: 'inset 0 0 0 1px #b4832f',
               border: 0,
               borderRadius: '0.5rem',
               padding: '0.6rem 1.1rem',

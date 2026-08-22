@@ -7,13 +7,13 @@ export function GET() {
         style={{
           fontSize: 96,
           fontWeight: 700,
-          background: '#0d9488',
+          background: '#0a1128',
           width: '100%',
           height: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'white',
+          color: '#d4a24c',
         }}
       >
         C

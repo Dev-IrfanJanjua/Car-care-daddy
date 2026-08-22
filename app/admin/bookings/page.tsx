@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { BOOKING_STATUS_STYLES, formatBookingStatus } from '@/lib/booking-status'
+import { formatPrice } from '@/lib/format'
 
 type BookingStatus = Database['public']['Enums']['booking_status']
 
@@ -104,7 +105,7 @@ export default async function AdminBookingsPage({
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right font-medium tabular-nums">
-                    ${Number(b.total_amount).toFixed(2)}
+                    {formatPrice(Number(b.total_amount))}
                   </TableCell>
                 </TableRow>
               ))}
