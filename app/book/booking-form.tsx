@@ -188,16 +188,25 @@ export function BookingForm(props: {
             autoComplete="street-address"
             required
           />
-          {/* One city is the whole service area, so pre-filling it saves a
-              field's worth of typing. Still editable. */}
+          {/* One city is the whole service area, so this is fixed rather than
+              asked. readOnly, not disabled: a disabled input submits nothing,
+              which would post an empty city. The server ignores this value
+              regardless -- see createBooking. */}
           <Field
             id="serviceCity"
             name="serviceCity"
             label="City"
-            defaultValue={SERVICE_CITY}
+            value={SERVICE_CITY}
+            readOnly
+            tabIndex={-1}
+            aria-describedby="serviceCity-note"
             autoComplete="address-level2"
+            className="[&_input]:cursor-not-allowed [&_input]:bg-muted [&_input]:text-muted-foreground"
             required
           />
+          <p id="serviceCity-note" className="text-xs text-muted-foreground">
+            We currently serve {SERVICE_CITY} only.
+          </p>
         </fieldset>
       </motion.div>
 
