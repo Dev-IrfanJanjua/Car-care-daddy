@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getServiceCatalog } from '@/lib/pricing/service-catalog'
 import { ServiceSelector } from './service-selector'
 import type { Database } from '@/lib/types/database.types'
 import { QuoteShell } from '@/components/quote/quote-shell'
@@ -23,21 +23,16 @@ export default async function ServicesStepPage({
     redirect('/quote')
   }
 
-  const supabase = await createClient()
-  const [{ data: services }, { data: prices }] = await Promise.all([
-    supabase
-      .from('services')
-      .select('id, name, description, category, sort_order')
-      .eq('is_active', true)
-      .order('sort_order'),
-    supabase
-      .from('service_prices')
-      .select('service_id, base_price')
-      .eq('vehicle_class', vehicleClass as VehicleClass),
-  ])
+  // Cached catalog, filtered to this vehicle class in memory -- see
+  // lib/pricing/service-catalog.ts for why this is not queried per request.
+  const { services, prices } = await getServiceCatalog()
 
-  const priceByService = new Map((prices ?? []).map((p) => [p.service_id, Number(p.base_price)]))
-  const servicesWithPrice = (services ?? [])
+  const priceByService = new Map(
+    prices
+      .filter((p) => p.vehicle_class === (vehicleClass as VehicleClass))
+      .map((p) => [p.service_id, Number(p.base_price)])
+  )
+  const servicesWithPrice = services
     .filter((s) => priceByService.has(s.id))
     .map((s) => ({ ...s, price: priceByService.get(s.id)! }))
 

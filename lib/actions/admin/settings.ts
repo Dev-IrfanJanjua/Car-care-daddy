@@ -1,7 +1,8 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, updateTag } from 'next/cache'
 import { requireAdmin } from '@/lib/auth/require-admin'
+import { SERVICE_CATALOG_TAG } from '@/lib/pricing/service-catalog'
 import type { Database } from '@/lib/types/database.types'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']
@@ -44,6 +45,10 @@ export async function updateServicePrices(formData: FormData) {
     .upsert(rows, { onConflict: 'service_id,vehicle_class' })
   if (error) throw error
 
+  // Prices are served from the cached catalog, so the tag -- not the paths --
+  // is what makes an edit take effect. updateTag rather than revalidateTag so
+  // the admin sees the new figures immediately after saving.
+  updateTag(SERVICE_CATALOG_TAG)
   revalidatePath('/admin/settings/services')
   revalidatePath('/quote/services')
 }

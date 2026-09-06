@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getServiceCatalog } from '@/lib/pricing/service-catalog'
 import { SiteHeader } from '@/components/home/site-header'
 import { HeroSection } from '@/components/home/hero-section'
 import { ServicesSection, type HomeService } from '@/components/home/services-section'
@@ -12,33 +13,32 @@ import { MobileTabBar } from '@/components/home/mobile-tab-bar'
 export default async function Home() {
   const supabase = await createClient()
 
-  const [{ data: reviews }, { data: services }, { data: prices }] = await Promise.all([
+  // Services and prices come from the cached catalog; only the reviews are
+  // fetched per request. That takes the homepage from three round trips to a
+  // database in Tokyo down to one.
+  const [{ data: reviews }, { services: allServices, prices }] = await Promise.all([
     supabase
       .from('reviews')
       .select('rating, comment')
       .eq('is_public', true)
       .order('created_at', { ascending: false })
       .limit(6),
-    // Driven from the catalog rather than a hardcoded list, so the homepage
-    // can't drift from what customers can actually book.
-    supabase
-      .from('services')
-      .select('id, name, description, category, sort_order')
-      .eq('is_active', true)
-      .order('sort_order')
-      .limit(6),
-    supabase.from('service_prices').select('service_id, base_price'),
+    getServiceCatalog(),
   ])
+
+  // Driven from the catalog rather than a hardcoded list, so the homepage
+  // can't drift from what customers can actually book.
+  const services = allServices.slice(0, 6)
 
   // "From" price = the cheapest class for that service (sedan/coupe in practice).
   const cheapest = new Map<string, number>()
-  for (const p of prices ?? []) {
+  for (const p of prices) {
     const price = Number(p.base_price)
     const current = cheapest.get(p.service_id)
     if (current === undefined || price < current) cheapest.set(p.service_id, price)
   }
 
-  const homeServices: HomeService[] = (services ?? []).map((s) => ({
+  const homeServices: HomeService[] = services.map((s) => ({
     id: s.id,
     name: s.name,
     description: s.description,
