@@ -30,7 +30,7 @@ export async function calculateQuote(
 
   const [{ data: services, error: servicesError }, { data: prices, error: pricesError }] =
     await Promise.all([
-      supabase.from('services').select('id, name, is_active').in('id', serviceIds),
+      supabase.from('services').select('id, name, is_active, coming_soon').in('id', serviceIds),
       supabase
         .from('service_prices')
         .select('service_id, base_price')
@@ -44,7 +44,10 @@ export async function calculateQuote(
   const priceByService = new Map((prices ?? []).map((p) => [p.service_id, Number(p.base_price)]))
 
   const lineItems: QuoteLineItem[] = (services ?? [])
-    .filter((s) => s.is_active && priceByService.has(s.id))
+    // coming_soon is dropped here, not just hidden in the picker: these rows
+    // still carry a placeholder price of 0, so a hand-crafted ?services= URL
+    // would otherwise add an unbookable service to a real order for free.
+    .filter((s) => s.is_active && !s.coming_soon && priceByService.has(s.id))
     .map((s) => ({
       serviceId: s.id,
       name: s.name,

@@ -20,11 +20,14 @@ export default async function Home() {
       .order('created_at', { ascending: false })
       .limit(6),
     // Driven from the catalog rather than a hardcoded list, so the homepage
-    // can't drift from what customers can actually book.
+    // can't drift from what customers can actually book. coming_soon is left
+    // out because each card shows a "from" price, and an unreleased service's
+    // placeholder price of 0 would advertise it as free.
     supabase
       .from('services')
       .select('id, name, description, category, sort_order')
       .eq('is_active', true)
+      .eq('coming_soon', false)
       .order('sort_order')
       .limit(6),
     supabase.from('service_prices').select('service_id, base_price'),

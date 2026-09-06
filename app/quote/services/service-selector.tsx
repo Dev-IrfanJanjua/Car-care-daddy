@@ -2,11 +2,12 @@
 
 import { useMemo, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowRight, Check } from 'lucide-react'
+import { ArrowRight, Check, Clock } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { formatPrice } from '@/lib/format'
 
@@ -16,6 +17,8 @@ type Service = {
   description: string | null
   category: string | null
   price: number
+  is_package: boolean
+  coming_soon: boolean
 }
 
 function categoryLabel(category: string | null) {
@@ -33,11 +36,18 @@ export function ServiceSelector({
   initialSelectedIds?: string[]
 }) {
   const router = useRouter()
-  const [selected, setSelected] = useState<Set<string>>(() => new Set(initialSelectedIds))
+
+  const bookable = useMemo(() => services.filter((s) => !s.coming_soon), [services])
+
+  // A coming-soon id can only arrive from a stale or hand-edited URL; drop it
+  // here so it never reaches the quote.
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(initialSelectedIds.filter((id) => bookable.some((s) => s.id === id)))
+  )
 
   const total = useMemo(
-    () => services.filter((s) => selected.has(s.id)).reduce((sum, s) => sum + s.price, 0),
-    [services, selected]
+    () => bookable.filter((s) => selected.has(s.id)).reduce((sum, s) => sum + s.price, 0),
+    [bookable, selected]
   )
 
   const groups = useMemo(() => {
@@ -50,11 +60,17 @@ export function ServiceSelector({
     return Array.from(byCategory.entries())
   }, [services])
 
-  function toggle(id: string, checked: boolean) {
+  function toggle(service: Service, checked: boolean) {
     setSelected((prev) => {
+      // Ticking the package clears everything else -- it already covers the
+      // individual glass jobs, so keeping them would double-charge. The rule is
+      // deliberately one-directional: ticking an individual service afterwards
+      // leaves the package selected, and both are then charged.
+      if (checked && service.is_package) return new Set([service.id])
+
       const next = new Set(prev)
-      if (checked) next.add(id)
-      else next.delete(id)
+      if (checked) next.add(service.id)
+      else next.delete(service.id)
       return next
     })
   }
@@ -81,6 +97,31 @@ export function ServiceSelector({
             <ul className="space-y-2">
               {items.map((s) => {
                 const checked = selected.has(s.id)
+
+                if (s.coming_soon) {
+                  return (
+                    <li key={s.id}>
+                      <div
+                        aria-disabled
+                        className="flex items-start gap-3 rounded-lg border border-dashed border-border p-4 opacity-70"
+                      >
+                        <Clock className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                        <span className="flex-1">
+                          <span className="block font-medium">{s.name}</span>
+                          {s.description && (
+                            <span className="mt-0.5 block text-sm text-muted-foreground">
+                              {s.description}
+                            </span>
+                          )}
+                        </span>
+                        <Badge variant="secondary" className="shrink-0">
+                          Coming soon
+                        </Badge>
+                      </div>
+                    </li>
+                  )
+                }
+
                 return (
                   <li key={s.id}>
                     <Label
@@ -95,14 +136,26 @@ export function ServiceSelector({
                       <Checkbox
                         id={`service-${s.id}`}
                         checked={checked}
-                        onCheckedChange={(c) => toggle(s.id, c === true)}
+                        onCheckedChange={(c) => toggle(s, c === true)}
                         className="mt-0.5"
                       />
                       <span className="flex-1">
-                        <span className="block font-medium">{s.name}</span>
+                        <span className="flex flex-wrap items-center gap-2">
+                          <span className="font-medium">{s.name}</span>
+                          {s.is_package && (
+                            <Badge variant="secondary" className="shrink-0">
+                              Complete package
+                            </Badge>
+                          )}
+                        </span>
                         {s.description && (
                           <span className="mt-0.5 block text-sm text-muted-foreground">
                             {s.description}
+                          </span>
+                        )}
+                        {s.is_package && (
+                          <span className="mt-1 block text-xs text-muted-foreground">
+                            Covers all your glass — selecting this clears the individual services.
                           </span>
                         )}
                       </span>
@@ -126,7 +179,12 @@ export function ServiceSelector({
         <span className="text-lg font-bold tabular-nums">{formatPrice(total)}</span>
       </div>
 
-      <Button type="submit" disabled={selected.size === 0} size="lg" className="h-11 w-full text-base">
+      <Button
+        type="submit"
+        disabled={selected.size === 0}
+        size="lg"
+        className="h-11 w-full text-base"
+      >
         See my quote
         <ArrowRight className="size-4" data-icon="inline-end" />
       </Button>
