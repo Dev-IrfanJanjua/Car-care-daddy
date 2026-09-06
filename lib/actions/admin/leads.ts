@@ -5,7 +5,6 @@ import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/auth/require-admin'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { calculateQuote } from '@/lib/pricing/calculate-quote'
-import { sendBookingConfirmationEmail } from '@/lib/email/send-booking-confirmation'
 import type { Database } from '@/lib/types/database.types'
 
 type LeadStatus = Database['public']['Enums']['lead_status']
@@ -32,7 +31,6 @@ export async function convertLeadToBooking(leadId: string, formData: FormData) {
   const customerPhone = String(formData.get('customerPhone') || '')
   const serviceAddress = String(formData.get('serviceAddress') || '')
   const serviceCity = String(formData.get('serviceCity') || '')
-  const serviceZip = String(formData.get('serviceZip') || '')
   const scheduledAt = String(formData.get('scheduledAt') || '')
   const vehicleClass = String(formData.get('vehicleClass')) as VehicleClass
   const serviceIds = (lead.service_ids ?? []) as string[]
@@ -59,7 +57,8 @@ export async function convertLeadToBooking(leadId: string, formData: FormData) {
       vehicle_class: vehicleClass,
       service_address: serviceAddress,
       service_city: serviceCity,
-      service_zip: serviceZip,
+      // Not collected any more; column is NOT NULL. See lib/actions/bookings.ts.
+      service_zip: '',
       scheduled_at: new Date(scheduledAt).toISOString(),
       total_amount: quote.total,
     })
@@ -83,18 +82,8 @@ export async function convertLeadToBooking(leadId: string, formData: FormData) {
     .eq('id', leadId)
   if (leadError) throw leadError
 
-  // The public booking path emails a confirmation; this one didn't. Same
-  // best-effort contract -- a failed send never blocks the conversion.
-  await sendBookingConfirmationEmail({
-    bookingId: booking.id,
-    accessToken: booking.access_token,
-    customerEmail,
-    customerName,
-    scheduledAt: new Date(scheduledAt).toISOString(),
-    serviceAddress,
-    serviceCity,
-    totalAmount: quote.total,
-  })
-
+  // No customer email here: customers are confirmed over WhatsApp now, and an
+  // admin converting a lead is already talking to them. No admin alert either
+  // -- the admin is the one performing this action.
   redirect(`/admin/bookings/${booking.id}`)
 }

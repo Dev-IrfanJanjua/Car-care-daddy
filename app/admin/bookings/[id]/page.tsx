@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { BookingDetailActions } from './booking-detail-actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { formatPrice } from '@/lib/format'
+import { formatPrice, formatAppointment } from '@/lib/format'
 
 export default async function BookingDetailPage({
   params,
@@ -129,10 +129,12 @@ export default async function BookingDetailPage({
         </CardHeader>
         <CardContent>
           <p className="text-sm">
-            {booking.service_address}, {booking.service_city} {booking.service_zip}
+            {booking.service_address}, {booking.service_city}
           </p>
           <p className="text-sm text-muted-foreground">
-            {new Date(booking.scheduled_at).toLocaleString()}
+            {/* Lahore time, not the server's UTC -- a bare toLocaleString here
+                showed every appointment five hours early in the admin panel. */}
+            {formatAppointment(booking.scheduled_at)}
           </p>
         </CardContent>
       </Card>

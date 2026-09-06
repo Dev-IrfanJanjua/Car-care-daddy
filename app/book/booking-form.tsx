@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { formatPrice } from '@/lib/format'
 import { SERVICE_CITY, WARRANTY_YEARS } from '@/lib/contact'
+import { normalizePhone } from '@/lib/phone'
 
 // useFormStatus resets itself when the action settles, including on error --
 // the previous manual `pending` state was never cleared, so a failed booking
@@ -94,6 +95,7 @@ export function BookingForm(props: {
   total: number
 }) {
   const [localWhen, setLocalWhen] = useState('')
+  const [phone, setPhone] = useState('')
 
   const parsed = localWhen ? new Date(localWhen) : null
   const scheduledAtUtc =
@@ -152,13 +154,22 @@ export function BookingForm(props: {
           autoComplete="email"
           required
         />
+        {/* Controlled so input is normalised as it is typed rather than
+            rejected on submit: "0300 123 4567" and "+92 300 1234567" both
+            become 03001234567. The server re-runs the same normaliser. */}
         <Field
           id="customerPhone"
           name="customerPhone"
           type="tel"
           label="Phone"
-          placeholder="0300 1234567"
+          placeholder="03001234567"
           autoComplete="tel"
+          inputMode="numeric"
+          maxLength={11}
+          pattern="0[0-9]{10}"
+          title="11 digits starting with 0, e.g. 03001234567"
+          value={phone}
+          onChange={(e) => setPhone(normalizePhone(e.target.value))}
           required
         />
       </motion.fieldset>
@@ -177,29 +188,16 @@ export function BookingForm(props: {
             autoComplete="street-address"
             required
           />
-          <div className="flex gap-3">
-            {/* One city is the whole service area, so pre-filling it saves a
-                field's worth of typing. Still editable. */}
-            <Field
-              id="serviceCity"
-              name="serviceCity"
-              label="City"
-              defaultValue={SERVICE_CITY}
-              autoComplete="address-level2"
-              className="flex-1"
-              required
-            />
-            <Field
-              id="serviceZip"
-              name="serviceZip"
-              label="Postal code"
-              placeholder="54000"
-              autoComplete="postal-code"
-              inputMode="numeric"
-              className="w-32 shrink-0"
-              required
-            />
-          </div>
+          {/* One city is the whole service area, so pre-filling it saves a
+              field's worth of typing. Still editable. */}
+          <Field
+            id="serviceCity"
+            name="serviceCity"
+            label="City"
+            defaultValue={SERVICE_CITY}
+            autoComplete="address-level2"
+            required
+          />
         </fieldset>
       </motion.div>
 

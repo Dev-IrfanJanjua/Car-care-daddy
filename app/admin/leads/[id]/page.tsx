@@ -153,15 +153,9 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                 <Label htmlFor="serviceAddress">Street address</Label>
                 <Input id="serviceAddress" name="serviceAddress" required />
               </div>
-              <div className="flex gap-3">
-                <div className="flex-1 space-y-1.5">
-                  <Label htmlFor="serviceCity">City</Label>
-                  <Input id="serviceCity" name="serviceCity" required />
-                </div>
-                <div className="w-32 space-y-1.5">
-                  <Label htmlFor="serviceZip">ZIP</Label>
-                  <Input id="serviceZip" name="serviceZip" required />
-                </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="serviceCity">City</Label>
+                <Input id="serviceCity" name="serviceCity" required />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="scheduledAt">Scheduled at</Label>

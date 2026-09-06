@@ -5,7 +5,6 @@ import { createQuoteAndContinue } from '@/lib/actions/quotes'
 import type { Database } from '@/lib/types/database.types'
 import { QuoteShell } from '@/components/quote/quote-shell'
 import { formatPrice } from '@/lib/format'
-import { EmailQuoteForm } from './email-quote-form'
 import { FileDrop } from '@/components/ui/file-drop'
 import { Separator } from '@/components/ui/separator'
 import { Label } from '@/components/ui/label'
@@ -92,20 +91,6 @@ export default async function QuoteSummaryPage({
           <ArrowRight className="size-4" data-icon="inline-end" />
         </Button>
       </form>
-
-      <details className="mt-6 group">
-        <summary className="cursor-pointer text-sm text-muted-foreground marker:content-none">
-          <span className="inline-block transition-transform group-open:rotate-90">›</span>{' '}
-          Email me this quote instead
-        </summary>
-        <EmailQuoteForm
-          make={make}
-          model={model}
-          year={year}
-          vehicleClass={vehicleClass}
-          services={services}
-        />
-      </details>
     </QuoteShell>
   )
 }

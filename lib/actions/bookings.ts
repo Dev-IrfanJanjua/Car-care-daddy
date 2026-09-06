@@ -3,7 +3,8 @@
 import { redirect } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { calculateQuote } from '@/lib/pricing/calculate-quote'
-import { sendBookingConfirmationEmail } from '@/lib/email/send-booking-confirmation'
+import { notifyAdminOfNewBooking } from '@/lib/notifications/new-booking-alert'
+import { normalizePhone, isValidPhone } from '@/lib/phone'
 import type { Database } from '@/lib/types/database.types'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']
@@ -18,10 +19,16 @@ export async function createBooking(formData: FormData) {
 
   const customerName = String(formData.get('customerName'))
   const customerEmail = String(formData.get('customerEmail'))
-  const customerPhone = String(formData.get('customerPhone'))
   const serviceAddress = String(formData.get('serviceAddress'))
   const serviceCity = String(formData.get('serviceCity'))
-  const serviceZip = String(formData.get('serviceZip'))
+
+  // Re-normalised and re-checked here: the form does the same as you type, but
+  // a form action accepts any POST, so the client rule is a convenience and
+  // this is the guarantee.
+  const customerPhone = normalizePhone(String(formData.get('customerPhone') || ''))
+  if (!isValidPhone(customerPhone)) {
+    throw new Error('Enter an 11-digit phone number, for example 03001234567.')
+  }
 
   // Already a UTC ISO instant: the form converts the datetime-local value in
   // the browser, so it carries the customer's timezone rather than the server's.
@@ -57,7 +64,10 @@ export async function createBooking(formData: FormData) {
     p_vehicle_class: vehicleClass,
     p_service_address: serviceAddress,
     p_service_city: serviceCity,
-    p_service_zip: serviceZip,
+    // Postal codes are no longer collected -- the service area is one city, so
+    // the field was pure friction. The column and this RPC arg are NOT NULL, so
+    // an empty string stands in rather than forcing a schema migration.
+    p_service_zip: '',
     p_scheduled_at: when.toISOString(),
     p_total_amount: quote.total,
     p_line_items: quote.lineItems.map((item) => ({
@@ -71,14 +81,21 @@ export async function createBooking(formData: FormData) {
   const created = data?.[0]
   if (!created) throw new Error('Booking could not be created')
 
-  await sendBookingConfirmationEmail({
+  // The customer gets no email -- they confirm on the success screen by sending
+  // the order to the shop over WhatsApp. This alert is what guarantees the shop
+  // still hears about a booking the customer never sends. Deliberately not
+  // awaited for its result: it is best-effort and must never cost a booking
+  // that is already committed to the database.
+  await notifyAdminOfNewBooking({
     bookingId: created.new_booking_id,
-    accessToken: created.new_access_token,
-    customerEmail,
     customerName,
+    customerEmail,
+    customerPhone,
+    vehicle: `${year} ${make} ${model} (${vehicleClass})`,
     scheduledAt: when.toISOString(),
     serviceAddress,
     serviceCity,
+    lineItems: quote.lineItems,
     totalAmount: quote.total,
   })
 

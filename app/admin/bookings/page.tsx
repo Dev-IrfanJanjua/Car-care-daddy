@@ -13,7 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { BOOKING_STATUS_STYLES, formatBookingStatus } from '@/lib/booking-status'
-import { formatPrice } from '@/lib/format'
+import { formatPrice, formatAppointment } from '@/lib/format'
 
 type BookingStatus = Database['public']['Enums']['booking_status']
 
@@ -97,7 +97,7 @@ export default async function AdminBookingsPage({
                     {b.vehicle_make} {b.vehicle_model}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {new Date(b.scheduled_at).toLocaleString()}
+                    {formatAppointment(b.scheduled_at)}
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className={BOOKING_STATUS_STYLES[b.status]}>

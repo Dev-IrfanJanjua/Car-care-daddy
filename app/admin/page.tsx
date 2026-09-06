@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { CalendarCheck, CalendarRange, DollarSign, Target, Wrench } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { formatCompactNumber, formatCompactCurrency, formatPrice } from '@/lib/format'
+import { formatCompactNumber, formatCompactCurrency, formatPrice, formatAppointment } from '@/lib/format'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { BOOKING_STATUS_STYLES, formatBookingStatus } from '@/lib/booking-status'
@@ -102,7 +102,7 @@ export default async function AdminDashboardPage() {
                 <Link href={`/admin/bookings/${b.id}`} className="min-w-0">
                   <p className="truncate font-medium hover:underline">{b.customer_name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {new Date(b.scheduled_at).toLocaleString()}
+                    {formatAppointment(b.scheduled_at)}
                   </p>
                 </Link>
                 <div className="flex items-center gap-3">

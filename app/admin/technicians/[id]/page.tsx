@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { formatAppointment } from '@/lib/format'
 
 type TechnicianStatus = Database['public']['Enums']['technician_status']
 
@@ -134,7 +135,7 @@ export default async function TechnicianDetailPage({
               <li key={b.id} className="flex items-center justify-between px-6 py-3">
                 <span>{b.customer_name}</span>
                 <span className="text-sm text-muted-foreground">
-                  {new Date(b.scheduled_at).toLocaleString()}
+                  {formatAppointment(b.scheduled_at)}
                 </span>
               </li>
             ))}

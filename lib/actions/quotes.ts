@@ -3,8 +3,6 @@
 import { redirect } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { calculateQuote } from '@/lib/pricing/calculate-quote'
-import { sendQuoteEmail } from '@/lib/email/send-quote-email'
-import { siteUrl } from '@/lib/email/booking-links'
 import type { Database } from '@/lib/types/database.types'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']
@@ -96,66 +94,6 @@ export async function captureUnlistedVehicleLead(formData: FormData) {
   redirect('/quote/not-listed/thanks')
 }
 
-export type QuoteLeadState = { ok: boolean; error: string | null }
-
-// Previously this only wrote a leads row: no email was sent despite the "Email
-// my quote" button, and the action returned nothing so the customer got no
-// feedback at all. Now it emails the quote and reports back to the form.
-export async function captureQuoteLead(
-  _prevState: QuoteLeadState,
-  formData: FormData
-): Promise<QuoteLeadState> {
-  const fullName = String(formData.get('fullName') || '')
-  const email = String(formData.get('email') || '')
-  const phone = String(formData.get('phone') || '')
-  const make = String(formData.get('make') || '')
-  const model = String(formData.get('model') || '')
-  const vehicleClass = String(formData.get('class') || '')
-  const yearRaw = formData.get('year')
-  const year = yearRaw ? Number(yearRaw) : null
-  const services = String(formData.get('services') || '')
-  const serviceIds = services.split(',').filter(Boolean)
-
-  if (!email) return { ok: false, error: 'Enter an email address.' }
-
-  // Recomputed rather than trusting the posted total, same rule as everywhere else.
-  const quote =
-    vehicleClass && serviceIds.length
-      ? await calculateQuote(vehicleClass as VehicleClass, serviceIds)
-      : null
-
-  const admin = createAdminClient()
-  const { error } = await admin.from('leads').insert({
-    full_name: fullName || null,
-    email,
-    phone: phone || null,
-    vehicle_make: make || null,
-    vehicle_model: model || null,
-    vehicle_year: year,
-    service_ids: serviceIds.length ? serviceIds : null,
-    quote_total: quote?.total ?? null,
-    source: 'quote_email_request',
-  })
-
-  if (error) return { ok: false, error: 'Something went wrong. Please try again.' }
-
-  if (quote) {
-    const params = new URLSearchParams({
-      make,
-      model,
-      year: String(year ?? ''),
-      class: vehicleClass,
-      services,
-    })
-    await sendQuoteEmail({
-      to: email,
-      customerName: fullName,
-      vehicle: [year, make, model].filter(Boolean).join(' '),
-      lineItems: quote.lineItems.map((i) => ({ name: i.name, price: i.price })),
-      total: quote.total,
-      quoteUrl: `${siteUrl()}/quote/summary?${params.toString()}`,
-    })
-  }
-
-  return { ok: true, error: null }
-}
+// captureQuoteLead and its "Email me this quote instead" form used to live here.
+// Both are gone with the rest of the customer email: the quote page now leads
+// straight to booking, and the order is confirmed over WhatsApp.
