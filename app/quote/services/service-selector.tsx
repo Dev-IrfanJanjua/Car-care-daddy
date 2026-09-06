@@ -60,17 +60,27 @@ export function ServiceSelector({
     return Array.from(byCategory.entries())
   }, [services])
 
+  // The package and the individual services it contains are mutually exclusive
+  // in both directions. Full Glass Polishing already includes windshield and
+  // headlight restoration, so any combination of the two would bill the same
+  // work twice.
   function toggle(service: Service, checked: boolean) {
     setSelected((prev) => {
-      // Ticking the package clears everything else -- it already covers the
-      // individual glass jobs, so keeping them would double-charge. The rule is
-      // deliberately one-directional: ticking an individual service afterwards
-      // leaves the package selected, and both are then charged.
-      if (checked && service.is_package) return new Set([service.id])
+      if (!checked) {
+        const next = new Set(prev)
+        next.delete(service.id)
+        return next
+      }
 
+      // Ticking the package replaces the whole selection.
+      if (service.is_package) return new Set([service.id])
+
+      // Ticking an individual service drops any package that contains it.
       const next = new Set(prev)
-      if (checked) next.add(service.id)
-      else next.delete(service.id)
+      next.add(service.id)
+      for (const s of bookable) {
+        if (s.is_package) next.delete(s.id)
+      }
       return next
     })
   }
@@ -155,8 +165,8 @@ export function ServiceSelector({
                         )}
                         {s.is_package && (
                           <span className="mt-1 block text-xs text-muted-foreground">
-                            Includes windshield and headlight restoration — selecting this
-                            clears them above.
+                            Includes windshield and headlight restoration — pick this
+                            instead of them, not as well.
                           </span>
                         )}
                       </span>

@@ -25,7 +25,7 @@ export default async function BookPage({
   const [{ data: allServices }, { data: prices }] = await Promise.all([
     supabase
       .from('services')
-      .select('id, name, description, sort_order')
+      .select('id, name, description, sort_order, is_package')
       .eq('is_active', true)
       .eq('coming_soon', false)
       .order('sort_order'),
@@ -36,14 +36,26 @@ export default async function BookPage({
   ])
 
   const priceByService = new Map((prices ?? []).map((p) => [p.service_id, Number(p.base_price)]))
-  const upsells = (allServices ?? [])
-    .filter((s) => !selectedIds.includes(s.id) && priceByService.has(s.id))
-    .map((s) => ({
-      id: s.id,
-      name: s.name,
-      description: s.description,
-      price: priceByService.get(s.id)!,
-    }))
+
+  // A package already contains the individual services, so once one is chosen
+  // there is nothing left to add -- offering them here would rebuild, through
+  // the upsell, the double-charge the picker refuses to allow.
+  const packageChosen = (allServices ?? []).some(
+    (s) => s.is_package && selectedIds.includes(s.id)
+  )
+
+  const upsells = packageChosen
+    ? []
+    : (allServices ?? [])
+        // Packages are never upsells: they replace a selection rather than add
+        // to it, and this control only ever adds a price to the running total.
+        .filter((s) => !s.is_package && !selectedIds.includes(s.id) && priceByService.has(s.id))
+        .map((s) => ({
+          id: s.id,
+          name: s.name,
+          description: s.description,
+          price: priceByService.get(s.id)!,
+        }))
 
   const vehicleQuery = new URLSearchParams({ make, model, year, class: vehicleClass }).toString()
   const servicesQuery = new URLSearchParams({
