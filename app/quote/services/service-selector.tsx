@@ -155,7 +155,8 @@ export function ServiceSelector({
                         )}
                         {s.is_package && (
                           <span className="mt-1 block text-xs text-muted-foreground">
-                            Covers all your glass — selecting this clears the individual services.
+                            Includes windshield and headlight restoration — selecting this
+                            clears them above.
                           </span>
                         )}
                       </span>

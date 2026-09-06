@@ -25,9 +25,26 @@ alter table public.services
 -- ---------------------------------------------------------------------------
 -- 2. Full Glass Polishing is the all-in package
 -- ---------------------------------------------------------------------------
+-- It bundles Windshield Restoration and Headlight Restoration, so the copy says
+-- so outright: a customer who has just ticked one of those needs to see what
+-- the package would replace before it clears their selection.
 update public.services
-   set is_package = true
+   set is_package = true,
+       description = 'Windshield and headlight restoration combined, plus machine '
+                     || 'polishing across all the car''s glass to lift surface marks '
+                     || 'and stains and improve overall clarity.'
  where slug = 'full-glass-polishing';
+
+-- ---------------------------------------------------------------------------
+-- 2b. Order: the two individual services, then the package that replaces them
+-- ---------------------------------------------------------------------------
+-- The picker groups by category and orders groups by the first service in each,
+-- so sort_order alone decides where the package lands. It has to sit below its
+-- two parts, or it offers to replace services the customer has not yet seen.
+update public.services set sort_order = 1 where slug = 'windshield-restoration';
+update public.services set sort_order = 2 where slug = 'headlight-restoration';
+update public.services set sort_order = 3 where slug = 'full-glass-polishing';
+update public.services set sort_order = 4 where slug = 'car-detailing';
 
 -- ---------------------------------------------------------------------------
 -- 3. Headlight Restoration: real prices, then activate
