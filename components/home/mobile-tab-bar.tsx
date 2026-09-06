@@ -1,21 +1,22 @@
 import { Mail } from 'lucide-react'
-import { InstagramIcon, TikTokIcon, WhatsAppIcon } from './brand-icons'
-import { WHATSAPP_URL } from '@/lib/contact'
+import { FacebookIcon, InstagramIcon, WhatsAppIcon } from './brand-icons'
+import { CONTACT_EMAIL, FACEBOOK_URL, INSTAGRAM_URL, WHATSAPP_URL } from '@/lib/contact'
 
-// TODO: swap the Instagram/TikTok handles and the email for the real ones.
+// Every destination comes from lib/contact.ts, which mirrors the printed
+// business card. There is no TikTok presence -- Facebook took that slot.
 const links = [
   {
     label: 'Instagram',
-    href: 'https://instagram.com/carcaredaddy',
+    href: INSTAGRAM_URL,
     icon: InstagramIcon,
     // Instagram's mark is an official multi-stop gradient, painted via the
     // <linearGradient> defined once below.
     style: { fill: 'url(#ig-gradient)' },
   },
-  { label: 'TikTok', href: 'https://tiktok.com/@carcaredaddy', icon: TikTokIcon, color: '#000000' },
+  { label: 'Facebook', href: FACEBOOK_URL, icon: FacebookIcon, color: '#0866FF' },
   { label: 'WhatsApp', href: WHATSAPP_URL, icon: WhatsAppIcon, color: '#25D366' },
   // Not a third-party mark, so this one is ours to brand: champagne gold.
-  { label: 'Email', href: 'mailto:hello@carcaredaddy.com', icon: Mail, color: '#b4832f' },
+  { label: 'Email', href: `mailto:${CONTACT_EMAIL}`, icon: Mail, color: '#b4832f' },
 ] as const
 
 export function MobileTabBar() {

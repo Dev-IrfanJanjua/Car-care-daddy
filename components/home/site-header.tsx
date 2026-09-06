@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Sparkles } from 'lucide-react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -53,8 +53,21 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
 
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
         <Link href="/" className="flex items-center gap-2">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-linear-to-br from-gold-300 via-gold-500 to-gold-700 text-navy-900 shadow-sm shadow-gold-700/30 ring-1 ring-gold-hairline">
-            <Sparkles className="size-4" />
+          {/* The real emblem, cropped out of public/images/CarCareLogo.jpeg.
+              The source is a JPEG with the dark studio backdrop baked in, so it
+              sits in its own navy tile rather than floating on the bar -- on the
+              light header a bare rectangle of near-black reads as a rendering
+              fault. Swap in a transparent PNG/SVG when one exists and this
+              wrapper can go. */}
+          <span className="flex h-8 w-17 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-navy-950 shadow-sm shadow-navy-900/30 ring-1 ring-gold-hairline">
+            <Image
+              src="/images/logo-mark.jpg"
+              alt=""
+              width={1180}
+              height={520}
+              priority
+              className="h-full w-full object-cover"
+            />
           </span>
           <span
             className={cn(
