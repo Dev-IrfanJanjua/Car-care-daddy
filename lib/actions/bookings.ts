@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { calculateQuote } from '@/lib/pricing/calculate-quote'
 import { notifyAdminOfNewBooking } from '@/lib/notifications/new-booking-alert'
 import { normalizePhone, isValidPhone } from '@/lib/phone'
+import { SERVICE_CITY } from '@/lib/contact'
 import type { Database } from '@/lib/types/database.types'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']
@@ -20,7 +21,12 @@ export async function createBooking(formData: FormData) {
   const customerName = String(formData.get('customerName'))
   const customerEmail = String(formData.get('customerEmail'))
   const serviceAddress = String(formData.get('serviceAddress'))
-  const serviceCity = String(formData.get('serviceCity'))
+
+  // Fixed, not taken from the form: the shop serves one city, and the field is
+  // read-only for that reason -- but a form action accepts any POST, so the
+  // posted value is ignored rather than trusted. Widen this when a second city
+  // opens, in step with the picker.
+  const serviceCity = SERVICE_CITY
 
   // Re-normalised and re-checked here: the form does the same as you type, but
   // a form action accepts any POST, so the client rule is a convenience and
