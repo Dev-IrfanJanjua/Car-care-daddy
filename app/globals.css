@@ -2,88 +2,104 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* This app is light-only -- there is no theme switcher and nothing ever adds a
-   `.dark` class, which makes every `dark:` utility permanently inert.
+/* This app is dark-only -- the palette below IS the dark theme, applied at
+   :root. There is no theme switcher and nothing ever adds a `.dark` class,
+   which makes every `dark:` utility permanently inert.
    Keep this line. Deleting it does NOT remove dark mode: `dark:` would fall
    back to Tailwind's default `prefers-color-scheme: dark` media query, and the
    ~30 `dark:` utilities still inside components/ui would suddenly activate for
-   anyone whose OS is in dark mode. */
+   anyone whose OS is in dark mode -- layering a second dark theme on top of
+   this one. */
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================================================
-   "Midnight & Chrome" -- the Car Care Daddy palette.
+   "Black & Gold" -- the Car Care Daddy palette, matching the brand collateral.
 
-   Two brand colors, one cool-neutral ramp. Deep midnight navy carries identity
-   and every primary action; champagne gold is the single accent.
+   One near-black neutral ramp, one metallic gold. The surface is dark
+   everywhere: this is a dark-only app, not a light app with a dark mode.
 
-   Gold is never a large fill on a light surface -- #D4A24C sits at ~2:1 against
-   white and would fail on contrast. It earns its keep as hairlines, rules,
-   icons, stars, price emphasis and the logo mark, and it becomes the button
-   color on the dark hero where it hits 8.1:1 on navy. When gold has to be TEXT
-   on a light surface, use --gold-ink (#8A6A22, 5.05:1 on white), never --gold.
+   The dark ground is what makes gold usable. On white, #D4A24C sits at ~2:1
+   and fails contrast badly; on #0B0B0C it clears 9:1, so gold is free to be
+   headings, prices, icons, rules and the fill of every primary button. That is
+   why --brand is gold here: a near-black button on a near-black page would be
+   invisible.
+
+   The ink ramp is very slightly warm rather than blue-black, so it sits under
+   gold without the two fighting. Keep the steps far apart -- adjacent surfaces
+   only read as separate if there is real luminance between them.
    ========================================================================= */
 :root {
-  /* ---- Brand primitives ---- */
-  --navy-950: #050b18; /* hero video base tint */
-  --navy-900: #0a1128; /* midnight navy -- the brand */
-  --navy-800: #0f1b3d; /* raised surface on dark */
-  --navy-700: #16255a; /* primary button hover */
-  --navy-600: #1e3272; /* focus ring */
+  /* ---- Neutral ramp: page -> raised -> border ---- */
+  --ink-950: #060607; /* deepest -- hero base, behind media */
+  --ink-900: #0b0b0c; /* the page itself */
+  --ink-800: #131315; /* cards and raised surfaces */
+  --ink-700: #1c1c1f; /* hover, secondary fills */
+  --ink-600: #2b2b30; /* borders */
 
-  --gold-300: #efd9a3; /* metallic highlight */
-  --gold-400: #e0bc72;
-  --gold-500: #d4a24c; /* champagne gold -- the accent */
-  --gold-600: #b4832f; /* gold hover on dark */
-  --gold-700: #8a6a22; /* "gold ink" -- AA-safe gold text on light */
+  --gold-300: #f3e0b0; /* metallic highlight */
+  --gold-400: #e6c377; /* bright gold -- headings and emphasis */
+  --gold-500: #d4a24c; /* champagne gold -- the accent, and every CTA */
+  --gold-600: #b4832f; /* pressed / hover on a gold fill */
+  --gold-700: #8a6a22; /* deep gold -- rules and gradient ends only */
 
-  --chrome-100: #e9eef4;
-  --chrome-300: #c9d3dd; /* body text on dark */
-  --chrome-500: #8c9aab; /* muted text on dark */
+  --chrome-100: #f4f4f5; /* headings */
+  --chrome-300: #c8c8cd; /* body text */
+  --chrome-500: #8e8e96; /* muted text */
 
   /* ---- Brand aliases ---- */
-  --brand: var(--navy-900);
-  --brand-foreground: #ffffff;
-  --brand-hover: var(--navy-700);
+  /* Gold is the primary action: on this ground it is the only colour with
+     enough presence to carry a button, and it matches the collateral. */
+  --brand: var(--gold-500);
+  --brand-foreground: var(--ink-950);
+  --brand-hover: var(--gold-400);
   --gold: var(--gold-500);
-  --gold-ink: var(--gold-700);
-  --gold-foreground: var(--navy-900);
-  --gold-hairline: color-mix(in oklch, var(--gold-500) 50%, transparent);
+  /* Was a darkened gold for legibility on white. On dark that would be nearly
+     invisible, so gold-ink now points at the bright end of the ramp -- every
+     existing text-gold-ink stays correct without touching a component. */
+  --gold-ink: var(--gold-400);
+  --gold-foreground: var(--ink-950);
+  --gold-hairline: color-mix(in oklch, var(--gold-500) 45%, transparent);
   --chrome: var(--chrome-300);
 
-  /* ---- Light surfaces (cool paper, faintly navy-tinted) ---- */
-  --background: oklch(0.9925 0.0025 255);
-  --foreground: oklch(0.215 0.033 262); /* navy ink, not black */
-  --card: #ffffff;
+  /* ---- Dark surfaces ---- */
+  --background: var(--ink-900);
+  --foreground: var(--chrome-100);
+  --card: var(--ink-800);
   --card-foreground: var(--foreground);
-  --popover: #ffffff;
+  --popover: var(--ink-800);
   --popover-foreground: var(--foreground);
-  --muted: oklch(0.965 0.006 255);
-  --muted-foreground: oklch(0.525 0.023 258);
-  --border: oklch(0.915 0.009 255);
-  --input: var(--border);
+  --muted: var(--ink-700);
+  --muted-foreground: var(--chrome-500);
+  --border: var(--ink-600);
+  /* Deliberately lighter than --border. A divider may be a whisper, but an
+     input's edge is the only thing telling you where to type, and at the
+     border's 1.4:1 it effectively disappeared on this ground. This clears the
+     3:1 WCAG asks of a UI boundary. */
+  --input: #63636d;
   --primary: var(--brand);
   --primary-foreground: var(--brand-foreground);
-  --secondary: oklch(0.965 0.006 255);
-  --secondary-foreground: oklch(0.265 0.03 262);
-  --accent: oklch(0.965 0.006 255);
-  --accent-foreground: oklch(0.265 0.03 262);
-  --destructive: oklch(0.577 0.245 27.325);
-  --ring: var(--navy-600);
+  --secondary: var(--ink-700);
+  --secondary-foreground: var(--chrome-100);
+  --accent: var(--ink-700);
+  --accent-foreground: var(--chrome-100);
+  --destructive: oklch(0.637 0.208 25.3); /* lifted for contrast on dark */
+  --ring: var(--gold-500);
 
-  /* Charts: a navy -> gold ramp, so reports read as the same brand. */
-  --chart-1: var(--navy-800);
-  --chart-2: #2a4585;
-  --chart-3: #4e74be;
-  --chart-4: var(--gold-500);
-  --chart-5: var(--gold-700);
+  /* Charts: an ink -> gold ramp, so reports read as the same brand. */
+  --chart-1: var(--gold-500);
+  --chart-2: var(--gold-700);
+  --chart-3: #6f6f78;
+  --chart-4: var(--gold-300);
+  --chart-5: #45454c;
 
   --radius: 0.625rem;
 
-  /* The admin sidebar is the one always-dark surface outside the hero. */
-  --sidebar: var(--navy-900);
+  /* Everything is dark now, so the sidebar drops a step below the page rather
+     than being the one dark panel -- that separation is all it needs. */
+  --sidebar: var(--ink-950);
   --sidebar-foreground: var(--chrome-300);
   --sidebar-primary: var(--gold-500);
-  --sidebar-primary-foreground: var(--navy-900);
+  --sidebar-primary-foreground: var(--ink-950);
   --sidebar-accent: rgba(255, 255, 255, 0.06);
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgba(255, 255, 255, 0.1);
@@ -96,11 +112,11 @@
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
   --color-brand-hover: var(--brand-hover);
-  --color-navy-950: var(--navy-950);
-  --color-navy-900: var(--navy-900);
-  --color-navy-800: var(--navy-800);
-  --color-navy-700: var(--navy-700);
-  --color-navy-600: var(--navy-600);
+  --color-ink-950: var(--ink-950);
+  --color-ink-900: var(--ink-900);
+  --color-ink-800: var(--ink-800);
+  --color-ink-700: var(--ink-700);
+  --color-ink-600: var(--ink-600);
   --color-gold-300: var(--gold-300);
   --color-gold-400: var(--gold-400);
   --color-gold-500: var(--gold-500);
@@ -164,8 +180,10 @@
   html {
     @apply font-sans;
     /* Belt and braces with the viewport colorScheme in app/layout.tsx: keeps
-       UA-painted chrome (form controls, scrollbars) light regardless of OS. */
-    color-scheme: light;
+       UA-painted chrome (form controls, scrollbars, the date picker) dark
+       regardless of OS. Without this a native datetime-local control renders
+       as a white slab in the middle of the booking form. */
+    color-scheme: dark;
     /* The header is 61px and overlays content (fixed on the homepage, sticky
        elsewhere), so an anchor jump would otherwise land the target's first
        line underneath it. Respected by both `#hash` links and scrollIntoView.

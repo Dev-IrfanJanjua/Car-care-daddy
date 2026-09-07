@@ -57,7 +57,7 @@ const section = (i: number) => ({
 function StepLegend({ index, children }: { index: number; children: string }) {
   return (
     <legend className="mb-4 flex items-center gap-2.5">
-      <span className="flex size-7 items-center justify-center rounded-full border border-gold-700/50 bg-linear-to-br from-navy-700 to-navy-950 text-[11px] font-bold text-gold">
+      <span className="flex size-7 items-center justify-center rounded-full border border-gold-700/50 bg-linear-to-br from-ink-700 to-ink-950 text-[11px] font-bold text-gold">
         {index}
       </span>
       <span className="font-semibold">{children}</span>

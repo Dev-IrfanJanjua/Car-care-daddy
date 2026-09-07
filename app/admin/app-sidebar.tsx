@@ -81,7 +81,7 @@ export function AppSidebar({ user }: { user: { name: string; email: string } }) 
         <div className="flex items-center gap-2 px-2 py-1.5">
           {/* The sidebar surface is navy, so the mark has to be gold -- a
               `bg-brand` chip here would be navy on navy. */}
-          <div className="flex size-7 items-center justify-center rounded-md bg-linear-to-br from-gold-300 via-gold-500 to-gold-700 text-sm font-bold text-navy-900">
+          <div className="flex size-7 items-center justify-center rounded-md bg-linear-to-br from-gold-300 via-gold-500 to-gold-700 text-sm font-bold text-ink-900">
             C
           </div>
           <span className="font-semibold text-white">Car Care Daddy</span>

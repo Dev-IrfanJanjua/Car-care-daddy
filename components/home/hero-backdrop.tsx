@@ -65,7 +65,7 @@ export function HeroBackdrop() {
   }, [reduceMotion])
 
   return (
-    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-navy-950">
+    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-ink-950">
       {reduceMotion ? (
         <Image
           src="/images/hero-poster.jpg"

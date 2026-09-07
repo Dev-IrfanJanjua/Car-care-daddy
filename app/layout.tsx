@@ -19,11 +19,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  // Midnight navy -- matches the hero band the browser chrome sits above.
-  themeColor: "#0a1128",
-  // Light-only app. Declaring it stops the browser from auto-darkening form
-  // controls, scrollbars, and other UA-painted chrome on a dark-mode OS.
-  colorScheme: "light",
+  // The page ground -- matches the header the browser chrome sits above.
+  themeColor: "#0b0b0c",
+  // Dark-only app. Declaring it makes the browser paint form controls,
+  // scrollbars and other UA chrome dark regardless of the OS setting.
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

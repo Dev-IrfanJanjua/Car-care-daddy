@@ -37,7 +37,7 @@ export function QuoteShell({
         {/* The gold capping rule is the one piece of brand on an otherwise
             deliberately plain form surface -- it ties the flow back to the
             hero without colouring anything the customer has to read. */}
-        <Card className="relative border-border/60 shadow-xl shadow-navy-900/6 before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-linear-to-r before:from-gold-700 before:via-gold-400 before:to-gold-700">
+        <Card className="relative border-border/60 shadow-xl shadow-ink-900/6 before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-linear-to-r before:from-gold-700 before:via-gold-400 before:to-gold-700">
           <CardHeader>
             <CardTitle className="text-2xl tracking-tight">{title}</CardTitle>
             {description && (

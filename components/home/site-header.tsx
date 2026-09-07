@@ -47,7 +47,7 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
       {floating && (
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-32 bg-linear-to-b from-navy-950/90 via-navy-950/55 to-transparent"
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-32 bg-linear-to-b from-ink-950/90 via-ink-950/55 to-transparent"
         />
       )}
 
@@ -59,7 +59,7 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
               light header a bare rectangle of near-black reads as a rendering
               fault. Swap in a transparent PNG/SVG when one exists and this
               wrapper can go. */}
-          <span className="flex h-8 w-17 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-navy-950 shadow-sm shadow-navy-900/30 ring-1 ring-gold-hairline">
+          <span className="flex h-8 w-17 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-ink-950 shadow-sm shadow-ink-900/30 ring-1 ring-gold-hairline">
             <Image
               src="/images/logo-mark.jpg"
               alt=""
@@ -84,8 +84,8 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
           className={cn(
             'shadow-md',
             floating
-              ? 'border-gold-400 bg-gold text-gold-foreground shadow-navy-950/40 hover:border-gold-300 hover:bg-gold-400'
-              : 'shadow-navy-900/20'
+              ? 'border-gold-400 bg-gold text-gold-foreground shadow-ink-950/40 hover:border-gold-300 hover:bg-gold-400'
+              : 'shadow-ink-900/20'
           )}
           render={<Link href="/quote" />}
         >

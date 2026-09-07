@@ -16,7 +16,7 @@ export default async function Home() {
   // Services and prices come from the cached catalog; only the reviews are
   // fetched per request. That takes the homepage from three round trips to a
   // database in Tokyo down to one.
-  const [{ data: reviews }, { services: allServices, prices }] = await Promise.all([
+  const [{ data: reviews }, { services: allServices }] = await Promise.all([
     supabase
       .from('reviews')
       .select('rating, comment')
@@ -30,20 +30,15 @@ export default async function Home() {
   // can't drift from what customers can actually book.
   const services = allServices.slice(0, 6)
 
-  // "From" price = the cheapest class for that service (sedan/coupe in practice).
-  const cheapest = new Map<string, number>()
-  for (const p of prices) {
-    const price = Number(p.base_price)
-    const current = cheapest.get(p.service_id)
-    if (current === undefined || price < current) cheapest.set(p.service_id, price)
-  }
-
+  // No "from" price is computed any more: prices vary by vehicle class, and the
+  // cheapest tier shown as a headline figure under-quotes everyone driving
+  // something larger. The cards send people into the quote flow instead, which
+  // asks for the car before it shows a number.
   const homeServices: HomeService[] = services.map((s) => ({
     id: s.id,
     name: s.name,
     description: s.description,
     category: s.category,
-    fromPrice: cheapest.get(s.id) ?? null,
   }))
 
   return (

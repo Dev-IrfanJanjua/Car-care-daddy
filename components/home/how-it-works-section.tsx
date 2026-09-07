@@ -39,7 +39,7 @@ export function HowItWorksSection() {
         {steps.map((step, i) => (
           <Reveal key={step.title} delay={i * 0.15}>
             <div className="relative flex flex-col items-center text-center">
-              <div className="relative z-10 flex size-12 items-center justify-center rounded-full bg-linear-to-br from-navy-800 to-navy-950 text-gold shadow-lg shadow-navy-900/25 ring-1 ring-gold-hairline">
+              <div className="relative z-10 flex size-12 items-center justify-center rounded-full bg-linear-to-br from-ink-800 to-ink-950 text-gold shadow-lg shadow-ink-900/25 ring-1 ring-gold-hairline">
                 <step.icon className="size-5" />
               </div>
               <span className="mt-4 text-xs font-bold tracking-[0.18em] text-gold-ink uppercase">

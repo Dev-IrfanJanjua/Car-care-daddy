@@ -41,7 +41,7 @@ export function HeroSection() {
   return (
     // min-h uses svh, not vh: on mobile Safari vh is the *largest* viewport, so
     // the bottom fade would hide under the URL bar until you scrolled.
-    <section className="relative isolate flex min-h-[92svh] items-end overflow-hidden bg-navy-950">
+    <section className="relative isolate flex min-h-[92svh] items-end overflow-hidden bg-ink-950">
       <HeroBackdrop />
 
       {/* The header is fixed on this page, so the hero owns the space it would
@@ -55,7 +55,7 @@ export function HeroSection() {
             // No backdrop-blur on anything sitting over the video: a
             // backdrop-filter forces the compositor to re-read the decoded
             // frame underneath it every frame.
-            className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-navy-950/45 px-3 py-1 text-xs font-medium text-chrome-300"
+            className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-ink-950/45 px-3 py-1 text-xs font-medium text-chrome-300"
           >
             <ShieldCheck className="size-3.5 text-gold" />
             Doorstep service in Lahore · 3-year warranty
@@ -92,7 +92,7 @@ export function HeroSection() {
           >
             <Button
               size="lg"
-              className="relative h-12 overflow-hidden border-gold-400 bg-gold px-6 text-base text-gold-foreground shadow-lg shadow-navy-950/50 hover:border-gold-300 hover:bg-gold-400"
+              className="relative h-12 overflow-hidden border-gold-400 bg-gold px-6 text-base text-gold-foreground shadow-lg shadow-ink-950/50 hover:border-gold-300 hover:bg-gold-400"
               render={<Link href="/quote" />}
             >
               {/* Specular sweep. CSS keyframes, so MotionConfig can't reach it
@@ -107,7 +107,7 @@ export function HeroSection() {
             <Button
               size="lg"
               variant="outline"
-              className="h-12 border-white/30 bg-navy-950/40 px-6 text-base text-white hover:bg-navy-950/65 hover:text-white"
+              className="h-12 border-white/30 bg-ink-950/40 px-6 text-base text-white hover:bg-ink-950/65 hover:text-white"
               render={<Link href="#services" onClick={scrollToServices} />}
             >
               See our services

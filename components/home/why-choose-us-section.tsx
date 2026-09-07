@@ -39,7 +39,7 @@ export function WhyChooseUsSection() {
         {reasons.map((reason, i) => (
           <Reveal key={reason.title} delay={i * 0.1} className="h-full">
             <div className="flex h-full flex-col gap-3 rounded-2xl border border-border/60 bg-card p-6 transition-colors hover:border-gold/50">
-              <span className="flex size-10 items-center justify-center rounded-lg bg-navy-900/8 text-navy-800 ring-1 ring-gold-hairline">
+              <span className="flex size-10 items-center justify-center rounded-lg bg-ink-900/8 text-ink-800 ring-1 ring-gold-hairline">
                 <reason.icon className="size-5" />
               </span>
               <h3 className="font-semibold">{reason.title}</h3>
