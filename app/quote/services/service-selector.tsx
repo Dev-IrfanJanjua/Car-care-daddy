@@ -203,8 +203,19 @@ export function ServiceSelector({
                 return (
                   <li key={s.id}>
                     <Label htmlFor={`service-${s.id}`} className={rowClass}>
+                      {/* `name` is load-bearing, not decoration. Base UI styles
+                          the hidden input it pairs with the checkbox as
+                          `position: fixed; top: 0; left: 0` when there is no
+                          name, and `position: absolute` when there is. The
+                          label's htmlFor points at that input, so clicking a
+                          row focuses it -- and because this list sits inside
+                          StepTransition's animated motion.div, a transformed
+                          ancestor makes `fixed` resolve against that div rather
+                          than the viewport. The browser then scrolled the page
+                          up to the top of the card on every tick. */}
                       <Checkbox
                         id={`service-${s.id}`}
+                        name={`service-${s.id}`}
                         checked={checked}
                         onCheckedChange={(c) => toggle(s, c === true)}
                         className="mt-0.5"
