@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 // the time you reach it.
 const ORBS = [
   {
-    className: 'absolute -top-32 -left-24 size-96 rounded-full bg-ink-900/10 blur-3xl',
+    className: 'absolute -top-32 -left-24 size-96 rounded-full bg-gold-700/14 blur-3xl',
     motion: { x: [0, 40, 0], y: [0, 30, 0] },
     transition: { duration: 14, repeat: Infinity, ease: 'easeInOut' as const },
   },

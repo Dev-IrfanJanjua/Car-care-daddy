@@ -1,7 +1,9 @@
-import { UserStar, Timer, Wallet, ThumbsUp, type LucideIcon } from 'lucide-react'
+import { UserStar, Timer, Wallet, ThumbsUp, Clock, type LucideIcon } from 'lucide-react'
 import { Reveal } from './reveal'
 
-const reasons: { title: string; description: string; icon: LucideIcon }[] = [
+// `meta` is the one figure worth pulling out of the prose. Only the Fast card
+// carries one; the optional field keeps the others from growing an empty row.
+const reasons: { title: string; description: string; icon: LucideIcon; meta?: string }[] = [
   {
     title: 'Professional Service',
     description: 'Trained technicians using professional CeO₂ compounds and machine polishing.',
@@ -11,6 +13,7 @@ const reasons: { title: string; description: string; icon: LucideIcon }[] = [
     title: 'Fast',
     description: 'We come to your home or office anywhere in Lahore — no workshop visit needed.',
     icon: Timer,
+    meta: 'Takes 60–90 minutes',
   },
   {
     title: 'Affordable',
@@ -39,11 +42,21 @@ export function WhyChooseUsSection() {
         {reasons.map((reason, i) => (
           <Reveal key={reason.title} delay={i * 0.1} className="h-full">
             <div className="flex h-full flex-col gap-3 rounded-2xl border border-border/60 bg-card p-6 transition-colors hover:border-gold/50">
-              <span className="flex size-10 items-center justify-center rounded-lg bg-ink-900/8 text-ink-800 ring-1 ring-gold-hairline">
+              {/* Gold on a raised dark tile, matching the services and process
+                  sections. This was a dark glyph on a pale tint -- legible on
+                  the old white card, invisible the moment the card went
+                  near-black. */}
+              <span className="flex size-10 items-center justify-center rounded-lg bg-linear-to-br from-ink-700 to-ink-950 text-gold ring-1 ring-gold-hairline">
                 <reason.icon className="size-5" />
               </span>
               <h3 className="font-semibold">{reason.title}</h3>
               <p className="text-sm text-muted-foreground">{reason.description}</p>
+              {reason.meta && (
+                <p className="mt-auto flex items-center gap-1.5 pt-1 text-sm font-semibold text-gold-ink">
+                  <Clock className="size-4 shrink-0" />
+                  {reason.meta}
+                </p>
+              )}
             </div>
           </Reveal>
         ))}
