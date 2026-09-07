@@ -23,7 +23,7 @@ export const getServiceCatalog = unstable_cache(
       await Promise.all([
         supabase
           .from('services')
-          .select('id, name, description, category, sort_order, is_active')
+          .select('id, name, description, category, sort_order, is_active, is_package, coming_soon')
           .eq('is_active', true)
           .order('sort_order'),
         supabase.from('service_prices').select('service_id, vehicle_class, base_price'),

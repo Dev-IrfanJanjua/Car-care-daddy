@@ -43,7 +43,11 @@ export async function calculateQuote(
   const lineItems: QuoteLineItem[] = services
     // is_active is already filtered by the catalog query; kept explicit so the
     // guarantee does not depend on how that query happens to be written.
-    .filter((s) => wanted.has(s.id) && s.is_active && priceByService.has(s.id))
+    //
+    // coming_soon is dropped here, not just hidden in the picker: those rows
+    // still carry a placeholder price of 0, so a hand-crafted ?services= URL
+    // would otherwise add an unbookable service to a real order for free.
+    .filter((s) => wanted.has(s.id) && s.is_active && !s.coming_soon && priceByService.has(s.id))
     .map((s) => ({
       serviceId: s.id,
       name: s.name,

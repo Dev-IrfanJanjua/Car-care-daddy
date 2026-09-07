@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { motion } from 'motion/react'
-import { CircleCheck, ShieldCheck } from 'lucide-react'
+import { Check, CircleCheck, Plus, ShieldCheck } from 'lucide-react'
 import { createBooking } from '@/lib/actions/bookings'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { formatPrice } from '@/lib/format'
+import { cn } from '@/lib/utils'
 import { SERVICE_CITY, WARRANTY_YEARS } from '@/lib/contact'
 import { normalizePhone } from '@/lib/phone'
 
@@ -57,7 +58,7 @@ const section = (i: number) => ({
 function StepLegend({ index, children }: { index: number; children: string }) {
   return (
     <legend className="mb-4 flex items-center gap-2.5">
-      <span className="flex size-7 items-center justify-center rounded-full border border-gold-700/50 bg-linear-to-br from-ink-700 to-ink-950 text-[11px] font-bold text-gold">
+      <span className="flex size-7 items-center justify-center rounded-full border border-gold-700/50 bg-linear-to-br from-navy-700 to-navy-950 text-[11px] font-bold text-gold">
         {index}
       </span>
       <span className="font-semibold">{children}</span>
@@ -85,6 +86,8 @@ function Field({
   )
 }
 
+export type Upsell = { id: string; name: string; description: string | null; price: number }
+
 export function BookingForm(props: {
   quoteId?: string
   make: string
@@ -93,13 +96,32 @@ export function BookingForm(props: {
   vehicleClass: string
   services: string
   total: number
+  upsells?: Upsell[]
 }) {
   const [localWhen, setLocalWhen] = useState('')
   const [phone, setPhone] = useState('')
+  const [added, setAdded] = useState<Set<string>>(() => new Set())
 
   const parsed = localWhen ? new Date(localWhen) : null
   const scheduledAtUtc =
     parsed && !Number.isNaN(parsed.getTime()) ? parsed.toISOString() : ''
+
+  const upsells = props.upsells ?? []
+
+  // The submitted list is what counts; the running total is display only, since
+  // createBooking recomputes every price server-side from these ids.
+  const submittedServices = [...props.services.split(',').filter(Boolean), ...added].join(',')
+  const runningTotal =
+    props.total + upsells.filter((u) => added.has(u.id)).reduce((sum, u) => sum + u.price, 0)
+
+  function toggleUpsell(id: string) {
+    setAdded((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   return (
     <form action={createBooking} className="space-y-6">
@@ -108,7 +130,7 @@ export function BookingForm(props: {
       <input type="hidden" name="model" value={props.model} />
       <input type="hidden" name="year" value={props.year} />
       <input type="hidden" name="class" value={props.vehicleClass} />
-      <input type="hidden" name="services" value={props.services} />
+      <input type="hidden" name="services" value={submittedServices} />
       <input type="hidden" name="scheduledAt" value={scheduledAtUtc} />
 
       {/* Last step before committing, so what's being booked and what it costs
@@ -130,7 +152,7 @@ export function BookingForm(props: {
             Total
           </p>
           <p className="mt-1 text-xl font-bold text-gold-ink tabular-nums">
-            {formatPrice(props.total)}
+            {formatPrice(runningTotal)}
           </p>
         </div>
       </motion.div>
@@ -226,11 +248,63 @@ export function BookingForm(props: {
         </fieldset>
       </motion.div>
 
-      <motion.div {...section(4)} className="space-y-3 border-t border-border/60 pt-6">
+      {/* Last chance to add anything they skipped. Placed immediately before the
+          submit button, where the total is already in view, so the extra cost is
+          never a surprise. Hidden entirely once everything has been picked. */}
+      {upsells.length > 0 && (
+        <motion.div {...section(4)} className="border-t border-border/60 pt-6">
+          <p className="text-sm font-semibold">Add to your booking</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Save a second visit — we can do these while we&apos;re with you.
+          </p>
+          <ul className="mt-3 space-y-2">
+            {upsells.map((u) => {
+              const isAdded = added.has(u.id)
+              return (
+                <li key={u.id}>
+                  <button
+                    type="button"
+                    onClick={() => toggleUpsell(u.id)}
+                    aria-pressed={isAdded}
+                    className={cn(
+                      'flex w-full items-start gap-3 rounded-lg border p-3.5 text-left transition-colors',
+                      isAdded
+                        ? 'border-brand bg-brand/5 ring-1 ring-brand/30'
+                        : 'border-border hover:bg-muted'
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border',
+                        isAdded ? 'border-brand bg-brand text-white' : 'border-muted-foreground/40'
+                      )}
+                    >
+                      {isAdded ? <Check className="size-3" /> : <Plus className="size-3" />}
+                    </span>
+                    <span className="flex-1">
+                      <span className="block text-sm font-medium">{u.name}</span>
+                      {u.description && (
+                        <span className="mt-0.5 block text-xs text-muted-foreground">
+                          {u.description}
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-sm font-semibold tabular-nums">
+                      +{formatPrice(u.price)}
+                    </span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </motion.div>
+      )}
+
+      <motion.div {...section(5)} className="space-y-3 border-t border-border/60 pt-6">
         <SubmitButton />
         <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
           <ShieldCheck className="size-3.5 shrink-0 text-gold-ink" />
-          {WARRANTY_YEARS}-year warranty · instant email confirmation
+          {WARRANTY_YEARS}-year warranty · confirm instantly on WhatsApp
         </p>
       </motion.div>
     </form>

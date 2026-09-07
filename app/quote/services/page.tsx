@@ -32,9 +32,11 @@ export default async function ServicesStepPage({
       .filter((p) => p.vehicle_class === (vehicleClass as VehicleClass))
       .map((p) => [p.service_id, Number(p.base_price)])
   )
+  // A coming-soon service is listed without a price, so it is kept even though
+  // its only price row is the 0 placeholder that makes it unsellable.
   const servicesWithPrice = services
-    .filter((s) => priceByService.has(s.id))
-    .map((s) => ({ ...s, price: priceByService.get(s.id)! }))
+    .filter((s) => s.coming_soon || priceByService.has(s.id))
+    .map((s) => ({ ...s, price: priceByService.get(s.id) ?? 0 }))
 
   const vehicleQuery = new URLSearchParams({ make, model, year, class: vehicleClass }).toString()
 

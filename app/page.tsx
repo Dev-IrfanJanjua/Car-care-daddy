@@ -28,7 +28,9 @@ export default async function Home() {
 
   // Driven from the catalog rather than a hardcoded list, so the homepage
   // can't drift from what customers can actually book.
-  const services = allServices.slice(0, 6)
+  // coming_soon is left out: these cards send people into the quote flow, and
+  // an unreleased service has nothing to quote.
+  const services = allServices.filter((s) => !s.coming_soon).slice(0, 6)
 
   // No "from" price is computed any more: prices vary by vehicle class, and the
   // cheapest tier shown as a headline figure under-quotes everyone driving
