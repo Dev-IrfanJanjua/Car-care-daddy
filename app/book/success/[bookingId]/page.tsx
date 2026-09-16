@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getBusinessContact } from '@/lib/business-contact'
 import { BookingSuccessCard } from './success-card'
 
 export default async function BookingSuccessPage({
@@ -47,9 +48,15 @@ export default async function BookingSuccessPage({
     price: Number(row.price),
   }))
 
+  const { whatsappNumber } = await getBusinessContact()
+
   return (
     <main className="mx-auto w-full max-w-xl px-4 py-12">
-      <BookingSuccessCard booking={booking} lineItems={lineItems} />
+      <BookingSuccessCard
+        booking={booking}
+        lineItems={lineItems}
+        whatsappNumber={whatsappNumber}
+      />
     </main>
   )
 }

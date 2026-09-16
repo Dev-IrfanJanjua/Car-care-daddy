@@ -24,3 +24,18 @@ export function normalizePhone(raw: string) {
 export function isValidPhone(value: string) {
   return /^0\d{10}$/.test(value)
 }
+
+/**
+ * The form wa.me needs: full international digits, no '+', no spaces, no
+ * domestic leading zero. 0328 7203630 -> 923287203630.
+ *
+ * Deliberately tolerant, because this reads a free-text field an admin typed
+ * into /admin/settings -- "+92 328 7203630", "0328-7203630" and "03287203630"
+ * all have to land on the same link. Returns '' when there is nothing usable,
+ * so callers can fall back rather than build a broken wa.me URL.
+ */
+export function toWhatsAppDigits(raw: string) {
+  const local = normalizePhone(raw)
+  if (!isValidPhone(local)) return ''
+  return `92${local.slice(1)}`
+}

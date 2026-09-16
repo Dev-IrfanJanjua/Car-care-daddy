@@ -1,25 +1,30 @@
 import { Mail } from 'lucide-react'
 import { FacebookIcon, InstagramIcon, WhatsAppIcon } from './brand-icons'
-import { CONTACT_EMAIL, FACEBOOK_URL, INSTAGRAM_URL, WHATSAPP_URL } from '@/lib/contact'
+import { FACEBOOK_URL, INSTAGRAM_URL } from '@/lib/contact'
+import { getBusinessContact } from '@/lib/business-contact'
 
-// Every destination comes from lib/contact.ts, which mirrors the printed
-// business card. There is no TikTok presence -- Facebook took that slot.
-const links = [
-  {
-    label: 'Instagram',
-    href: INSTAGRAM_URL,
-    icon: InstagramIcon,
-    // Instagram's mark is an official multi-stop gradient, painted via the
-    // <linearGradient> defined once below.
-    style: { fill: 'url(#ig-gradient)' },
-  },
-  { label: 'Facebook', href: FACEBOOK_URL, icon: FacebookIcon, color: '#0866FF' },
-  { label: 'WhatsApp', href: WHATSAPP_URL, icon: WhatsAppIcon, color: '#25D366' },
-  // Not a third-party mark, so this one is ours to brand: champagne gold.
-  { label: 'Email', href: `mailto:${CONTACT_EMAIL}`, icon: Mail, color: '#b4832f' },
-] as const
+// WhatsApp and email come from /admin/settings so the shop can change where
+// enquiries land without a deploy. The two social profiles stay in
+// lib/contact.ts: they are not editable anywhere, so a settings field for them
+// would be a field that is always empty.
+export async function MobileTabBar() {
+  const contact = await getBusinessContact()
 
-export function MobileTabBar() {
+  const links = [
+    {
+      label: 'Instagram',
+      href: INSTAGRAM_URL,
+      icon: InstagramIcon,
+      // Instagram's mark is an official multi-stop gradient, painted via the
+      // <linearGradient> defined once below.
+      style: { fill: 'url(#ig-gradient)' },
+    },
+    { label: 'Facebook', href: FACEBOOK_URL, icon: FacebookIcon, color: '#0866FF' },
+    { label: 'WhatsApp', href: contact.whatsappUrl, icon: WhatsAppIcon, color: '#25D366' },
+    // Not a third-party mark, so this one is ours to brand: champagne gold.
+    { label: 'Email', href: `mailto:${contact.email}`, icon: Mail, color: '#b4832f' },
+  ] as const
+
   return (
     <nav
       aria-label="Contact us"

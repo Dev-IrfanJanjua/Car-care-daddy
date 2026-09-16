@@ -35,9 +35,12 @@ export type LineItem = { name: string; price: number }
 export function BookingSuccessCard({
   booking,
   lineItems,
+  whatsappNumber,
 }: {
   booking: BookingSummary
   lineItems: LineItem[]
+  /** From /admin/settings, resolved on the server -- see lib/business-contact. */
+  whatsappNumber: string
 }) {
   const [sent, setSent] = useState(false)
 
@@ -46,16 +49,19 @@ export function BookingSuccessCard({
     .filter(Boolean)
     .join(' ')
 
-  const waUrl = orderWhatsAppUrl({
-    bookingId: booking.id,
-    customerName: booking.customer_name,
-    vehicle,
-    scheduledAt: booking.scheduled_at,
-    serviceAddress: booking.service_address,
-    serviceCity: booking.service_city,
-    lineItems,
-    totalAmount: Number(booking.total_amount),
-  })
+  const waUrl = orderWhatsAppUrl(
+    {
+      bookingId: booking.id,
+      customerName: booking.customer_name,
+      vehicle,
+      scheduledAt: booking.scheduled_at,
+      serviceAddress: booking.service_address,
+      serviceCity: booking.service_city,
+      lineItems,
+      totalAmount: Number(booking.total_amount),
+    },
+    whatsappNumber
+  )
 
   const rows = [
     { label: 'Vehicle', value: vehicle },

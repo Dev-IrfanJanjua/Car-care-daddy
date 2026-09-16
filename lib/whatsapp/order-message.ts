@@ -9,7 +9,6 @@
 // Deliberately free of server-only imports so the success screen can build the
 // link in the browser.
 
-import { WHATSAPP_NUMBER } from '@/lib/contact'
 import { formatPrice, formatAppointment } from '@/lib/format'
 
 export type OrderDetails = {
@@ -46,6 +45,12 @@ export function buildOrderMessage(order: OrderDetails) {
   ].join('\n')
 }
 
-export function orderWhatsAppUrl(order: OrderDetails) {
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildOrderMessage(order))}`
+/**
+ * `whatsappNumber` is passed in rather than imported so the destination can
+ * come from /admin/settings. This runs in the browser, where the settings row
+ * is not reachable -- the page that renders the success card looks it up and
+ * hands it down.
+ */
+export function orderWhatsAppUrl(order: OrderDetails, whatsappNumber: string) {
+  return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(buildOrderMessage(order))}`
 }
