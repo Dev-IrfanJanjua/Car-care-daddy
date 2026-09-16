@@ -58,8 +58,12 @@ export async function updateBusinessSettings(formData: FormData) {
   const { supabase } = await requireAdmin()
 
   const businessName = String(formData.get('businessName') || '')
-  const contactEmail = String(formData.get('contactEmail') || '') || null
-  const contactPhone = String(formData.get('contactPhone') || '') || null
+  const contactEmail = String(formData.get('contactEmail') || '').trim() || null
+  const contactPhone = String(formData.get('contactPhone') || '').trim() || null
+  // Stored as typed. lib/business-contact.ts resolves a handle or a full link
+  // into a URL, so normalising here would only lose what the admin entered.
+  const facebookUrl = String(formData.get('facebookUrl') || '').trim() || null
+  const instagramUrl = String(formData.get('instagramUrl') || '').trim() || null
 
   const { data, error } = await supabase
     .from('business_settings')
@@ -67,6 +71,8 @@ export async function updateBusinessSettings(formData: FormData) {
       business_name: businessName,
       contact_email: contactEmail,
       contact_phone: contactPhone,
+      facebook_url: facebookUrl,
+      instagram_url: instagramUrl,
     })
     .eq('id', true)
     .select('id')

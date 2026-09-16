@@ -1,25 +1,22 @@
 import { Mail } from 'lucide-react'
 import { FacebookIcon, InstagramIcon, WhatsAppIcon } from './brand-icons'
-import { FACEBOOK_URL, INSTAGRAM_URL } from '@/lib/contact'
 import { getBusinessContact } from '@/lib/business-contact'
 
-// WhatsApp and email come from /admin/settings so the shop can change where
-// enquiries land without a deploy. The two social profiles stay in
-// lib/contact.ts: they are not editable anywhere, so a settings field for them
-// would be a field that is always empty.
+// Every destination here is editable at /admin/settings, so the shop can move
+// where enquiries land without a deploy.
 export async function MobileTabBar() {
   const contact = await getBusinessContact()
 
   const links = [
     {
       label: 'Instagram',
-      href: INSTAGRAM_URL,
+      href: contact.instagramUrl,
       icon: InstagramIcon,
       // Instagram's mark is an official multi-stop gradient, painted via the
       // <linearGradient> defined once below.
       style: { fill: 'url(#ig-gradient)' },
     },
-    { label: 'Facebook', href: FACEBOOK_URL, icon: FacebookIcon, color: '#0866FF' },
+    { label: 'Facebook', href: contact.facebookUrl, icon: FacebookIcon, color: '#0866FF' },
     { label: 'WhatsApp', href: contact.whatsappUrl, icon: WhatsAppIcon, color: '#25D366' },
     // Not a third-party mark, so this one is ours to brand: champagne gold.
     { label: 'Email', href: `mailto:${contact.email}`, icon: Mail, color: '#b4832f' },

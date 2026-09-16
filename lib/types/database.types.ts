@@ -381,6 +381,8 @@ export type Database = {
           business_name: string
           contact_email: string | null
           contact_phone: string | null
+          facebook_url: string | null
+          instagram_url: string | null
           hours: Json | null
           service_area: Json | null
         }
@@ -389,6 +391,8 @@ export type Database = {
           business_name?: string
           contact_email?: string | null
           contact_phone?: string | null
+          facebook_url?: string | null
+          instagram_url?: string | null
           hours?: Json | null
           service_area?: Json | null
         }
@@ -397,6 +401,8 @@ export type Database = {
           business_name?: string
           contact_email?: string | null
           contact_phone?: string | null
+          facebook_url?: string | null
+          instagram_url?: string | null
           hours?: Json | null
           service_area?: Json | null
         }
