@@ -161,6 +161,9 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* Form controls sit slightly tighter than cards and buttons. Declared once
+     so the input, textarea and select trigger cannot drift apart. */
+  --radius-field: 8px;
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
