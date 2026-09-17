@@ -29,25 +29,26 @@ export default async function BookPage({
       .map((p) => [p.service_id, Number(p.base_price)])
   )
 
-  // A package already contains the individual services, so once one is chosen
-  // there is nothing left to add -- offering them here would rebuild, through
-  // the upsell, the double-charge the picker refuses to allow.
-  const packageChosen = allServices.some((s) => s.is_package && selectedIds.includes(s.id))
+  // Groups the customer has already chosen from. Their alternatives must not
+  // appear here: this control only adds to the total, so offering the other
+  // glass treatment would rebuild, through the upsell, the double-charge the
+  // picker refuses to allow.
+  const chosenGroups = new Set(
+    allServices
+      .filter((s) => selectedIds.includes(s.id) && s.exclusive_group)
+      .map((s) => s.exclusive_group)
+  )
 
-  const upsells = packageChosen
-    ? []
-    : allServices
-        // Packages are never upsells: they replace a selection rather than add
-        // to it, and this control only ever adds a price to the running total.
-        // coming_soon is excluded too -- it has no sellable price, so offering
-        // it would produce a free line item.
-        .filter(
-          (s) =>
-            !s.is_package &&
-            !s.coming_soon &&
-            !selectedIds.includes(s.id) &&
-            priceByService.has(s.id)
-        )
+  const upsells = allServices
+    // coming_soon is excluded here as well as in the picker -- it has no
+    // sellable price, so offering it would produce a free line item.
+    .filter(
+      (s) =>
+        !s.coming_soon &&
+        !selectedIds.includes(s.id) &&
+        !(s.exclusive_group && chosenGroups.has(s.exclusive_group)) &&
+        priceByService.has(s.id)
+    )
         .map((s) => ({
           id: s.id,
           name: s.name,

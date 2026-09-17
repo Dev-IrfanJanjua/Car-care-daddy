@@ -73,6 +73,7 @@ export type Database = {
           is_active: boolean
           is_package: boolean
           coming_soon: boolean
+          exclusive_group: string | null
           sort_order: number
         }
         Insert: {
@@ -84,6 +85,7 @@ export type Database = {
           is_active?: boolean
           is_package?: boolean
           coming_soon?: boolean
+          exclusive_group?: string | null
           sort_order?: number
         }
         Update: {
@@ -95,6 +97,7 @@ export type Database = {
           is_active?: boolean
           is_package?: boolean
           coming_soon?: boolean
+          exclusive_group?: string | null
           sort_order?: number
         }
         Relationships: []
