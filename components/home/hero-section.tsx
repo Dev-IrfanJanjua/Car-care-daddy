@@ -46,7 +46,7 @@ export function HeroSection({ phone }: { phone: { display: string; telHref: stri
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.08 }}
-          className="mt-7 font-heading text-5xl leading-[0.95] font-bold text-balance text-chrome-100 uppercase sm:text-6xl lg:text-7xl"
+          className="mt-7 font-display text-5xl leading-[0.95] font-bold text-balance text-chrome-100 uppercase sm:text-6xl lg:text-7xl"
         >
           Crystal-Clear Glass
           <br />

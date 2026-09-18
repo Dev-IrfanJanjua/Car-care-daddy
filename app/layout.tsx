@@ -12,12 +12,13 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-// A second face, used in exactly one place: the hero H1 (via the `font-heading`
-// utility, mapped in globals.css). Oswald's condensed caps are what give that
-// headline its poster-like weight -- Inter at the same size just looks
-// stretched. Everywhere else, including every other heading, stays Inter: one
-// display face spent on one moment reads as deliberate, not as two competing
-// type systems.
+// A second face, used only on the two big poster-style headlines (the hero,
+// and the why-choose-us section) via the `font-display` utility, mapped in
+// globals.css. Deliberately its own token rather than repointing the existing
+// `font-heading` -- that one is shadcn's CardTitle/SheetTitle base class, in
+// near-constant use across /admin, and would have carried Oswald into every
+// admin card title along with it. Oswald's condensed caps are what give those
+// two headlines their poster-like weight; everywhere else stays Inter.
 const oswald = Oswald({
   variable: "--font-display",
   subsets: ["latin"],

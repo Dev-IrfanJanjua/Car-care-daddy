@@ -58,10 +58,10 @@ export default async function Home() {
           phone={{ display: contact.whatsappDisplay, telHref: `tel:+${contact.whatsappNumber}` }}
         />
         <IntroVideoSection />
+        <WhyChooseUsSection />
         {homeServices.length > 0 && <ServicesSection services={homeServices} />}
         <BeforeAfterSection />
         <HowItWorksSection />
-        <WhyChooseUsSection />
         <TestimonialsSection reviews={reviews ?? undefined} />
         <BookingCtaSection />
       </main>
