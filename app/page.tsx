@@ -1,14 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 import { getServiceCatalog } from '@/lib/pricing/service-catalog'
+import { getBusinessContact } from '@/lib/business-contact'
 import { SiteHeader } from '@/components/home/site-header'
 import { HeroSection } from '@/components/home/hero-section'
+import { IntroVideoSection } from '@/components/home/intro-video-section'
 import { ServicesSection, type HomeService } from '@/components/home/services-section'
 import { BeforeAfterSection } from '@/components/home/before-after-section'
 import { HowItWorksSection } from '@/components/home/how-it-works-section'
 import { WhyChooseUsSection } from '@/components/home/why-choose-us-section'
 import { TestimonialsSection } from '@/components/home/testimonials-section'
 import { BookingCtaSection } from '@/components/home/booking-cta-section'
-import { MobileTabBar } from '@/components/home/mobile-tab-bar'
+import { SiteFooter } from '@/components/home/site-footer'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -16,7 +18,7 @@ export default async function Home() {
   // Services and prices come from the cached catalog; only the reviews are
   // fetched per request. That takes the homepage from three round trips to a
   // database in Tokyo down to one.
-  const [{ data: reviews }, { services: allServices }] = await Promise.all([
+  const [{ data: reviews }, { services: allServices }, contact] = await Promise.all([
     supabase
       .from('reviews')
       .select('rating, comment')
@@ -24,6 +26,10 @@ export default async function Home() {
       .order('created_at', { ascending: false })
       .limit(6),
     getServiceCatalog(),
+    // The hero's Call button needs a tel: link. HeroSection is a client
+    // component (entrance motion), and this is a server-only cached read, so
+    // it's fetched here and passed down rather than read inside the hero.
+    getBusinessContact(),
   ])
 
   // Driven from the catalog rather than a hardcoded list, so the homepage
@@ -45,12 +51,13 @@ export default async function Home() {
 
   return (
     <div className="flex flex-1 flex-col">
-      {/* The homepage is the only route with a dark full-bleed hero, so it's
-          the only one that floats the header over the top of it. */}
-      <SiteHeader overlay />
+      <SiteHeader />
 
       <main className="flex-1">
-        <HeroSection />
+        <HeroSection
+          phone={{ display: contact.whatsappDisplay, telHref: `tel:+${contact.whatsappNumber}` }}
+        />
+        <IntroVideoSection />
         {homeServices.length > 0 && <ServicesSection services={homeServices} />}
         <BeforeAfterSection />
         <HowItWorksSection />
@@ -59,7 +66,7 @@ export default async function Home() {
         <BookingCtaSection />
       </main>
 
-      <MobileTabBar />
+      <SiteFooter />
     </div>
   )
 }
