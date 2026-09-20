@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
-import { BookingForm } from './booking-form'
-import { QuoteShell } from '@/components/quote/quote-shell'
+import { BookingWizard } from './booking-wizard'
 import { getServiceCatalog } from '@/lib/pricing/service-catalog'
+import { calculateQuote } from '@/lib/pricing/calculate-quote'
+import { getBusinessContact } from '@/lib/business-contact'
 import type { Database } from '@/lib/types/database.types'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']
@@ -11,17 +12,27 @@ export default async function BookPage({
 }: {
   searchParams: Promise<Record<string, string | undefined>>
 }) {
-  const { quoteId, make, model, year, class: vehicleClass, services, total } = await searchParams
+  const { make, model, year, class: vehicleClass, services } = await searchParams
 
-  if (!make || !model || !year || !vehicleClass || !services || !total) {
+  if (!make || !model || !year || !vehicleClass || !services) {
     redirect('/quote')
   }
 
-  // Last-chance upsell: everything bookable the customer has not already picked.
-  // coming_soon is excluded here as well as in the picker -- it has no sellable
-  // price, so offering it would produce a free line item.
   const selectedIds = services.split(',').filter(Boolean)
-  const { services: allServices, prices } = await getServiceCatalog()
+
+  // Recomputed here rather than trusting a `total` query param -- the services
+  // step no longer passes one (the standalone "review your quote" screen that
+  // used to own that job is gone), and a client-supplied total was never
+  // trusted anyway.
+  const [quote, { services: allServices, prices }, contact] = await Promise.all([
+    calculateQuote(vehicleClass as VehicleClass, selectedIds),
+    getServiceCatalog(),
+    getBusinessContact(),
+  ])
+
+  if (quote.lineItems.length === 0) {
+    redirect('/quote')
+  }
 
   const priceByService = new Map(
     prices
@@ -49,14 +60,13 @@ export default async function BookPage({
         !(s.exclusive_group && chosenGroups.has(s.exclusive_group)) &&
         priceByService.has(s.id)
     )
-        .map((s) => ({
-          id: s.id,
-          name: s.name,
-          description: s.description,
-          price: priceByService.get(s.id)!,
-        }))
+    .map((s) => ({
+      id: s.id,
+      name: s.name,
+      description: s.description,
+      price: priceByService.get(s.id)!,
+    }))
 
-  const vehicleQuery = new URLSearchParams({ make, model, year, class: vehicleClass }).toString()
   const servicesQuery = new URLSearchParams({
     make,
     model,
@@ -66,29 +76,18 @@ export default async function BookPage({
   }).toString()
 
   return (
-    <QuoteShell
-      step={4}
-      backHref={`/quote/summary?${servicesQuery}`}
-      hrefs={[
-        `/quote?${vehicleQuery}`,
-        `/quote/services?${servicesQuery}`,
-        `/quote/summary?${servicesQuery}`,
-      ]}
-      title="Book your appointment"
-      // The vehicle and total now lead the form itself as a summary panel, so
-      // repeating them here would just say the same thing twice.
-      description="Tell us where and when, and we'll come to you."
-    >
-      <BookingForm
-        quoteId={quoteId}
-        make={make}
-        model={model}
-        year={year}
-        vehicleClass={vehicleClass}
-        services={services}
-        total={Number(total)}
-        upsells={upsells}
-      />
-    </QuoteShell>
+    <BookingWizard
+      make={make}
+      model={model}
+      year={year}
+      vehicleClass={vehicleClass}
+      services={services}
+      lineItems={quote.lineItems}
+      total={quote.total}
+      upsells={upsells}
+      servicesBackHref={`/quote/services?${servicesQuery}`}
+      phone={{ display: contact.whatsappDisplay, telHref: `tel:+${contact.whatsappNumber}` }}
+      hours={contact.hours}
+    />
   )
 }

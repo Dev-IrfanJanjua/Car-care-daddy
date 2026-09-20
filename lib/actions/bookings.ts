@@ -11,7 +11,6 @@ import type { Database } from '@/lib/types/database.types'
 type VehicleClass = Database['public']['Enums']['vehicle_class']
 
 export async function createBooking(formData: FormData) {
-  const quoteId = String(formData.get('quoteId') || '') || null
   const make = String(formData.get('make'))
   const model = String(formData.get('model'))
   const year = Number(formData.get('year'))
@@ -36,8 +35,9 @@ export async function createBooking(formData: FormData) {
     throw new Error('Enter an 11-digit phone number, for example 03001234567.')
   }
 
-  // Already a UTC ISO instant: the form converts the datetime-local value in
-  // the browser, so it carries the customer's timezone rather than the server's.
+  // Already a UTC ISO instant: the form converts the customer's calendar/time
+  // selection in the browser, so it carries their own timezone rather than
+  // the server's.
   const scheduledAt = String(formData.get('scheduledAt'))
   const when = new Date(scheduledAt)
   if (!scheduledAt || Number.isNaN(when.getTime())) {
@@ -56,11 +56,48 @@ export async function createBooking(formData: FormData) {
 
   const admin = createAdminClient()
 
+  // A standalone "review your quote" step used to create this row and upload
+  // photos before handing off to booking; that step is gone (prices are
+  // already visible on the services list, so it was a screen that only
+  // repeated them), so both happen here, right before the booking that
+  // references this quote's id.
+  const { data: quoteRow, error: quoteError } = await admin
+    .from('quotes')
+    .insert({
+      vehicle_make: make,
+      vehicle_model: model,
+      vehicle_year: year,
+      vehicle_class: vehicleClass,
+      line_items: quote.lineItems,
+      subtotal: quote.subtotal,
+      discount: quote.discount,
+      total: quote.total,
+    })
+    .select('id')
+    .single()
+
+  if (quoteError) throw quoteError
+
+  const photos = formData
+    .getAll('photos')
+    .filter((entry): entry is File => entry instanceof File && entry.size > 0)
+
+  // Best-effort: a failed photo upload should never block the booking.
+  for (const photo of photos) {
+    const path = `${quoteRow.id}/${crypto.randomUUID()}-${photo.name}`
+    const { error: uploadError } = await admin.storage
+      .from('quote-photos')
+      .upload(path, photo, { contentType: photo.type })
+    if (uploadError) continue
+
+    await admin.from('photos').insert({ quote_id: quoteRow.id, storage_path: path })
+  }
+
   // Single transaction: booking + line items + quote status. These used to be
   // three separate writes, so a mid-sequence failure could leave a booking with
   // no services attached.
   const { data, error } = await admin.rpc('create_booking_with_services', {
-    p_quote_id: quoteId,
+    p_quote_id: quoteRow.id,
     p_customer_name: customerName,
     p_customer_email: customerEmail,
     p_customer_phone: customerPhone,

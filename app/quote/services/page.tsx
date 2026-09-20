@@ -1,8 +1,12 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import { getServiceCatalog } from '@/lib/pricing/service-catalog'
+import { getBusinessContact } from '@/lib/business-contact'
 import { ServiceSelector } from './service-selector'
 import type { Database } from '@/lib/types/database.types'
-import { QuoteShell } from '@/components/quote/quote-shell'
+import { WizardShell } from '@/components/quote/wizard-shell'
+import { Button } from '@/components/ui/button'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']
 
@@ -25,7 +29,10 @@ export default async function ServicesStepPage({
 
   // Cached catalog, filtered to this vehicle class in memory -- see
   // lib/pricing/service-catalog.ts for why this is not queried per request.
-  const { services, prices } = await getServiceCatalog()
+  const [{ services, prices }, contact] = await Promise.all([
+    getServiceCatalog(),
+    getBusinessContact(),
+  ])
 
   const priceByService = new Map(
     prices
@@ -41,18 +48,27 @@ export default async function ServicesStepPage({
   const vehicleQuery = new URLSearchParams({ make, model, year, class: vehicleClass }).toString()
 
   return (
-    <QuoteShell
-      step={2}
-      backHref={`/quote?${vehicleQuery}`}
-      hrefs={[`/quote?${vehicleQuery}`]}
-      title="Select your services"
+    <WizardShell
+      currentStep={1}
+      title="Select service"
       description={`${year} ${make} ${model}`}
+      phone={{ display: contact.whatsappDisplay, telHref: `tel:+${contact.whatsappNumber}` }}
+      footer={
+        // ServiceSelector carries its own "N selected / total / Next Step"
+        // footer right under the list, where the running total already lives
+        // -- duplicating a second Next button down here would just be two
+        // controls doing the same thing. Back is enough in this bar.
+        <Button variant="ghost" size="sm" render={<Link href={`/quote?${vehicleQuery}`} />}>
+          <ArrowLeft className="size-4" data-icon="inline-start" />
+          Back
+        </Button>
+      }
     >
       <ServiceSelector
         services={servicesWithPrice}
         vehicleParams={{ make, model, year, class: vehicleClass }}
         initialSelectedIds={preselected ? preselected.split(',').filter(Boolean) : []}
       />
-    </QuoteShell>
+    </WizardShell>
   )
 }

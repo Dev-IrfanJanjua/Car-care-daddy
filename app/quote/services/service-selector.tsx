@@ -96,7 +96,10 @@ export function ServiceSelector({
       ...vehicleParams,
       services: Array.from(selected).join(','),
     })
-    router.push(`/quote/summary?${params.toString()}`)
+    // The "review your quote" screen this used to lead to is gone -- prices
+    // are already visible on every row above, so a whole extra step just to
+    // repeat them was redundant. Straight into the booking wizard instead.
+    router.push(`/book?${params.toString()}`)
   }
 
   return (
@@ -260,7 +263,7 @@ export function ServiceSelector({
         size="lg"
         className="h-11 w-full text-base"
       >
-        See my quote
+        Next Step
         <ArrowRight className="size-4" data-icon="inline-end" />
       </Button>
     </form>

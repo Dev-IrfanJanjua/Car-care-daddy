@@ -1,6 +1,7 @@
 import { unstable_cache } from 'next/cache'
 import { createPublicClient } from '@/lib/supabase/public'
 import { toWhatsAppDigits } from '@/lib/phone'
+import type { DayHours } from '@/lib/business-hours'
 import {
   CONTACT_EMAIL,
   FACEBOOK_URL,
@@ -21,6 +22,8 @@ export type BusinessContact = {
   email: string
   facebookUrl: string
   instagramUrl: string
+  /** Raw, as typed in settings -- see lib/business-hours.ts for parsing. */
+  hours: DayHours | null
 }
 
 /**
@@ -61,7 +64,7 @@ export const getBusinessContact = unstable_cache(
     const supabase = createPublicClient()
     const { data } = await supabase
       .from('business_settings')
-      .select('contact_phone, contact_email, facebook_url, instagram_url')
+      .select('contact_phone, contact_email, facebook_url, instagram_url, hours')
       .maybeSingle()
 
     const digits = toWhatsAppDigits(data?.contact_phone ?? '')
@@ -74,6 +77,7 @@ export const getBusinessContact = unstable_cache(
       email: email || CONTACT_EMAIL,
       facebookUrl: toProfileUrl(data?.facebook_url ?? null, 'facebook.com') || FACEBOOK_URL,
       instagramUrl: toProfileUrl(data?.instagram_url ?? null, 'instagram.com') || INSTAGRAM_URL,
+      hours: (data?.hours as DayHours | null) ?? null,
     }
   },
   ['business-contact'],

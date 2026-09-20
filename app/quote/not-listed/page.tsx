@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 export default function VehicleNotListedPage() {
   return (
     <QuoteShell
-      step={1}
       backHref="/quote"
       title="Tell us about your car"
       description="We price a few models by hand. Send us the details and we'll get back to you with an exact quote."
