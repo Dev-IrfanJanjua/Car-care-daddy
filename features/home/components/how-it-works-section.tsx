@@ -1,0 +1,65 @@
+import { ListChecks, CalendarCheck, Sparkles, Clock, type LucideIcon } from 'lucide-react'
+import { Reveal } from '@/components/motion/reveal'
+
+// `meta` hangs the duration off the step it actually applies to. Only the work
+// itself has one -- the first two steps take as long as the customer takes.
+const steps: { title: string; description: string; icon: LucideIcon; meta?: string }[] = [
+  {
+    title: 'Choose service',
+    description: 'Windshield restoration or full glass polishing — pick what your car needs.',
+    icon: ListChecks,
+  },
+  {
+    title: 'Book appointment',
+    description: 'Grab a time slot that works for you. No calls, no back-and-forth.',
+    icon: CalendarCheck,
+  },
+  {
+    title: 'We clean & restore',
+    description: 'Our technicians come to you anywhere in Lahore.',
+    icon: Sparkles,
+    meta: 'Takes 60–90 minutes',
+  },
+]
+
+export function HowItWorksSection() {
+  return (
+    <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-16">
+      <Reveal className="mx-auto flex max-w-2xl flex-col items-center text-center">
+        <span className="text-xs font-semibold tracking-[0.18em] text-gold-ink uppercase">
+          The process
+        </span>
+        <span className="rule-gold mt-3" />
+        <h2 className="mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl">How it works</h2>
+        <p className="mt-3 text-muted-foreground">Three steps between you and crystal-clear glass.</p>
+      </Reveal>
+
+      <div className="relative mt-12 grid gap-10 sm:grid-cols-3 sm:gap-6">
+        <div className="absolute top-6 right-[16.667%] left-[16.667%] hidden h-px bg-border sm:block"
+          /* 3 columns -> centres sit 1/6 in from each end; top-6 is half
+             of the size-12 circles, so the line runs through them. */ />
+
+        {steps.map((step, i) => (
+          <Reveal key={step.title} delay={i * 0.15}>
+            <div className="relative flex flex-col items-center text-center">
+              <div className="relative z-10 flex size-12 items-center justify-center rounded-full bg-card text-gold shadow-lg shadow-gold-700/15 ring-1 ring-gold-hairline">
+                <step.icon className="size-5" />
+              </div>
+              <span className="mt-4 text-xs font-bold tracking-[0.18em] text-gold-ink uppercase">
+                Step {i + 1}
+              </span>
+              <h3 className="mt-1 text-lg font-semibold">{step.title}</h3>
+              <p className="mt-1 max-w-56 text-sm text-muted-foreground">{step.description}</p>
+              {step.meta && (
+                <p className="mt-2 flex items-center gap-1.5 rounded-full border border-gold-hairline px-3 py-1 text-xs font-semibold text-gold-ink">
+                  <Clock className="size-3.5 shrink-0" />
+                  {step.meta}
+                </p>
+              )}
+            </div>
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  )
+}

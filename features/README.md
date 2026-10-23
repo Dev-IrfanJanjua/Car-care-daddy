@@ -24,9 +24,14 @@ Rules
 
 Migration status
 
-| Feature        | State |
-| -------------- | ----- |
-| `theme`        | done  |
-| `price-finder` | done  |
-| `home` (hero)  | done  |
-| site shell (header/footer), remaining home sections, `quote`, `booking`, `admin` | still in `components/` + `app/` + `lib/actions` — moved feature by feature in later steps |
+| Feature / area  | State |
+| --------------- | ----- |
+| `theme`         | done  |
+| `price-finder`  | done  |
+| `home`          | done (hero + all home sections) |
+| `site-shell`    | done (header, nav, footer) |
+| `quote`, `booking`, `admin` | still in `app/`, `components/quote`, `lib/actions` -- moved feature by feature in later steps |
+
+Shared (not features): `components/ui` (design-system primitives), `components/motion`
+(Reveal, GlowBackground), `components/icons` (brand icons), `lib/` (supabase clients,
+pricing engine, formatting, auth).

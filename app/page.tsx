@@ -1,17 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { getServiceCatalog } from '@/lib/pricing/service-catalog'
 import { getBusinessContact } from '@/lib/business-contact'
-import { SiteHeader } from '@/components/home/site-header'
-import { Hero } from '@/features/home'
+import { SiteHeader, SiteFooter } from '@/features/site-shell'
+import {
+  Hero,
+  IntroVideoSection,
+  ServicesSection,
+  WhyChooseUsSection,
+  HowItWorksSection,
+  BeforeAfterSection,
+  TestimonialsSection,
+  BookingCtaSection,
+  type HomeService,
+} from '@/features/home'
 import { PriceFinder, getPriceFinderData } from '@/features/price-finder'
-import { IntroVideoSection } from '@/components/home/intro-video-section'
-import { ServicesSection, type HomeService } from '@/components/home/services-section'
-import { BeforeAfterSection } from '@/components/home/before-after-section'
-import { HowItWorksSection } from '@/components/home/how-it-works-section'
-import { WhyChooseUsSection } from '@/components/home/why-choose-us-section'
-import { TestimonialsSection } from '@/components/home/testimonials-section'
-import { BookingCtaSection } from '@/components/home/booking-cta-section'
-import { SiteFooter } from '@/components/home/site-footer'
 
 export default async function Home() {
   const supabase = await createClient()

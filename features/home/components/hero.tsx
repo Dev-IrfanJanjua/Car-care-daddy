@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { motion } from 'motion/react'
 import { ArrowRight, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { WhatsAppIcon } from '@/components/home/brand-icons'
+import { WhatsAppIcon } from '@/components/icons/brand-icons'
 import { formatPrice } from '@/lib/format'
 import { WARRANTY_YEARS } from '@/lib/contact'
 

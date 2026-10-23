@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import { getBusinessContact } from '@/lib/business-contact'
-import { SiteHeader } from '@/components/home/site-header'
-import { SiteFooter } from '@/components/home/site-footer'
-import { ComingSoonSection } from '@/components/home/coming-soon-section'
+import { SiteHeader, SiteFooter } from '@/features/site-shell'
+import { ComingSoonSection } from '@/features/home'
 
 export const metadata: Metadata = {
   title: 'Gallery · Car Care Daddy',
