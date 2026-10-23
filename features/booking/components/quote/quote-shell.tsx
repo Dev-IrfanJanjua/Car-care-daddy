@@ -1,0 +1,59 @@
+import Link from 'next/link'
+import type { ReactNode } from 'react'
+import { ArrowLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { QuoteProgress } from './quote-progress'
+import { StepTransition } from './step-transition'
+
+export function QuoteShell({
+  step,
+  hrefs,
+  backHref,
+  title,
+  description,
+  children,
+}: {
+  // Optional now: the wizard that used to span four of these steps is down to
+  // one (the vehicle picker, plus its "not listed" branch) -- Services, Quote
+  // and Booking moved into WizardShell's own numbered sidebar. A step-less
+  // caller is a standalone screen with just a back button, matching the
+  // reference's un-numbered "choose your car" landing.
+  step?: 1 | 2 | 3 | 4
+  hrefs?: (string | undefined)[]
+  backHref: string
+  title: string
+  description?: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <main className="mx-auto w-full max-w-xl px-4 py-10 sm:py-14">
+      <div className="mb-6 flex items-center justify-between">
+        <Button variant="ghost" size="sm" className="-ml-2" render={<Link href={backHref} />}>
+          <ArrowLeft className="size-4" data-icon="inline-start" />
+          Back
+        </Button>
+        {step && (
+          <span className="text-xs font-medium text-muted-foreground">Step {step} of 4</span>
+        )}
+      </div>
+
+      {step && <QuoteProgress step={step} hrefs={hrefs} />}
+
+      <StepTransition>
+        {/* The gold capping rule is the one piece of brand on an otherwise
+            deliberately plain form surface -- it ties the flow back to the
+            hero without colouring anything the customer has to read. */}
+        <Card className="relative rounded-3xl border-border/60 shadow-xl shadow-gold-700/10 dk:rounded-md before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-gold-500">
+          <CardHeader>
+            <CardTitle className="text-2xl tracking-tight">{title}</CardTitle>
+            {description && (
+              <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+            )}
+          </CardHeader>
+          <CardContent>{children}</CardContent>
+        </Card>
+      </StepTransition>
+    </main>
+  )
+}

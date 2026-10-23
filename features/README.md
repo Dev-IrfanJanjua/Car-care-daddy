@@ -30,7 +30,8 @@ Migration status
 | `price-finder`  | done  |
 | `home`          | done (hero + all home sections) |
 | `site-shell`    | done (header, nav, footer) |
-| `quote`, `booking`, `admin` | still in `app/`, `components/quote`, `lib/actions` -- moved feature by feature in later steps |
+| `booking`       | done (quote steps, booking wizard, success card, server actions) |
+| `admin`         | still in `app/admin`, `lib/actions/admin` -- moved in a later step |
 
 Shared (not features): `components/ui` (design-system primitives), `components/motion`
 (Reveal, GlowBackground), `components/icons` (brand icons), `lib/` (supabase clients,

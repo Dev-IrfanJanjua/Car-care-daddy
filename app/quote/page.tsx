@@ -1,6 +1,5 @@
 import { getVehicleCatalog } from '@/lib/vehicles/get-catalog'
-import { VehicleStep } from './vehicle-step'
-import { QuoteShell } from '@/components/quote/quote-shell'
+import { VehicleStep, QuoteShell } from '@/features/booking'
 
 export default async function QuotePage({
   searchParams,

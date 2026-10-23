@@ -1,5 +1,4 @@
-import { captureUnlistedVehicleLead } from '@/lib/actions/quotes'
-import { QuoteShell } from '@/components/quote/quote-shell'
+import { captureUnlistedVehicleLead, QuoteShell } from '@/features/booking'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
