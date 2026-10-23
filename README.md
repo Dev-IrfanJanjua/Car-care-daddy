@@ -1,4 +1,4 @@
-# Car Care
+# Car Aurum
 
 Instant transparent pricing for mobile auto-glass repair: windshield chip repair, polishing,
 headlight restoration, and more. Next.js (App Router) + Supabase.

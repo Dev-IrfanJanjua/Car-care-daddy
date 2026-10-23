@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/theme-toggle'
 import {
   Sheet,
   SheetTrigger,
@@ -78,6 +79,7 @@ export function HeaderNav({ contact }: { contact: Contact }) {
           <Phone className="size-4 text-gold" />
           {contact.whatsappDisplay}
         </a>
+        <ThemeToggle />
         <Button className="shadow-md shadow-ink-950/20" render={<Link href="/quote" />}>
           Book Now
         </Button>
@@ -86,6 +88,7 @@ export function HeaderNav({ contact }: { contact: Contact }) {
       {/* Below lg: nav + phone move into a drawer, Book Now stays on the bar --
           the one action worth never hiding behind a menu tap. */}
       <div className="flex items-center gap-2 lg:hidden">
+        <ThemeToggle />
         <Button size="sm" className="shadow-md shadow-ink-950/20" render={<Link href="/quote" />}>
           Book Now
         </Button>
@@ -102,7 +105,7 @@ export function HeaderNav({ contact }: { contact: Contact }) {
 
           <SheetContent side="right" className="flex flex-col bg-ink-950 px-0">
             <SheetHeader className="border-b border-border/60 px-5 pb-4">
-              <SheetTitle>Car Care Daddy</SheetTitle>
+              <SheetTitle>Car Aurum</SheetTitle>
               <SheetDescription>
                 Doorstep windshield &amp; glass restoration in Lahore
               </SheetDescription>
