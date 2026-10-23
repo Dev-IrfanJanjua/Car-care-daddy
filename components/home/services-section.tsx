@@ -7,14 +7,12 @@ import { Droplets, Lightbulb, Sparkles, Car, Wrench, type LucideIcon } from 'luc
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Reveal } from './reveal'
-import { formatPrice } from '@/lib/format'
 
 export type HomeService = {
   id: string
   name: string
   description: string | null
   category: string | null
-  fromPrice: number | null
 }
 
 // Keyed off the `category` column in the services table. Anything unmapped
@@ -83,7 +81,7 @@ export function ServicesSection({ services }: { services: HomeService[] }) {
                 whileHover={{ y: -6 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               >
-                <Card className="h-full gap-0 ring-1 ring-foreground/10 transition-shadow hover:shadow-xl hover:shadow-navy-900/15">
+                <Card className="h-full gap-0 ring-1 ring-foreground/10 transition-shadow hover:shadow-xl hover:shadow-ink-900/15">
                   <Image
                     src={style.image}
                     alt={service.name}
@@ -94,21 +92,27 @@ export function ServicesSection({ services }: { services: HomeService[] }) {
                     className="aspect-video w-full object-cover"
                   />
                   <CardContent className="relative flex flex-col items-start gap-3 pt-4">
-                    <span className="-mt-10 flex size-12 items-center justify-center rounded-xl border border-gold-700/60 bg-linear-to-br from-navy-700 to-navy-950 text-gold shadow-md ring-4 ring-card">
+                    <span className="-mt-10 flex size-12 items-center justify-center rounded-xl border border-gold-700/60 bg-linear-to-br from-ink-700 to-ink-950 text-gold shadow-md ring-4 ring-card">
                       <Icon className="size-6" />
                     </span>
                     <h3 className="text-lg font-semibold">{service.name}</h3>
                     {service.description && (
                       <p className="text-sm text-muted-foreground">{service.description}</p>
                     )}
-                    {service.fromPrice !== null && (
-                      <p className="mt-auto text-sm text-muted-foreground">
-                        From{' '}
-                        <span className="font-bold text-gold-ink">
-                          {formatPrice(service.fromPrice)}
-                        </span>
-                      </p>
-                    )}
+                    {/* No figure here. Every service is priced per vehicle
+                        class, so a single "from" number is the cheapest tier
+                        and reads as the price to anyone driving anything
+                        bigger. The quote flow asks for the car first and can
+                        then show a figure that is actually theirs. */}
+                    <p className="mt-auto text-sm text-muted-foreground">
+                      Priced by your car —{' '}
+                      <Link
+                        href="/quote"
+                        className="font-semibold text-gold-ink underline-offset-4 hover:underline"
+                      >
+                        get your price
+                      </Link>
+                    </p>
                   </CardContent>
                 </Card>
               </motion.div>

@@ -70,8 +70,34 @@ export default async function AdminSettingsPage() {
                 id="contactPhone"
                 name="contactPhone"
                 type="tel"
+                placeholder="0328 7203630"
                 defaultValue={settings?.contact_phone ?? ''}
               />
+              <p className="text-xs text-muted-foreground">
+                Drives the WhatsApp buttons and the customer&apos;s order message.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="facebookUrl">Facebook</Label>
+              <Input
+                id="facebookUrl"
+                name="facebookUrl"
+                placeholder="carcaredaddy"
+                defaultValue={settings?.facebook_url ?? ''}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="instagramUrl">Instagram</Label>
+              <Input
+                id="instagramUrl"
+                name="instagramUrl"
+                placeholder="carcaredaddy"
+                defaultValue={settings?.instagram_url ?? ''}
+              />
+              <p className="text-xs text-muted-foreground">
+                A handle or a full profile link — either works. Leave a field blank to fall
+                back to the built-in default.
+              </p>
             </div>
             <Button type="submit">Save</Button>
           </form>

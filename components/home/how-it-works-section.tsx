@@ -1,7 +1,9 @@
-import { ListChecks, CalendarCheck, Sparkles } from 'lucide-react'
+import { ListChecks, CalendarCheck, Sparkles, Clock, type LucideIcon } from 'lucide-react'
 import { Reveal } from './reveal'
 
-const steps = [
+// `meta` hangs the duration off the step it actually applies to. Only the work
+// itself has one -- the first two steps take as long as the customer takes.
+const steps: { title: string; description: string; icon: LucideIcon; meta?: string }[] = [
   {
     title: 'Choose service',
     description: 'Windshield restoration or full glass polishing — pick what your car needs.',
@@ -16,6 +18,7 @@ const steps = [
     title: 'We clean & restore',
     description: 'Our technicians come to you anywhere in Lahore.',
     icon: Sparkles,
+    meta: 'Takes 60–90 minutes',
   },
 ]
 
@@ -39,7 +42,7 @@ export function HowItWorksSection() {
         {steps.map((step, i) => (
           <Reveal key={step.title} delay={i * 0.15}>
             <div className="relative flex flex-col items-center text-center">
-              <div className="relative z-10 flex size-12 items-center justify-center rounded-full bg-linear-to-br from-navy-800 to-navy-950 text-gold shadow-lg shadow-navy-900/25 ring-1 ring-gold-hairline">
+              <div className="relative z-10 flex size-12 items-center justify-center rounded-full bg-linear-to-br from-ink-800 to-ink-950 text-gold shadow-lg shadow-ink-900/25 ring-1 ring-gold-hairline">
                 <step.icon className="size-5" />
               </div>
               <span className="mt-4 text-xs font-bold tracking-[0.18em] text-gold-ink uppercase">
@@ -47,6 +50,12 @@ export function HowItWorksSection() {
               </span>
               <h3 className="mt-1 text-lg font-semibold">{step.title}</h3>
               <p className="mt-1 max-w-56 text-sm text-muted-foreground">{step.description}</p>
+              {step.meta && (
+                <p className="mt-2 flex items-center gap-1.5 rounded-full border border-gold-hairline px-3 py-1 text-xs font-semibold text-gold-ink">
+                  <Clock className="size-3.5 shrink-0" />
+                  {step.meta}
+                </p>
+              )}
             </div>
           </Reveal>
         ))}

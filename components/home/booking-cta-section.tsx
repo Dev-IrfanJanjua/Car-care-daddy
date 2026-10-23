@@ -30,7 +30,7 @@ export function BookingCtaSection() {
 
         <Button
           size="lg"
-          className="mt-8 h-12 px-7 text-base shadow-lg shadow-navy-900/25"
+          className="mt-8 h-12 px-7 text-base shadow-lg shadow-ink-900/25"
           render={<Link href="/quote" />}
         >
           Book Now

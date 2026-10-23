@@ -24,7 +24,7 @@ export function BeforeAfterSlider() {
           className="object-cover"
           priority
         />
-        <span className="absolute top-4 left-4 rounded-full bg-navy-950/75 px-3 py-1 text-xs font-semibold tracking-[0.18em] text-chrome-100 uppercase backdrop-blur">
+        <span className="absolute top-4 left-4 rounded-full bg-ink-950/75 px-3 py-1 text-xs font-semibold tracking-[0.18em] text-chrome-100 uppercase backdrop-blur">
           Before
         </span>
       </div>
@@ -45,7 +45,7 @@ export function BeforeAfterSlider() {
       </div>
 
       <div
-        className="absolute inset-y-0 z-10 w-0.5 bg-white shadow-[0_0_0_1px_var(--navy-950)]"
+        className="absolute inset-y-0 z-10 w-0.5 bg-white shadow-[0_0_0_1px_var(--ink-950)]"
         style={{ left: `${value}%` }}
       >
         <div className="absolute top-1/2 left-1/2 flex size-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-card text-foreground shadow-lg ring-1 ring-gold/40">

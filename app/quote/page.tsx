@@ -12,7 +12,6 @@ export default async function QuotePage({
 
   return (
     <QuoteShell
-      step={1}
       backHref="/"
       title="Get an instant quote"
       description="Tell us about your vehicle to see transparent pricing."

@@ -73,6 +73,7 @@ export type Database = {
           is_active: boolean
           is_package: boolean
           coming_soon: boolean
+          exclusive_group: string | null
           sort_order: number
         }
         Insert: {
@@ -84,6 +85,7 @@ export type Database = {
           is_active?: boolean
           is_package?: boolean
           coming_soon?: boolean
+          exclusive_group?: string | null
           sort_order?: number
         }
         Update: {
@@ -95,6 +97,7 @@ export type Database = {
           is_active?: boolean
           is_package?: boolean
           coming_soon?: boolean
+          exclusive_group?: string | null
           sort_order?: number
         }
         Relationships: []
@@ -381,6 +384,8 @@ export type Database = {
           business_name: string
           contact_email: string | null
           contact_phone: string | null
+          facebook_url: string | null
+          instagram_url: string | null
           hours: Json | null
           service_area: Json | null
         }
@@ -389,6 +394,8 @@ export type Database = {
           business_name?: string
           contact_email?: string | null
           contact_phone?: string | null
+          facebook_url?: string | null
+          instagram_url?: string | null
           hours?: Json | null
           service_area?: Json | null
         }
@@ -397,6 +404,8 @@ export type Database = {
           business_name?: string
           contact_email?: string | null
           contact_phone?: string | null
+          facebook_url?: string | null
+          instagram_url?: string | null
           hours?: Json | null
           service_area?: Json | null
         }

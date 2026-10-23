@@ -19,6 +19,8 @@ type Service = {
   price: number
   is_package: boolean
   coming_soon: boolean
+  /** Services sharing a non-null group are alternatives -- see toggle(). */
+  exclusive_group: string | null
 }
 
 function categoryLabel(category: string | null) {
@@ -60,10 +62,11 @@ export function ServiceSelector({
     return Array.from(byCategory.entries())
   }, [services])
 
-  // The package and the individual services it contains are mutually exclusive
-  // in both directions. Full Glass Polishing already includes windshield and
-  // headlight restoration, so any combination of the two would bill the same
-  // work twice.
+  // Services sharing an exclusive_group are alternatives to each other, so
+  // picking one drops the rest of that group -- Full Glass Polishing already
+  // covers the windshield, and booking both would pay twice for the same glass.
+  // Services outside the group are unaffected: headlights are separate work and
+  // can be added to either.
   function toggle(service: Service, checked: boolean) {
     setSelected((prev) => {
       if (!checked) {
@@ -72,14 +75,14 @@ export function ServiceSelector({
         return next
       }
 
-      // Ticking the package replaces the whole selection.
-      if (service.is_package) return new Set([service.id])
-
-      // Ticking an individual service drops any package that contains it.
       const next = new Set(prev)
       next.add(service.id)
-      for (const s of bookable) {
-        if (s.is_package) next.delete(s.id)
+      if (service.exclusive_group) {
+        for (const s of bookable) {
+          if (s.id !== service.id && s.exclusive_group === service.exclusive_group) {
+            next.delete(s.id)
+          }
+        }
       }
       return next
     })
@@ -93,7 +96,10 @@ export function ServiceSelector({
       ...vehicleParams,
       services: Array.from(selected).join(','),
     })
-    router.push(`/quote/summary?${params.toString()}`)
+    // The "review your quote" screen this used to lead to is gone -- prices
+    // are already visible on every row above, so a whole extra step just to
+    // repeat them was redundant. Straight into the booking wizard instead.
+    router.push(`/book?${params.toString()}`)
   }
 
   return (
@@ -132,45 +138,106 @@ export function ServiceSelector({
                   )
                 }
 
+                // Named rather than hardcoded, so the hint stays true if a third
+                // glass treatment joins the group -- and so neither card tells
+                // the customer it is an alternative to itself.
+                const alternatives = s.exclusive_group
+                  ? bookable
+                      .filter(
+                        (o) => o.id !== s.id && o.exclusive_group === s.exclusive_group
+                      )
+                      .map((o) => o.name)
+                  : []
+
+                const rowClass = cn(
+                  'flex w-full cursor-pointer items-start gap-3 rounded-lg border p-4 text-left font-normal transition-colors',
+                  checked
+                    ? 'border-brand bg-brand/5 ring-1 ring-brand/30'
+                    : 'border-border hover:bg-muted'
+                )
+
+                const body = (
+                  <>
+                    <span className="flex-1">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium">{s.name}</span>
+                        {s.is_package && (
+                          <Badge variant="secondary" className="shrink-0">
+                            Complete package
+                          </Badge>
+                        )}
+                      </span>
+                      {s.description && (
+                        <span className="mt-0.5 block text-sm text-muted-foreground">
+                          {s.description}
+                        </span>
+                      )}
+                      {alternatives.length > 0 && (
+                        <span className="mt-1 block text-xs text-muted-foreground">
+                          Alternative to {alternatives.join(' / ')} — they cover the same
+                          glass, so only one applies.
+                        </span>
+                      )}
+                    </span>
+                    <span className="font-semibold tabular-nums">{formatPrice(s.price)}</span>
+                  </>
+                )
+
+                // Anything in an exclusive group draws as a radio, everything
+                // else as a checkbox, because that is precisely what they do:
+                // one of the glass treatments, plus any add-ons you like. The
+                // control should say that up front rather than leaving the
+                // customer to discover it by clicking.
+                //
+                // role="radio" on a button rather than a native radio group: a
+                // native radio cannot be unticked, which would trap anyone who
+                // picked one and then changed their mind.
+                if (s.exclusive_group) {
+                  return (
+                    <li key={s.id}>
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={checked}
+                        onClick={() => toggle(s, !checked)}
+                        className={rowClass}
+                      >
+                        <span
+                          aria-hidden
+                          className={cn(
+                            'mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors',
+                            checked ? 'border-brand' : 'border-input'
+                          )}
+                        >
+                          {checked && <span className="size-2 rounded-full bg-brand" />}
+                        </span>
+                        {body}
+                      </button>
+                    </li>
+                  )
+                }
+
                 return (
                   <li key={s.id}>
-                    <Label
-                      htmlFor={`service-${s.id}`}
-                      className={cn(
-                        'flex cursor-pointer items-start gap-3 rounded-lg border p-4 font-normal transition-colors',
-                        checked
-                          ? 'border-brand bg-brand/5 ring-1 ring-brand/30'
-                          : 'border-border hover:bg-muted'
-                      )}
-                    >
+                    <Label htmlFor={`service-${s.id}`} className={rowClass}>
+                      {/* `name` is load-bearing, not decoration. Base UI styles
+                          the hidden input it pairs with the checkbox as
+                          `position: fixed; top: 0; left: 0` when there is no
+                          name, and `position: absolute` when there is. The
+                          label's htmlFor points at that input, so clicking a
+                          row focuses it -- and because this list sits inside
+                          StepTransition's animated motion.div, a transformed
+                          ancestor makes `fixed` resolve against that div rather
+                          than the viewport. The browser then scrolled the page
+                          up to the top of the card on every tick. */}
                       <Checkbox
                         id={`service-${s.id}`}
+                        name={`service-${s.id}`}
                         checked={checked}
                         onCheckedChange={(c) => toggle(s, c === true)}
                         className="mt-0.5"
                       />
-                      <span className="flex-1">
-                        <span className="flex flex-wrap items-center gap-2">
-                          <span className="font-medium">{s.name}</span>
-                          {s.is_package && (
-                            <Badge variant="secondary" className="shrink-0">
-                              Complete package
-                            </Badge>
-                          )}
-                        </span>
-                        {s.description && (
-                          <span className="mt-0.5 block text-sm text-muted-foreground">
-                            {s.description}
-                          </span>
-                        )}
-                        {s.is_package && (
-                          <span className="mt-1 block text-xs text-muted-foreground">
-                            Includes windshield and headlight restoration — pick this
-                            instead of them, not as well.
-                          </span>
-                        )}
-                      </span>
-                      <span className="font-semibold tabular-nums">{formatPrice(s.price)}</span>
+                      {body}
                     </Label>
                   </li>
                 )
@@ -196,7 +263,7 @@ export function ServiceSelector({
         size="lg"
         className="h-11 w-full text-base"
       >
-        See my quote
+        Next Step
         <ArrowRight className="size-4" data-icon="inline-end" />
       </Button>
     </form>

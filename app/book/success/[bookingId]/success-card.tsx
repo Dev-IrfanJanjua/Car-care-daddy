@@ -35,9 +35,12 @@ export type LineItem = { name: string; price: number }
 export function BookingSuccessCard({
   booking,
   lineItems,
+  whatsappNumber,
 }: {
   booking: BookingSummary
   lineItems: LineItem[]
+  /** From /admin/settings, resolved on the server -- see lib/business-contact. */
+  whatsappNumber: string
 }) {
   const [sent, setSent] = useState(false)
 
@@ -46,16 +49,19 @@ export function BookingSuccessCard({
     .filter(Boolean)
     .join(' ')
 
-  const waUrl = orderWhatsAppUrl({
-    bookingId: booking.id,
-    customerName: booking.customer_name,
-    vehicle,
-    scheduledAt: booking.scheduled_at,
-    serviceAddress: booking.service_address,
-    serviceCity: booking.service_city,
-    lineItems,
-    totalAmount: Number(booking.total_amount),
-  })
+  const waUrl = orderWhatsAppUrl(
+    {
+      bookingId: booking.id,
+      customerName: booking.customer_name,
+      vehicle,
+      scheduledAt: booking.scheduled_at,
+      serviceAddress: booking.service_address,
+      serviceCity: booking.service_city,
+      lineItems,
+      totalAmount: Number(booking.total_amount),
+    },
+    whatsappNumber
+  )
 
   const rows = [
     { label: 'Vehicle', value: vehicle },
@@ -64,10 +70,10 @@ export function BookingSuccessCard({
   ]
 
   return (
-    <Card className="relative shadow-xl shadow-navy-900/6 before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-linear-to-r before:from-gold-700 before:via-gold-400 before:to-gold-700">
+    <Card className="relative shadow-xl shadow-ink-900/6 before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-linear-to-r before:from-gold-700 before:via-gold-400 before:to-gold-700">
       <CardContent className="py-8">
         <div className="flex flex-col items-center text-center">
-          <span className="flex size-14 items-center justify-center rounded-full bg-linear-to-br from-navy-700 to-navy-950 ring-1 ring-gold-hairline">
+          <span className="flex size-14 items-center justify-center rounded-full bg-linear-to-br from-ink-700 to-ink-950 ring-1 ring-gold-hairline">
             {sent ? (
               <CircleCheck className="size-7 text-gold" />
             ) : (

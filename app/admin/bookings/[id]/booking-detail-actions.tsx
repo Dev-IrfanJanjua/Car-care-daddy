@@ -63,14 +63,21 @@ export function BookingDetailActions({
   const [notes, setNotes] = useState(currentNotes)
   const [scheduledAt, setScheduledAt] = useState(() => toLocalInputValue(currentScheduledAt))
 
+  // The server action explains *why* a write failed -- a bare "Could not
+  // update" hid a silent RLS rejection behind the same words as a network
+  // blip, which is why this looked like the dropdown simply not working.
+  function reason(error: unknown, fallback: string) {
+    return error instanceof Error && error.message ? error.message : fallback
+  }
+
   function handleStatusChange(value: string | null) {
     if (!value) return
     startTransition(async () => {
       try {
         await updateBookingStatus(bookingId, value as BookingStatus)
         toast.success('Status updated')
-      } catch {
-        toast.error('Could not update status')
+      } catch (error) {
+        toast.error(reason(error, 'Could not update status'))
       }
     })
   }
@@ -81,8 +88,8 @@ export function BookingDetailActions({
       try {
         await assignTechnician(bookingId, value === 'unassigned' ? null : value)
         toast.success('Technician assignment updated')
-      } catch {
-        toast.error('Could not update technician')
+      } catch (error) {
+        toast.error(reason(error, 'Could not update technician'))
       }
     })
   }
@@ -99,8 +106,8 @@ export function BookingDetailActions({
       try {
         await rescheduleBooking(bookingId, parsed.toISOString())
         toast.success('Appointment rescheduled')
-      } catch {
-        toast.error('Could not reschedule')
+      } catch (error) {
+        toast.error(reason(error, 'Could not reschedule'))
       }
     })
   }
@@ -109,8 +116,8 @@ export function BookingDetailActions({
     startTransition(async () => {
       try {
         await updateBookingNotes(bookingId, notes)
-      } catch {
-        toast.error('Could not save notes')
+      } catch (error) {
+        toast.error(reason(error, 'Could not save notes'))
       }
     })
   }

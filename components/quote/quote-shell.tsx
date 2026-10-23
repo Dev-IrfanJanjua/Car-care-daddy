@@ -14,7 +14,12 @@ export function QuoteShell({
   description,
   children,
 }: {
-  step: 1 | 2 | 3 | 4
+  // Optional now: the wizard that used to span four of these steps is down to
+  // one (the vehicle picker, plus its "not listed" branch) -- Services, Quote
+  // and Booking moved into WizardShell's own numbered sidebar. A step-less
+  // caller is a standalone screen with just a back button, matching the
+  // reference's un-numbered "choose your car" landing.
+  step?: 1 | 2 | 3 | 4
   hrefs?: (string | undefined)[]
   backHref: string
   title: string
@@ -28,16 +33,18 @@ export function QuoteShell({
           <ArrowLeft className="size-4" data-icon="inline-start" />
           Back
         </Button>
-        <span className="text-xs font-medium text-muted-foreground">Step {step} of 4</span>
+        {step && (
+          <span className="text-xs font-medium text-muted-foreground">Step {step} of 4</span>
+        )}
       </div>
 
-      <QuoteProgress step={step} hrefs={hrefs} />
+      {step && <QuoteProgress step={step} hrefs={hrefs} />}
 
       <StepTransition>
         {/* The gold capping rule is the one piece of brand on an otherwise
             deliberately plain form surface -- it ties the flow back to the
             hero without colouring anything the customer has to read. */}
-        <Card className="relative border-border/60 shadow-xl shadow-navy-900/6 before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-linear-to-r before:from-gold-700 before:via-gold-400 before:to-gold-700">
+        <Card className="relative border-border/60 shadow-xl shadow-ink-900/6 before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-linear-to-r before:from-gold-700 before:via-gold-400 before:to-gold-700">
           <CardHeader>
             <CardTitle className="text-2xl tracking-tight">{title}</CardTitle>
             {description && (

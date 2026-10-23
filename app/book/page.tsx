@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
-import { BookingForm } from './booking-form'
-import { QuoteShell } from '@/components/quote/quote-shell'
-import { createClient } from '@/lib/supabase/server'
+import { BookingWizard } from './booking-wizard'
+import { getServiceCatalog } from '@/lib/pricing/service-catalog'
+import { calculateQuote } from '@/lib/pricing/calculate-quote'
+import { getBusinessContact } from '@/lib/business-contact'
 import type { Database } from '@/lib/types/database.types'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']
@@ -11,53 +12,61 @@ export default async function BookPage({
 }: {
   searchParams: Promise<Record<string, string | undefined>>
 }) {
-  const { quoteId, make, model, year, class: vehicleClass, services, total } = await searchParams
+  const { make, model, year, class: vehicleClass, services } = await searchParams
 
-  if (!make || !model || !year || !vehicleClass || !services || !total) {
+  if (!make || !model || !year || !vehicleClass || !services) {
     redirect('/quote')
   }
 
-  // Last-chance upsell: everything bookable the customer has not already picked.
-  // coming_soon is excluded here as well as in the picker -- it has no sellable
-  // price, so offering it would produce a free line item.
   const selectedIds = services.split(',').filter(Boolean)
-  const supabase = await createClient()
-  const [{ data: allServices }, { data: prices }] = await Promise.all([
-    supabase
-      .from('services')
-      .select('id, name, description, sort_order, is_package')
-      .eq('is_active', true)
-      .eq('coming_soon', false)
-      .order('sort_order'),
-    supabase
-      .from('service_prices')
-      .select('service_id, base_price')
-      .eq('vehicle_class', vehicleClass as VehicleClass),
+
+  // Recomputed here rather than trusting a `total` query param -- the services
+  // step no longer passes one (the standalone "review your quote" screen that
+  // used to own that job is gone), and a client-supplied total was never
+  // trusted anyway.
+  const [quote, { services: allServices, prices }, contact] = await Promise.all([
+    calculateQuote(vehicleClass as VehicleClass, selectedIds),
+    getServiceCatalog(),
+    getBusinessContact(),
   ])
 
-  const priceByService = new Map((prices ?? []).map((p) => [p.service_id, Number(p.base_price)]))
+  if (quote.lineItems.length === 0) {
+    redirect('/quote')
+  }
 
-  // A package already contains the individual services, so once one is chosen
-  // there is nothing left to add -- offering them here would rebuild, through
-  // the upsell, the double-charge the picker refuses to allow.
-  const packageChosen = (allServices ?? []).some(
-    (s) => s.is_package && selectedIds.includes(s.id)
+  const priceByService = new Map(
+    prices
+      .filter((p) => p.vehicle_class === (vehicleClass as VehicleClass))
+      .map((p) => [p.service_id, Number(p.base_price)])
   )
 
-  const upsells = packageChosen
-    ? []
-    : (allServices ?? [])
-        // Packages are never upsells: they replace a selection rather than add
-        // to it, and this control only ever adds a price to the running total.
-        .filter((s) => !s.is_package && !selectedIds.includes(s.id) && priceByService.has(s.id))
-        .map((s) => ({
-          id: s.id,
-          name: s.name,
-          description: s.description,
-          price: priceByService.get(s.id)!,
-        }))
+  // Groups the customer has already chosen from. Their alternatives must not
+  // appear here: this control only adds to the total, so offering the other
+  // glass treatment would rebuild, through the upsell, the double-charge the
+  // picker refuses to allow.
+  const chosenGroups = new Set(
+    allServices
+      .filter((s) => selectedIds.includes(s.id) && s.exclusive_group)
+      .map((s) => s.exclusive_group)
+  )
 
-  const vehicleQuery = new URLSearchParams({ make, model, year, class: vehicleClass }).toString()
+  const upsells = allServices
+    // coming_soon is excluded here as well as in the picker -- it has no
+    // sellable price, so offering it would produce a free line item.
+    .filter(
+      (s) =>
+        !s.coming_soon &&
+        !selectedIds.includes(s.id) &&
+        !(s.exclusive_group && chosenGroups.has(s.exclusive_group)) &&
+        priceByService.has(s.id)
+    )
+    .map((s) => ({
+      id: s.id,
+      name: s.name,
+      description: s.description,
+      price: priceByService.get(s.id)!,
+    }))
+
   const servicesQuery = new URLSearchParams({
     make,
     model,
@@ -67,29 +76,18 @@ export default async function BookPage({
   }).toString()
 
   return (
-    <QuoteShell
-      step={4}
-      backHref={`/quote/summary?${servicesQuery}`}
-      hrefs={[
-        `/quote?${vehicleQuery}`,
-        `/quote/services?${servicesQuery}`,
-        `/quote/summary?${servicesQuery}`,
-      ]}
-      title="Book your appointment"
-      // The vehicle and total now lead the form itself as a summary panel, so
-      // repeating them here would just say the same thing twice.
-      description="Tell us where and when, and we'll come to you."
-    >
-      <BookingForm
-        quoteId={quoteId}
-        make={make}
-        model={model}
-        year={year}
-        vehicleClass={vehicleClass}
-        services={services}
-        total={Number(total)}
-        upsells={upsells}
-      />
-    </QuoteShell>
+    <BookingWizard
+      make={make}
+      model={model}
+      year={year}
+      vehicleClass={vehicleClass}
+      services={services}
+      lineItems={quote.lineItems}
+      total={quote.total}
+      upsells={upsells}
+      servicesBackHref={`/quote/services?${servicesQuery}`}
+      phone={{ display: contact.whatsappDisplay, telHref: `tel:+${contact.whatsappNumber}` }}
+      hours={contact.hours}
+    />
   )
 }

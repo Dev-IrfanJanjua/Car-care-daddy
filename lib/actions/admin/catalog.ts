@@ -1,8 +1,10 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, updateTag } from 'next/cache'
 import { requireAdmin } from '@/lib/auth/require-admin'
 import { VEHICLE_CLASSES, type VehicleClass } from '@/lib/vehicles/classes'
+import { SERVICE_CATALOG_TAG } from '@/lib/pricing/service-catalog'
+import { VEHICLE_CATALOG_TAG } from '@/lib/vehicles/get-catalog'
 
 function slugify(value: string) {
   return value
@@ -13,6 +15,10 @@ function slugify(value: string) {
 }
 
 function revalidateCatalog() {
+  // The tag is what actually matters: services and prices are now served from
+  // a cached catalog, so without this a price edit would sit stale behind its
+  // hour-long revalidate. The paths still clear the rendered pages.
+  updateTag(SERVICE_CATALOG_TAG)
   revalidatePath('/admin/settings/services')
   revalidatePath('/quote/services')
   revalidatePath('/')
@@ -98,6 +104,7 @@ export async function toggleServiceActive(serviceId: string, isActive: boolean) 
 // ---------------------------------------------------------------------------
 
 function revalidateVehicles() {
+  updateTag(VEHICLE_CATALOG_TAG)
   revalidatePath('/admin/settings/vehicles')
   revalidatePath('/quote')
 }
