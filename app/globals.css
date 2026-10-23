@@ -10,6 +10,11 @@
    top for anyone whose OS is in dark mode. */
 @custom-variant dark (&:is(.dark *));
 
+/* `dk:` styles an element only in the Heritage (dark) theme -- for the few
+   places where the two themes differ in SHAPE (square vs round corners, framed
+   vs arched photo) rather than just colour. */
+@custom-variant dk (&:where([data-theme="dark"] *, .zone-dark *));
+
 /* ============================================================================
    Car Aurum -- two themes, one token set.
 
@@ -346,4 +351,26 @@
 
 .animate-shine {
   animation: shine 5.5s ease-in-out infinite;
+}
+/* The price finder's halo: a soft gold ring that breathes. CSS keyframes, so
+   MotionConfig can't govern it -- it has its own reduced-motion guard. */
+@keyframes price-finder-glow {
+  0%, 100% {
+    box-shadow: 0 40px 80px -36px rgba(0, 0, 0, 0.45),
+      0 0 0 8px color-mix(in oklch, var(--gold-500) 12%, transparent);
+  }
+  50% {
+    box-shadow: 0 40px 80px -36px rgba(0, 0, 0, 0.45),
+      0 0 0 14px color-mix(in oklch, var(--gold-500) 20%, transparent);
+  }
+}
+
+.price-finder-glow {
+  animation: price-finder-glow 3.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .price-finder-glow {
+    animation: none;
+  }
 }

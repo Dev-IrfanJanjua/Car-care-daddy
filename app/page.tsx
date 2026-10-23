@@ -2,7 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getServiceCatalog } from '@/lib/pricing/service-catalog'
 import { getBusinessContact } from '@/lib/business-contact'
 import { SiteHeader } from '@/components/home/site-header'
-import { HeroSection } from '@/components/home/hero-section'
+import { Hero } from '@/features/home'
+import { PriceFinder, getPriceFinderData } from '@/features/price-finder'
 import { IntroVideoSection } from '@/components/home/intro-video-section'
 import { ServicesSection, type HomeService } from '@/components/home/services-section'
 import { BeforeAfterSection } from '@/components/home/before-after-section'
@@ -18,7 +19,7 @@ export default async function Home() {
   // Services and prices come from the cached catalog; only the reviews are
   // fetched per request. That takes the homepage from three round trips to a
   // database in Tokyo down to one.
-  const [{ data: reviews }, { services: allServices }, contact] = await Promise.all([
+  const [{ data: reviews }, { services: allServices }, contact, finder] = await Promise.all([
     supabase
       .from('reviews')
       .select('rating, comment')
@@ -30,6 +31,7 @@ export default async function Home() {
     // component (entrance motion), and this is a server-only cached read, so
     // it's fetched here and passed down rather than read inside the hero.
     getBusinessContact(),
+    getPriceFinderData(),
   ])
 
   // Driven from the catalog rather than a hardcoded list, so the homepage
@@ -49,14 +51,21 @@ export default async function Home() {
     category: s.category,
   }))
 
+  // The hero's floating chip quotes the first bookable service's lowest tier.
+  const headlineService = finder.services[0]
+  const headlinePrice = headlineService ? Math.min(...Object.values(headlineService.prices)) : null
+
   return (
     <div className="flex flex-1 flex-col">
       <SiteHeader />
 
       <main className="flex-1">
-        <HeroSection
-          phone={{ display: contact.whatsappDisplay, telHref: `tel:+${contact.whatsappNumber}` }}
-        />
+        <Hero
+          whatsappUrl={contact.whatsappUrl}
+          startingPrice={headlinePrice}
+        >
+          <PriceFinder data={finder} />
+        </Hero>
         <IntroVideoSection />
         <WhyChooseUsSection />
         {homeServices.length > 0 && <ServicesSection services={homeServices} />}
