@@ -98,6 +98,7 @@ export function HeaderNav({ contact }: { contact: Contact }) {
             variant="ghost"
             size="icon"
             aria-label="Open menu"
+            nativeButton
             render={<SheetTrigger />}
           >
             <Menu className="size-5" />
