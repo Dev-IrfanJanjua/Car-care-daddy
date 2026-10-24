@@ -580,6 +580,14 @@ export type Database = {
         }
         Returns: { new_booking_id: string; new_access_token: string }[]
       }
+      check_rate_limit: {
+        Args: { p_key: string; p_max: number; p_window_seconds: number }
+        Returns: boolean
+      }
+      purge_rate_limits: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       user_role: 'customer' | 'admin'

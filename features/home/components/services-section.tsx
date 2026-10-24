@@ -3,10 +3,10 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'motion/react'
-import { Droplets, Lightbulb, Sparkles, Car, Wrench, type LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Reveal } from '@/components/motion/reveal'
+import { categoryStyle } from '../lib/category-style'
 
 export type HomeService = {
   id: string
@@ -15,44 +15,6 @@ export type HomeService = {
   category: string | null
 }
 
-// Keyed off the `category` column in the services table. Anything unmapped
-// falls through to a neutral wrench, so adding a category never breaks the page.
-//
-// Every tile shares one navy-and-gold treatment on purpose: the icon alone
-// distinguishes the service. Colour-coding each category (sky / cyan / amber /
-// violet) put five competing hues on one screen and read as a template, not a
-// brand.
-const CATEGORY_STYLES: Record<string, { icon: LucideIcon; image: string; position: string }> = {
-  windshield: {
-    icon: Droplets,
-    image: '/images/service-windshield.jpg',
-    // The subject (hazed glass) sits high in the frame.
-    position: 'center 35%',
-  },
-  glass: {
-    icon: Sparkles,
-    image: '/images/service-glass-polish.jpg',
-    position: 'center',
-  },
-  headlights: {
-    icon: Lightbulb,
-    image: '/images/service-headlight.jpg',
-    // Portrait source; the lit headlight is low in the frame, so bias the crop
-    // down or a 3:2 card would cut it off entirely.
-    position: 'center 70%',
-  },
-  detailing: {
-    icon: Car,
-    image: '/images/service-detailing.jpg',
-    position: 'center',
-  },
-}
-
-const FALLBACK = {
-  icon: Wrench,
-  image: '/images/service-glass-polish.jpg',
-  position: 'center',
-}
 
 export function ServicesSection({ services }: { services: HomeService[] }) {
   return (
@@ -73,7 +35,7 @@ export function ServicesSection({ services }: { services: HomeService[] }) {
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {services.map((service, i) => {
-          const style = CATEGORY_STYLES[service.category ?? ''] ?? FALLBACK
+          const style = categoryStyle(service.category)
           const Icon = style.icon
           return (
             <Reveal key={service.id} delay={(i % 3) * 0.1}>

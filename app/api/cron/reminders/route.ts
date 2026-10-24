@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { syncBookingStatuses } from '@/features/admin'
@@ -11,8 +12,11 @@ import { syncBookingStatuses } from '@/features/admin'
 // exact URL as the cron target; renaming it buys nothing and risks a silently
 // unscheduled job.
 export async function GET(request: Request) {
-  const authHeader = request.headers.get('authorization')
-  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const secret = process.env.CRON_SECRET
+  const given = Buffer.from(request.headers.get('authorization') ?? '')
+  const expected = Buffer.from(`Bearer ${secret}`)
+  // Constant-time comparison so the secret can't be guessed from response timing.
+  if (!secret || given.length !== expected.length || !timingSafeEqual(given, expected)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -29,6 +33,9 @@ export async function GET(request: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  // Drop expired rate-limit counters (no-op if migration 0015 is not applied).
+  await admin.rpc('purge_rate_limits')
 
   // Also advances booking statuses (confirmed -> in progress -> completed).
   const statuses = await syncBookingStatuses({ force: true })

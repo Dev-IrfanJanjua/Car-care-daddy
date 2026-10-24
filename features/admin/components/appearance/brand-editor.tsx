@@ -26,6 +26,12 @@ export type BrandDraft = BrandSettings & { autoStatus: boolean }
 type HeroKind = Exclude<MediaKind, 'gallery'>
 type Files = Partial<Record<HeroKind, File>>
 
+function without(files: Files, key: HeroKind): Files {
+  const next = { ...files }
+  delete next[key]
+  return next
+}
+
 const FALLBACK_POSTER = '/images/hero-poster.jpg'
 const FALLBACK_VIDEO = '/videos/Video1.mp4'
 
@@ -361,7 +367,7 @@ export function BrandEditor({ initial }: { initial: BrandDraft }) {
                   file={files.video}
                   onFile={(f) => setFiles((x) => ({ ...x, video: f }))}
                   onClear={() => {
-                    setFiles(({ video: _v, ...rest }) => rest)
+                    setFiles((f) => without(f, 'video'))
                     set('heroVideoUrl', '')
                   }}
                 />
@@ -374,7 +380,7 @@ export function BrandEditor({ initial }: { initial: BrandDraft }) {
                   file={files.poster}
                   onFile={(f) => setFiles((x) => ({ ...x, poster: f }))}
                   onClear={() => {
-                    setFiles(({ poster: _p, ...rest }) => rest)
+                    setFiles((f) => without(f, 'poster'))
                     set('heroPosterUrl', '')
                   }}
                 />
@@ -389,7 +395,7 @@ export function BrandEditor({ initial }: { initial: BrandDraft }) {
                 file={files.image}
                 onFile={(f) => setFiles((x) => ({ ...x, image: f }))}
                 onClear={() => {
-                  setFiles(({ image: _i, ...rest }) => rest)
+                  setFiles((f) => without(f, 'image'))
                   set('heroImageUrl', '')
                 }}
               />

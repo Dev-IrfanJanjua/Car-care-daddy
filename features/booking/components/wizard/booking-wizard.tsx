@@ -144,6 +144,13 @@ export function BookingWizard(props: {
       {/* Always present regardless of which step is visually showing, so the
           real submit on step 4 carries everything the customer entered on 2
           and 3. */}
+      {/* honeypot: hidden from people and screen readers, bots fill it in */}
+      <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+        <label>
+          Company
+          <input type="text" name="company" tabIndex={-1} autoComplete="off" defaultValue="" />
+        </label>
+      </div>
       <input type="hidden" name="make" value={props.make} />
       <input type="hidden" name="model" value={props.model} />
       <input type="hidden" name="year" value={props.year} />

@@ -6,20 +6,32 @@ import { calculateQuote } from '@/lib/pricing/calculate-quote'
 import { notifyAdminOfNewBooking } from '@/lib/notifications/new-booking-alert'
 import { normalizePhone, isValidPhone } from '@/lib/phone'
 import { SERVICE_CITY } from '@/lib/contact'
+import { rateLimit } from '@/lib/security/rate-limit'
+import { text, email, integerInRange, isUuid, pickImages } from '@/lib/security/validate'
+import { VEHICLE_CLASSES } from '@/lib/vehicles/classes'
 import type { Database } from '@/lib/types/database.types'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']
 
 export async function createBooking(formData: FormData) {
-  const make = String(formData.get('make'))
-  const model = String(formData.get('model'))
-  const year = Number(formData.get('year'))
-  const vehicleClass = String(formData.get('class')) as VehicleClass
-  const serviceIds = String(formData.get('services')).split(',').filter(Boolean)
+  // Honeypot: real visitors never see or fill this field. Bots do. Pretend it
+  // worked so the bot learns nothing, but write nothing.
+  if (String(formData.get('company') || '').trim()) redirect('/quote')
 
-  const customerName = String(formData.get('customerName'))
-  const customerEmail = String(formData.get('customerEmail'))
-  const serviceAddress = String(formData.get('serviceAddress'))
+  const make = text(formData, 'make', { label: 'Vehicle make', max: 60, required: true })
+  const model = text(formData, 'model', { label: 'Vehicle model', max: 60, required: true })
+  const year = integerInRange(formData.get('year'), 'Vehicle year', 1980, new Date().getFullYear() + 1)
+  const vehicleClass = String(formData.get('class')) as VehicleClass
+  if (!(VEHICLE_CLASSES as readonly string[]).includes(vehicleClass)) throw new Error('Vehicle size is not valid.')
+
+  const serviceIds = String(formData.get('services')).split(',').filter(Boolean)
+  if (serviceIds.length === 0 || serviceIds.length > 12 || !serviceIds.every(isUuid)) {
+    throw new Error('No valid services selected')
+  }
+
+  const customerName = text(formData, 'customerName', { label: 'Name', max: 80, min: 2, required: true })
+  const customerEmail = email(text(formData, 'customerEmail', { label: 'Email', max: 120, required: true }))
+  const serviceAddress = text(formData, 'serviceAddress', { label: 'Address', max: 250, min: 6, required: true })
 
   // Fixed, not taken from the form: the shop serves one city, and the field is
   // read-only for that reason -- but a form action accepts any POST, so the
@@ -46,6 +58,12 @@ export async function createBooking(formData: FormData) {
   if (when.getTime() <= Date.now()) {
     throw new Error('Please pick an appointment time in the future.')
   }
+  if (when.getTime() > Date.now() + 120 * 24 * 3600 * 1000) {
+    throw new Error('Please pick a date within the next four months.')
+  }
+
+  // Spam guard: 6 bookings per hour per connection, 3 per day per phone number.
+  await rateLimit('booking', { max: 6, windowSeconds: 3600, extra: customerPhone, extraMax: 3 })
 
   // Re-verified server-side -- never trust the client-submitted total.
   const quote = await calculateQuote(vehicleClass, serviceIds)
@@ -78,16 +96,15 @@ export async function createBooking(formData: FormData) {
 
   if (quoteError) throw quoteError
 
-  const photos = formData
-    .getAll('photos')
-    .filter((entry): entry is File => entry instanceof File && entry.size > 0)
-
-  // Best-effort: a failed photo upload should never block the booking.
-  for (const photo of photos) {
-    const path = `${quoteRow.id}/${crypto.randomUUID()}-${photo.name}`
+  // Best-effort: a failed photo upload should never block the booking. Only
+  // small JPG/PNG/WebP images are accepted; the type is verified and the file
+  // name is replaced, so nothing the visitor typed reaches the storage path.
+  const photos = pickImages(formData.getAll('photos'), { maxFiles: 4, maxBytes: 6 * 1024 * 1024 })
+  for (const { file, ext } of photos) {
+    const path = `${quoteRow.id}/${crypto.randomUUID()}.${ext}`
     const { error: uploadError } = await admin.storage
       .from('quote-photos')
-      .upload(path, photo, { contentType: photo.type })
+      .upload(path, file, { contentType: file.type })
     if (uploadError) continue
 
     await admin.from('photos').insert({ quote_id: quoteRow.id, storage_path: path })
