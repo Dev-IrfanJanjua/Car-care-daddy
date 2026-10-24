@@ -1,26 +1,24 @@
 import type { Metadata } from 'next'
 import { getBusinessContact } from '@/lib/business-contact'
 import { SiteHeader, SiteFooter } from '@/features/site-shell'
-import { ComingSoonSection } from '@/features/home'
+import { BookingCtaSection, HowItWorksSection } from '@/features/home'
+import { AboutPage } from '@/features/marketing'
 
 export const metadata: Metadata = {
-  title: 'About · Car Care Daddy',
-  description: "Who we are and how Car Care Daddy's doorstep glass restoration works.",
+  title: 'About',
+  description: "Who we are and how Car Aurum's doorstep glass restoration works.",
 }
 
-export default async function AboutPage() {
+export default async function About() {
   const contact = await getBusinessContact()
 
   return (
     <div className="flex flex-1 flex-col">
       <SiteHeader />
-      <main className="flex-1">
-        <ComingSoonSection
-          eyebrow="Our story"
-          title="About Car Care Daddy"
-          description="The story behind Lahore's doorstep glass specialists is on its way. In the meantime, here's how to reach us."
-          whatsappUrl={contact.whatsappUrl}
-        />
+      <main id="main" className="flex-1">
+        <AboutPage whatsappUrl={contact.whatsappUrl} />
+        <HowItWorksSection />
+        <BookingCtaSection />
       </main>
       <SiteFooter />
     </div>

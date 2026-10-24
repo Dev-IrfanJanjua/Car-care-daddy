@@ -10,7 +10,13 @@ const trustPoints = [
   { icon: Star, label: '4.9/5 average rating' },
 ]
 
-export function BookingCtaSection() {
+export function BookingCtaSection({
+  title = 'Ready for a crystal-clear windshield?',
+  text = 'Get an instant price and book your doorstep appointment in under a minute.',
+}: {
+  title?: string
+  text?: string
+}) {
   return (
     <section className="zone-dark relative mx-auto my-8 max-w-6xl overflow-hidden rounded-3xl border border-gold-hairline px-4 py-12 text-center sm:my-16 sm:px-6 sm:py-16 dk:rounded-md">
       <GlowBackground className="rounded-3xl" />
@@ -21,10 +27,10 @@ export function BookingCtaSection() {
         </span>
         <span className="rule-gold mt-3" />
         <h2 className="mt-4 font-display text-3xl font-bold tracking-tight text-balance sm:text-4xl">
-          Ready for a crystal-clear windshield?
+          {title}
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-          Get an instant price and book your doorstep appointment in under a minute.
+          {text}
         </p>
 
         <Button

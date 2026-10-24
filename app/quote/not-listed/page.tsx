@@ -11,6 +11,13 @@ export default function VehicleNotListedPage() {
       description="We price a few models by hand. Send us the details and we'll get back to you with an exact quote."
     >
       <form action={captureUnlistedVehicleLead} className="space-y-4">
+        {/* honeypot: hidden from people and screen readers, bots fill it in */}
+        <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+          <label>
+            Company
+            <input type="text" name="company" tabIndex={-1} autoComplete="off" defaultValue="" />
+          </label>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="make">Car Brand</Label>

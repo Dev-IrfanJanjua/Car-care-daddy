@@ -15,6 +15,8 @@ import {
   Car,
   Tags,
   Palette,
+  FileText,
+  Images,
   LogOut,
 } from 'lucide-react'
 import {
@@ -49,6 +51,8 @@ const CATALOG_ITEMS = [
   { href: '/admin/settings/services', label: 'Services & pricing', icon: Tags },
   { href: '/admin/settings/vehicles', label: 'Vehicles', icon: Car },
   { href: '/admin/appearance', label: 'Appearance', icon: Palette },
+  { href: '/admin/content', label: 'Home content', icon: FileText },
+  { href: '/admin/gallery', label: 'Gallery', icon: Images },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 

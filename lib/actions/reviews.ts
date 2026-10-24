@@ -2,12 +2,16 @@
 
 import { redirect } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { rateLimit } from '@/lib/security/rate-limit'
+import { text, isUuid } from '@/lib/security/validate'
 
 export async function submitReview(
   bookingId: string,
   accessToken: string,
   formData: FormData
 ) {
+  if (!isUuid(bookingId) || !/^[0-9a-zA-Z-]{8,80}$/.test(accessToken)) throw new Error('Invalid review link.')
+  await rateLimit('review', { max: 10, windowSeconds: 3600 })
   const admin = createAdminClient()
 
   // The page already gates on the token, but this action is POST-able directly,
@@ -24,7 +28,7 @@ export async function submitReview(
   }
 
   const rating = Number(formData.get('rating'))
-  const comment = String(formData.get('comment') || '') || null
+  const comment = text(formData, 'comment', { label: 'Comment', max: 1000 }) || null
 
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     throw new Error('Invalid rating')

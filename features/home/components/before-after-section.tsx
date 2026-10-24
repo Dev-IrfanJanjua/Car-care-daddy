@@ -1,7 +1,7 @@
 import { Reveal } from '@/components/motion/reveal'
 import { BeforeAfterSlider } from './before-after-slider'
 
-export function BeforeAfterSection() {
+export function BeforeAfterSection({ pair }: { pair?: { before: string; after: string; title: string } }) {
   return (
     <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-16">
       <Reveal className="mx-auto flex max-w-2xl flex-col items-center text-center">
@@ -18,7 +18,7 @@ export function BeforeAfterSection() {
       </Reveal>
 
       <Reveal delay={0.1} className="mt-10">
-        <BeforeAfterSlider />
+        <BeforeAfterSlider beforeSrc={pair?.before} afterSrc={pair?.after} alt={pair?.title} />
       </Reveal>
     </section>
   )

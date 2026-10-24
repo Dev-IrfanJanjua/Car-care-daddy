@@ -396,6 +396,7 @@ export type Database = {
           hero_image_url: string | null
           hero_poster_url: string | null
           auto_status: boolean
+          home_content: Json | null
         }
         Insert: {
           id?: boolean
@@ -414,6 +415,7 @@ export type Database = {
           hero_image_url?: string | null
           hero_poster_url?: string | null
           auto_status?: boolean
+          home_content?: Json | null
         }
         Update: {
           id?: boolean
@@ -432,6 +434,40 @@ export type Database = {
           hero_image_url?: string | null
           hero_poster_url?: string | null
           auto_status?: boolean
+          home_content?: Json | null
+        }
+        Relationships: []
+      }
+      gallery_items: {
+        Row: {
+          id: string
+          title: string
+          service: string | null
+          before_url: string
+          after_url: string
+          is_published: boolean
+          is_featured: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          service?: string | null
+          before_url: string
+          after_url: string
+          is_published?: boolean
+          is_featured?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          service?: string | null
+          before_url?: string
+          after_url?: string
+          is_published?: boolean
+          is_featured?: boolean
+          created_at?: string
         }
         Relationships: []
       }
@@ -543,6 +579,14 @@ export type Database = {
           p_line_items: Json
         }
         Returns: { new_booking_id: string; new_access_token: string }[]
+      }
+      check_rate_limit: {
+        Args: { p_key: string; p_max: number; p_window_seconds: number }
+        Returns: boolean
+      }
+      purge_rate_limits: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {

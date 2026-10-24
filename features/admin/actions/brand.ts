@@ -11,6 +11,7 @@ const LIMITS = {
   video: { max: 50 * 1024 * 1024, types: ['video/mp4', 'video/webm'] },
   image: { max: 8 * 1024 * 1024, types: ['image/jpeg', 'image/png', 'image/webp'] },
   poster: { max: 8 * 1024 * 1024, types: ['image/jpeg', 'image/png', 'image/webp'] },
+  gallery: { max: 8 * 1024 * 1024, types: ['image/jpeg', 'image/png', 'image/webp'] },
 } as const
 
 export type MediaKind = keyof typeof LIMITS
@@ -31,7 +32,8 @@ export async function createMediaUploadUrl(kind: MediaKind, fileName: string, co
   if (size > rule.max) throw new Error(`File too large (max ${Math.round(rule.max / 1024 / 1024)} MB).`)
 
   const ext = (fileName.split('.').pop() ?? '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin'
-  const path = `hero/${kind}-${Date.now()}.${ext}`
+  const folder = kind === 'gallery' ? 'gallery' : 'hero'
+  const path = `${folder}/${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`
 
   const admin = createAdminClient()
   const { data, error } = await admin.storage.from(BUCKET).createSignedUploadUrl(path)

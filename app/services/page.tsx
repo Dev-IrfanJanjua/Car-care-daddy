@@ -1,30 +1,35 @@
 import type { Metadata } from 'next'
-import { getBusinessContact } from '@/lib/business-contact'
+import { getServiceCatalog } from '@/lib/pricing/service-catalog'
 import { SiteHeader, SiteFooter } from '@/features/site-shell'
-import { ComingSoonSection } from '@/features/home'
+import { BookingCtaSection } from '@/features/home'
+import { ServicesPage, type ServiceRow } from '@/features/marketing'
+import { getHomeContent } from '@/features/content'
 
 export const metadata: Metadata = {
-  title: 'Services · Car Care Daddy',
+  title: 'Services & pricing',
   description:
-    'Windshield restoration, full glass polishing and headlight restoration -- doorstep car care in Lahore.',
+    'Windshield restoration, full glass polishing and headlight restoration at your doorstep in Lahore. Clear prices by vehicle size, 3-year results warranty.',
 }
 
-// Full per-service detail is being designed separately; this stands in so the
-// header's Services link goes somewhere real rather than a 404 in the
-// meantime.
-export default async function ServicesPage() {
-  const contact = await getBusinessContact()
+export default async function Services() {
+  const [{ services, prices }, content] = await Promise.all([getServiceCatalog(), getHomeContent()])
+
+  const rows: ServiceRow[] = services.map((s) => ({
+    id: s.id,
+    name: s.name,
+    description: s.description,
+    category: s.category,
+    comingSoon: s.coming_soon,
+    isPackage: s.is_package,
+    prices: Object.fromEntries(prices.filter((p) => p.service_id === s.id).map((p) => [p.vehicle_class, p.base_price])),
+  }))
 
   return (
     <div className="flex flex-1 flex-col">
       <SiteHeader />
-      <main className="flex-1">
-        <ComingSoonSection
-          eyebrow="What we do"
-          title="Every service, in one place"
-          description="We're building a full breakdown of each service and what it costs by vehicle class. For now, get your exact price in under a minute."
-          whatsappUrl={contact.whatsappUrl}
-        />
+      <main id="main" className="flex-1">
+        <ServicesPage services={rows} />
+        <BookingCtaSection title={content.ctaTitle} text={content.ctaText} />
       </main>
       <SiteFooter />
     </div>

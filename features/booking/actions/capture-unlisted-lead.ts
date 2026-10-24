@@ -2,27 +2,39 @@
 
 import { redirect } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { rateLimit } from '@/lib/security/rate-limit'
+import { text, email, integerInRange } from '@/lib/security/validate'
+import { normalizePhone, isValidPhone } from '@/lib/phone'
 
 // The quote wizard requires a make+model from the catalog, so a car that isn't
 // listed is otherwise a dead end. This files a lead for manual pricing rather
 // than guessing a vehicle class (which would produce a wrong price).
 export async function captureUnlistedVehicleLead(formData: FormData) {
-  const fullName = String(formData.get('fullName') || '')
-  const email = String(formData.get('email') || '')
-  const phone = String(formData.get('phone') || '')
-  const make = String(formData.get('make') || '')
-  const model = String(formData.get('model') || '')
+  // Honeypot (see createBooking).
+  if (String(formData.get('company') || '').trim()) redirect('/quote/not-listed/thanks')
+
+  const fullName = text(formData, 'fullName', { label: 'Name', max: 80 })
+  const rawEmail = text(formData, 'email', { label: 'Email', max: 120 })
+  const emailValue = rawEmail ? email(rawEmail) : ''
+  const phone = normalizePhone(text(formData, 'phone', { label: 'Phone', max: 30 }))
+  const make = text(formData, 'make', { label: 'Vehicle make', max: 60 })
+  const model = text(formData, 'model', { label: 'Vehicle model', max: 60 })
   const yearRaw = formData.get('year')
-  const year = yearRaw ? Number(yearRaw) : null
+  const year = yearRaw ? integerInRange(yearRaw, 'Vehicle year', 1980, new Date().getFullYear() + 1) : null
+
+  // A lead nobody can answer is just noise.
+  if (!emailValue && !isValidPhone(phone)) throw new Error('Add a phone number or email so we can get back to you.')
+
+  await rateLimit('lead', { max: 5, windowSeconds: 3600 })
 
   const admin = createAdminClient()
   const { error } = await admin.from('leads').insert({
     full_name: fullName || null,
-    email: email || null,
-    phone: phone || null,
+    email: emailValue || null,
+    phone: isValidPhone(phone) ? phone : null,
     vehicle_make: make || null,
     vehicle_model: model || null,
-    vehicle_year: Number.isFinite(year) ? year : null,
+    vehicle_year: year,
     source: 'vehicle_not_listed',
   })
   if (error) throw error

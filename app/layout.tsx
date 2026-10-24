@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { getBrandSettings, buildBrandCss, type DefaultTheme } from "@/features/brand";
 import { siteUrl } from "@/lib/site-url";
+import { Analytics } from "@/components/analytics";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -65,6 +66,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         {brandCss && <style id="brand-tokens" dangerouslySetInnerHTML={{ __html: brandCss }} />}
       </head>
       <body className="min-h-full flex flex-col">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:rounded-md focus:bg-brand focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-brand-foreground"
+        >
+          Skip to content
+        </a>
         <MotionProvider>
           <TooltipProvider delay={200}>
             {children}
@@ -72,6 +79,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           </TooltipProvider>
         </MotionProvider>
         <RegisterServiceWorker />
+        <Analytics />
       </body>
     </html>
   );

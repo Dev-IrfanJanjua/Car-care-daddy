@@ -23,7 +23,14 @@ import { createMediaUploadUrl, saveBrandSettings, type MediaKind } from '../../a
 
 export type BrandDraft = BrandSettings & { autoStatus: boolean }
 
-type Files = Partial<Record<MediaKind, File>>
+type HeroKind = Exclude<MediaKind, 'gallery'>
+type Files = Partial<Record<HeroKind, File>>
+
+function without(files: Files, key: HeroKind): Files {
+  const next = { ...files }
+  delete next[key]
+  return next
+}
 
 const FALLBACK_POSTER = '/images/hero-poster.jpg'
 const FALLBACK_VIDEO = '/videos/Video1.mp4'
@@ -128,7 +135,7 @@ function MediaField({
   onFile,
   onClear,
 }: {
-  kind: MediaKind
+  kind: HeroKind
   label: string
   hint: string
   accept: string
@@ -219,7 +226,7 @@ export function BrandEditor({ initial }: { initial: BrandDraft }) {
         const next = { ...draft }
         const urlKey = { video: 'heroVideoUrl', image: 'heroImageUrl', poster: 'heroPosterUrl' } as const
         const sb = createClient()
-        for (const kind of Object.keys(files) as MediaKind[]) {
+        for (const kind of Object.keys(files) as HeroKind[]) {
           const f = files[kind]
           if (!f) continue
           const { path, token, publicUrl } = await createMediaUploadUrl(kind, f.name, f.type, f.size)
@@ -360,7 +367,7 @@ export function BrandEditor({ initial }: { initial: BrandDraft }) {
                   file={files.video}
                   onFile={(f) => setFiles((x) => ({ ...x, video: f }))}
                   onClear={() => {
-                    setFiles(({ video: _v, ...rest }) => rest)
+                    setFiles((f) => without(f, 'video'))
                     set('heroVideoUrl', '')
                   }}
                 />
@@ -373,7 +380,7 @@ export function BrandEditor({ initial }: { initial: BrandDraft }) {
                   file={files.poster}
                   onFile={(f) => setFiles((x) => ({ ...x, poster: f }))}
                   onClear={() => {
-                    setFiles(({ poster: _p, ...rest }) => rest)
+                    setFiles((f) => without(f, 'poster'))
                     set('heroPosterUrl', '')
                   }}
                 />
@@ -388,7 +395,7 @@ export function BrandEditor({ initial }: { initial: BrandDraft }) {
                 file={files.image}
                 onFile={(f) => setFiles((x) => ({ ...x, image: f }))}
                 onClear={() => {
-                  setFiles(({ image: _i, ...rest }) => rest)
+                  setFiles((f) => without(f, 'image'))
                   set('heroImageUrl', '')
                 }}
               />

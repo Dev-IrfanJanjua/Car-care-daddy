@@ -9,13 +9,9 @@ import { Button } from '@/components/ui/button'
 import { WhatsAppIcon } from '@/components/icons/brand-icons'
 import { formatPrice } from '@/lib/format'
 import { WARRANTY_YEARS } from '@/lib/contact'
+import type { HomeContent } from '@/features/content/client'
+import { DEFAULT_CONTENT } from '@/features/content/client'
 
-const POINTS = [
-  'Free doorstep service',
-  'Done in 60–90 minutes',
-  `${WARRANTY_YEARS}-year results warranty`,
-  'Pay after the job',
-]
 
 export type HeroMedia = {
   type: 'video' | 'image'
@@ -27,6 +23,8 @@ export type HeroMedia = {
 const DEFAULT_MEDIA: HeroMedia = { type: 'video', videoUrl: '', imageUrl: '', posterUrl: '' }
 
 type HeroProps = {
+  /** admin-editable copy; defaults to the built-in text */
+  content?: Pick<HomeContent, 'heroBadge' | 'heroHeadline' | 'heroAccent' | 'heroSubtext' | 'heroPoints'>
   /** admin-controlled photo/video; omitted fields fall back to the bundled ones */
   media?: HeroMedia
   whatsappUrl: string
@@ -41,7 +39,7 @@ type HeroProps = {
  * underneath. The photo is an arch in the light theme and a double brass frame
  * in the dark one -- same markup, the `dk:` variant swaps the shape.
  */
-export function Hero({ whatsappUrl, startingPrice, children, media = DEFAULT_MEDIA }: HeroProps) {
+export function Hero({ whatsappUrl, startingPrice, children, media = DEFAULT_MEDIA, content = DEFAULT_CONTENT }: HeroProps) {
   const showImage = media.type === 'image' && !!media.imageUrl
   const poster = media.posterUrl || '/images/hero-poster.jpg'
   const video = media.videoUrl || '/videos/Video1.mp4'
@@ -108,7 +106,7 @@ export function Hero({ whatsappUrl, startingPrice, children, media = DEFAULT_MED
               className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-sm font-medium text-gold-ink dk:rounded-xs dk:border-gold-500 dk:bg-transparent"
             >
               <span aria-hidden className="size-2 rounded-full bg-emerald-500" />
-              Free doorstep service · Lahore
+              {content.heroBadge}
             </motion.span>
 
             <motion.h1
@@ -117,8 +115,8 @@ export function Hero({ whatsappUrl, startingPrice, children, media = DEFAULT_MED
               transition={{ duration: 0.6, delay: 0.06 }}
               className="mt-5 font-display text-4xl leading-[1.08] font-bold tracking-tight text-balance text-chrome-100 sm:text-5xl lg:text-6xl"
             >
-              Crystal-clear glass,{' '}
-              <span className="text-gold-ink">right at your doorstep.</span>
+              {content.heroHeadline}{' '}
+              <span className="text-gold-ink">{content.heroAccent}</span>
             </motion.h1>
 
             <motion.p
@@ -127,9 +125,7 @@ export function Hero({ whatsappUrl, startingPrice, children, media = DEFAULT_MED
               transition={{ duration: 0.6, delay: 0.12 }}
               className="mt-5 max-w-xl text-base leading-relaxed text-chrome-300 sm:text-lg"
             >
-              Professional CeO₂ windshield restoration, full glass polishing and headlight
-              restoration. We remove water spots, wiper marks and night glare — at your home or
-              office.
+              {content.heroSubtext}
             </motion.p>
 
             <motion.ul
@@ -138,7 +134,7 @@ export function Hero({ whatsappUrl, startingPrice, children, media = DEFAULT_MED
               transition={{ duration: 0.6, delay: 0.18 }}
               className="mt-6 grid gap-x-6 gap-y-2.5 sm:grid-cols-2"
             >
-              {POINTS.map((p) => (
+              {content.heroPoints.map((p) => (
                 <li key={p} className="flex items-center gap-2.5 text-sm font-medium text-chrome-100">
                   <Check aria-hidden className="size-4 shrink-0 text-gold" />
                   {p}

@@ -37,7 +37,7 @@ export async function sendEmail({ to, toName, subject, html }: EmailPayload): Pr
         accept: 'application/json',
       },
       body: JSON.stringify({
-        sender: { email: senderEmail, name: process.env.BREVO_SENDER_NAME || 'Car Care' },
+        sender: { email: senderEmail, name: process.env.BREVO_SENDER_NAME || 'Car Aurum' },
         to: [toName ? { email: to, name: toName } : { email: to }],
         subject,
         htmlContent: html,
