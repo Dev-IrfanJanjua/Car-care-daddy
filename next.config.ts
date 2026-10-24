@@ -1,5 +1,15 @@
 import type { NextConfig } from "next";
 
+// Hero media uploaded from /admin/appearance lives in the Supabase storage
+// bucket, so next/image must be allowed to load from the project's host.
+const supabaseHost = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").hostname;
+  } catch {
+    return "";
+  }
+})();
+
 const nextConfig: NextConfig = {
   // Lets other devices on the same network load the dev server (HMR, JS
   // chunks) -- Next.js blocks cross-origin dev requests by default. Dev-only;
@@ -12,6 +22,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "i.pravatar.cc" },
+      ...(supabaseHost ? [{ protocol: "https" as const, hostname: supabaseHost }] : []),
     ],
   },
 };

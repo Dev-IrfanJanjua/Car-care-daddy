@@ -5,7 +5,7 @@ import {
   createVehicleMake,
   createVehicleModel,
   updateVehicleModelClass,
-} from '@/lib/actions/admin/catalog'
+} from '@/features/admin'
 import { VEHICLE_CLASSES } from '@/lib/vehicles/classes'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'

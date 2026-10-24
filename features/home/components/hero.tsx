@@ -17,7 +17,18 @@ const POINTS = [
   'Pay after the job',
 ]
 
+export type HeroMedia = {
+  type: 'video' | 'image'
+  videoUrl: string
+  imageUrl: string
+  posterUrl: string
+}
+
+const DEFAULT_MEDIA: HeroMedia = { type: 'video', videoUrl: '', imageUrl: '', posterUrl: '' }
+
 type HeroProps = {
+  /** admin-controlled photo/video; omitted fields fall back to the bundled ones */
+  media?: HeroMedia
   whatsappUrl: string
   /** cheapest price of the first service, for the floating "starting from" chip */
   startingPrice: number | null
@@ -30,7 +41,10 @@ type HeroProps = {
  * underneath. The photo is an arch in the light theme and a double brass frame
  * in the dark one -- same markup, the `dk:` variant swaps the shape.
  */
-export function Hero({ whatsappUrl, startingPrice, children }: HeroProps) {
+export function Hero({ whatsappUrl, startingPrice, children, media = DEFAULT_MEDIA }: HeroProps) {
+  const showImage = media.type === 'image' && !!media.imageUrl
+  const poster = media.posterUrl || '/images/hero-poster.jpg'
+  const video = media.videoUrl || '/videos/Video1.mp4'
   return (
     <section className="relative isolate bg-background pt-6 pb-14 sm:pt-12 lg:pb-20">
       {/* soft pools of colour; clipped here so the price finder's halo isn't */}
@@ -50,24 +64,27 @@ export function Hero({ whatsappUrl, startingPrice, children }: HeroProps) {
           >
             <div className="relative h-64 overflow-hidden rounded-t-[8rem] rounded-b-3xl shadow-2xl shadow-gold-700/25 sm:h-80 lg:h-[29rem] lg:rounded-t-[13.5rem] dk:rounded-xs dk:shadow-[0_0_0_8px_var(--background),0_0_0_9px_var(--gold-500),0_0_0_17px_var(--background),0_0_0_18px_color-mix(in_oklch,var(--gold-500)_45%,transparent)]">
               <Image
-                src="/images/hero-poster.jpg"
+                src={showImage ? media.imageUrl : poster}
                 alt=""
                 fill
                 priority
                 sizes="(min-width:1024px) 424px, 90vw"
                 className="object-cover object-[55%_center]"
               />
-              <video
-                className="absolute inset-0 size-full object-cover object-[55%_center] brightness-110 saturate-105 motion-reduce:hidden"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                aria-hidden
-              >
-                <source src="/videos/Video1.mp4" type="video/mp4" />
-              </video>
+              {!showImage && (
+                <video
+                  key={video}
+                  className="absolute inset-0 size-full object-cover object-[55%_center] brightness-110 saturate-105 motion-reduce:hidden"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  aria-hidden
+                >
+                  <source src={video} type={video.endsWith('.webm') ? 'video/webm' : 'video/mp4'} />
+                </video>
+              )}
             </div>
 
             <div className="absolute top-8 -left-2 rounded-xl border border-border bg-card px-4 py-3 shadow-xl sm:-left-6 dk:rounded-xs dk:border-gold-500">

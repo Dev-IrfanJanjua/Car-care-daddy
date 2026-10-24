@@ -13,6 +13,8 @@ import {
   BookingCtaSection,
   type HomeService,
 } from '@/features/home'
+import { getBrandSettings } from '@/features/brand'
+import { localBusinessJsonLd } from '@/lib/seo'
 import { PriceFinder, getPriceFinderData } from '@/features/price-finder'
 
 export default async function Home() {
@@ -21,7 +23,7 @@ export default async function Home() {
   // Services and prices come from the cached catalog; only the reviews are
   // fetched per request. That takes the homepage from three round trips to a
   // database in Tokyo down to one.
-  const [{ data: reviews }, { services: allServices }, contact, finder] = await Promise.all([
+  const [{ data: reviews }, { services: allServices }, contact, finder, brand] = await Promise.all([
     supabase
       .from('reviews')
       .select('rating, comment')
@@ -34,6 +36,7 @@ export default async function Home() {
     // it's fetched here and passed down rather than read inside the hero.
     getBusinessContact(),
     getPriceFinderData(),
+    getBrandSettings(),
   ])
 
   // Driven from the catalog rather than a hardcoded list, so the homepage
@@ -59,12 +62,22 @@ export default async function Home() {
 
   return (
     <div className="flex flex-1 flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd(contact)).replace(/</g, '\\u003c') }}
+      />
       <SiteHeader />
 
       <main className="flex-1">
         <Hero
           whatsappUrl={contact.whatsappUrl}
           startingPrice={headlinePrice}
+          media={{
+            type: brand.heroMediaType,
+            videoUrl: brand.heroVideoUrl,
+            imageUrl: brand.heroImageUrl,
+            posterUrl: brand.heroPosterUrl,
+          }}
         >
           <PriceFinder data={finder} />
         </Hero>

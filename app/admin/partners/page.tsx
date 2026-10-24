@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { createPartner, togglePartnerActive } from '@/lib/actions/admin/partners'
+import { createPartner, togglePartnerActive } from '@/features/admin'
 import type { Database } from '@/lib/types/database.types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'

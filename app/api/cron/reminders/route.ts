@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { syncBookingStatuses } from '@/features/admin'
 
 // Hit once daily by an external scheduler (e.g. Vercel Cron) with
 // `Authorization: Bearer <CRON_SECRET>`. Fails closed if the secret is unset.
@@ -29,5 +30,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ quotesExpired: expired ?? 0 })
+  // Also advances booking statuses (confirmed -> in progress -> completed).
+  const statuses = await syncBookingStatuses({ force: true })
+
+  return NextResponse.json({ quotesExpired: expired ?? 0, bookingStatuses: statuses })
 }

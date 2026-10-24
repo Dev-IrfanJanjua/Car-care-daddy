@@ -31,7 +31,8 @@ Migration status
 | `home`          | done (hero + all home sections) |
 | `site-shell`    | done (header, nav, footer) |
 | `booking`       | done (quote steps, booking wizard, success card, server actions) |
-| `admin`         | still in `app/admin`, `lib/actions/admin` -- moved in a later step |
+| `admin`         | done (sidebar/breadcrumb, booking actions UI, report charts, all admin server actions, appearance editor, auto booking status) |
+| `brand`         | done (colour schemes, token builder, cached settings, hero media settings) |
 
 Shared (not features): `components/ui` (design-system primitives), `components/motion`
 (Reveal, GlowBackground), `components/icons` (brand icons), `lib/` (supabase clients,

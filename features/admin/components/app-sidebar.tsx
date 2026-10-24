@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -13,6 +14,7 @@ import {
   Star,
   Car,
   Tags,
+  Palette,
   LogOut,
 } from 'lucide-react'
 import {
@@ -46,6 +48,7 @@ const NAV_ITEMS = [
 const CATALOG_ITEMS = [
   { href: '/admin/settings/services', label: 'Services & pricing', icon: Tags },
   { href: '/admin/settings/vehicles', label: 'Vehicles', icon: Car },
+  { href: '/admin/appearance', label: 'Appearance', icon: Palette },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -78,14 +81,22 @@ export function AppSidebar({ user }: { user: { name: string; email: string } }) 
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1.5">
-          {/* The sidebar surface is navy, so the mark has to be gold -- a
-              `bg-brand` chip here would be navy on navy. */}
-          <div className="flex size-7 items-center justify-center rounded-md bg-linear-to-br from-gold-300 via-gold-500 to-gold-700 text-sm font-bold text-ink-900">
-            C
-          </div>
-          <span className="font-semibold text-white">Car Care Daddy</span>
-        </div>
+        <Link href="/admin" className="flex items-center px-2 py-1.5" aria-label="Car Aurum admin">
+          <Image
+            src="/images/logo-light.png"
+            alt="Car Aurum"
+            width={720}
+            height={305}
+            className="logo-on-light h-10 w-auto"
+          />
+          <Image
+            src="/images/logo-dark.png"
+            alt="Car Aurum"
+            width={720}
+            height={305}
+            className="logo-on-dark h-10 w-auto"
+          />
+        </Link>
       </SidebarHeader>
 
       <SidebarContent>
@@ -102,7 +113,7 @@ export function AppSidebar({ user }: { user: { name: string; email: string } }) 
                     <SidebarMenuButton
                       isActive={isActiveHref(pathname, item.href)}
                       onClick={closeOnMobile}
-                      className="data-active:bg-white/8 data-active:text-gold"
+                      className="data-active:bg-sidebar-accent data-active:text-gold-ink"
                       render={<Link href={item.href} />}
                     >
                       <item.icon />
@@ -118,11 +129,11 @@ export function AppSidebar({ user }: { user: { name: string; email: string } }) 
 
       <SidebarFooter>
         <div className="flex items-center gap-2 px-2 py-1.5">
-          <Avatar className="size-7 after:border-white/15">
-            <AvatarFallback className="bg-white/10 text-xs text-gold">{initials}</AvatarFallback>
+          <Avatar className="size-7 after:border-sidebar-border">
+            <AvatarFallback className="bg-muted text-xs text-gold-ink">{initials}</AvatarFallback>
           </Avatar>
           <div className="flex-1 overflow-hidden">
-            <p className="truncate text-sm font-medium text-white">{user.name}</p>
+            <p className="truncate text-sm font-medium text-foreground">{user.name}</p>
             {/* --muted-foreground is tuned for the light pages; on navy it
                 falls under 3:1. */}
             <p className="truncate text-xs text-chrome-500">{user.email}</p>

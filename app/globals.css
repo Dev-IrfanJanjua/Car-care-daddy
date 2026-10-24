@@ -33,7 +33,8 @@
    Wrap any region in `.zone-dark` to force the dark tokens inside it (used for
    photo-backed bands and the footer when the page itself is light).
    ========================================================================= */
-:root {
+:root,
+.zone-light {
   /* ---- Shared ---- */
   --radius: 0.625rem;
 
@@ -100,6 +101,13 @@
   --sidebar-ring: var(--gold-500);
 
   color-scheme: light;
+}
+
+/* `.zone-light` is the mirror of `.zone-dark`: forces the light tokens inside a
+   region of a dark page (used by the admin appearance preview). */
+.zone-light {
+  background-color: var(--ink-900);
+  color: var(--foreground);
 }
 
 /* ---- Heritage Atelier (dark) ---- */

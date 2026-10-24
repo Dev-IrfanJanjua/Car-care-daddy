@@ -1,4 +1,4 @@
-export { Hero } from './components/hero'
+export { Hero, type HeroMedia } from './components/hero'
 export { IntroVideoSection } from './components/intro-video-section'
 export { ServicesSection, type HomeService } from './components/services-section'
 export { WhyChooseUsSection } from './components/why-choose-us-section'

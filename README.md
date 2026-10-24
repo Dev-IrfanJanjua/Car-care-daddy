@@ -54,18 +54,23 @@ Note: `proxy.ts` (not `middleware.ts` — renamed in Next.js 16) does an optimis
 for `/admin/*`; the authoritative role check lives in `app/admin/layout.tsx`, and every
 admin-only Server Action re-verifies via `lib/auth/require-admin.ts`.
 
-## Optional: email confirmations & reminders
+## Optional: shop alerts & daily jobs
 
-Booking confirmation emails and day-before reminders go through
-[Resend](https://resend.com) and are best-effort — everything works without them, they just
-silently no-op until `RESEND_API_KEY` is set. To enable:
+The only email this app sends is a new-booking alert to the shop, via
+[Brevo](https://brevo.com); a WhatsApp alert goes out through CallMeBot. Both are best-effort and
+silently no-op until their variables in `.env.local.example` are set (`BREVO_*`, `ADMIN_EMAIL`,
+`CALLMEBOT_*`). Customers are never emailed — they confirm over WhatsApp.
 
-1. Create a free Resend account and API key, add it as `RESEND_API_KEY`.
-2. Set a `CRON_SECRET` value (any random string) as an env var, both locally and in your
-   deployment platform.
-3. On Vercel, `vercel.json` already schedules a daily hit to `/api/cron/reminders` — Vercel
-   automatically sends `Authorization: Bearer $CRON_SECRET` for cron invocations once
-   `CRON_SECRET` is set in the project's env vars. On another host, trigger that same route
-   once a day with that header yourself.
-4. Emails send from Resend's shared sandbox address (`onboarding@resend.dev`), which works
-   with just an API key. Verify your own domain in Resend before going to production.
+Daily job (`/api/cron/reminders`): expires stale quotes and, if enabled under
+**Admin → Appearance → Booking automation**, advances booking statuses (confirmed → in progress at
+start time → completed 4 hours later). Set `CRON_SECRET` locally and in your host; on Vercel,
+`vercel.json` schedules it and Vercel sends the bearer header automatically. The admin dashboard and
+bookings list also run the status update when opened, so the board is current without a faster cron.
+
+## Appearance & hero media
+
+**Admin → Appearance** picks the colour scheme, accent, default theme and hero photo/video with a
+live preview; nothing goes live until you press Save. It needs migration
+`supabase/migrations/0013_brand_settings.sql` (adds the settings columns and the public `site-media`
+storage bucket). Set `NEXT_PUBLIC_SITE_URL` in production so `sitemap.xml`, `robots.txt` and the
+structured data use the right domain.
