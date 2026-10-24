@@ -28,7 +28,7 @@ export function buildOrderMessage(order: OrderDetails) {
     .join('\n')
 
   return [
-    "Hi! I'd like to confirm my Car Care booking.",
+    "Hi! I'd like to confirm my Car Aurum booking.",
     '',
     `Name: ${order.customerName}`,
     `Vehicle: ${order.vehicle}`,

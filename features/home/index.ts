@@ -4,6 +4,7 @@ export { ServicesSection, type HomeService } from './components/services-section
 export { WhyChooseUsSection } from './components/why-choose-us-section'
 export { HowItWorksSection } from './components/how-it-works-section'
 export { BeforeAfterSection } from './components/before-after-section'
+export { BeforeAfterSlider } from './components/before-after-slider'
 export { TestimonialsSection } from './components/testimonials-section'
 export { BookingCtaSection } from './components/booking-cta-section'
 export { ComingSoonSection } from './components/coming-soon-section'

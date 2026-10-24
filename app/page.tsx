@@ -14,6 +14,8 @@ import {
   type HomeService,
 } from '@/features/home'
 import { getBrandSettings } from '@/features/brand'
+import { getHomeContent, FaqSection } from '@/features/content'
+import { getGallery, pickFeatured } from '@/features/gallery'
 import { localBusinessJsonLd } from '@/lib/seo'
 import { PriceFinder, getPriceFinderData } from '@/features/price-finder'
 
@@ -23,7 +25,7 @@ export default async function Home() {
   // Services and prices come from the cached catalog; only the reviews are
   // fetched per request. That takes the homepage from three round trips to a
   // database in Tokyo down to one.
-  const [{ data: reviews }, { services: allServices }, contact, finder, brand] = await Promise.all([
+  const [{ data: reviews }, { services: allServices }, contact, finder, brand, content, gallery] = await Promise.all([
     supabase
       .from('reviews')
       .select('rating, comment')
@@ -37,6 +39,8 @@ export default async function Home() {
     getBusinessContact(),
     getPriceFinderData(),
     getBrandSettings(),
+    getHomeContent(),
+    getGallery(),
   ])
 
   // Driven from the catalog rather than a hardcoded list, so the homepage
@@ -68,10 +72,11 @@ export default async function Home() {
       />
       <SiteHeader />
 
-      <main className="flex-1">
+      <main id="main" className="flex-1">
         <Hero
           whatsappUrl={contact.whatsappUrl}
           startingPrice={headlinePrice}
+          content={content}
           media={{
             type: brand.heroMediaType,
             videoUrl: brand.heroVideoUrl,
@@ -84,10 +89,11 @@ export default async function Home() {
         <IntroVideoSection />
         <WhyChooseUsSection />
         {homeServices.length > 0 && <ServicesSection services={homeServices} />}
-        <BeforeAfterSection />
+        <BeforeAfterSection pair={pickFeatured(gallery)} />
         <HowItWorksSection />
         <TestimonialsSection reviews={reviews ?? undefined} />
-        <BookingCtaSection />
+        <FaqSection faqs={content.faqs} />
+        <BookingCtaSection title={content.ctaTitle} text={content.ctaText} />
       </main>
 
       <SiteFooter />

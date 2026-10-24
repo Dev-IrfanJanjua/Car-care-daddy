@@ -4,7 +4,7 @@ import { SiteHeader, SiteFooter } from '@/features/site-shell'
 import { ComingSoonSection } from '@/features/home'
 
 export const metadata: Metadata = {
-  title: 'Services · Car Care Daddy',
+  title: 'Services',
   description:
     'Windshield restoration, full glass polishing and headlight restoration -- doorstep car care in Lahore.',
 }
@@ -18,7 +18,7 @@ export default async function ServicesPage() {
   return (
     <div className="flex flex-1 flex-col">
       <SiteHeader />
-      <main className="flex-1">
+      <main id="main" className="flex-1">
         <ComingSoonSection
           eyebrow="What we do"
           title="Every service, in one place"

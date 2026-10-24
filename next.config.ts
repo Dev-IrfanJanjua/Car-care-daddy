@@ -10,7 +10,18 @@ const supabaseHost = (() => {
   }
 })();
 
+const securityHeaders = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+];
+
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders }];
+  },
   // Lets other devices on the same network load the dev server (HMR, JS
   // chunks) -- Next.js blocks cross-origin dev requests by default. Dev-only;
   // has no effect on a production build. Covers common private-network

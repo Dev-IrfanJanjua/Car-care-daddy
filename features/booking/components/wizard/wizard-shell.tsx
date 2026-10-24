@@ -34,7 +34,7 @@ export function WizardShell({
   children: ReactNode
 }) {
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+    <main id="main" className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
       <div className="overflow-hidden rounded-3xl border border-border/60 bg-card shadow-xl shadow-gold-700/10 dk:rounded-md lg:grid lg:grid-cols-[260px_1fr]">
         {/* Mobile: a compact bar instead of the full vertical sidebar -- 260px
             of step list would push the actual form below the fold on a phone. */}

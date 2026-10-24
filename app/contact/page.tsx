@@ -5,8 +5,8 @@ import { SiteHeader, SiteFooter } from '@/features/site-shell'
 import { ComingSoonSection } from '@/features/home'
 
 export const metadata: Metadata = {
-  title: 'Contact · Car Care Daddy',
-  description: 'Call, WhatsApp or email Car Care Daddy, or get an instant price for your car.',
+  title: 'Contact',
+  description: 'Call, WhatsApp or email Car Aurum, or get an instant price for your car.',
 }
 
 // A dedicated contact form is coming later, but "how do I reach you" is this
@@ -19,10 +19,10 @@ export default async function ContactPage() {
   return (
     <div className="flex flex-1 flex-col">
       <SiteHeader />
-      <main className="flex-1">
+      <main id="main" className="flex-1">
         <ComingSoonSection
           eyebrow="Get in touch"
-          title="Contact Car Care Daddy"
+          title="Contact Car Aurum"
           description="A dedicated contact form is on its way. Right now, the fastest way to reach us is WhatsApp or a call."
           whatsappUrl={contact.whatsappUrl}
         >

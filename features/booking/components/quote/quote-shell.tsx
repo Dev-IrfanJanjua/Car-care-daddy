@@ -27,7 +27,7 @@ export function QuoteShell({
   children: ReactNode
 }) {
   return (
-    <main className="mx-auto w-full max-w-xl px-4 py-10 sm:py-14">
+    <main id="main" className="mx-auto w-full max-w-xl px-4 py-10 sm:py-14">
       <div className="mb-6 flex items-center justify-between">
         <Button variant="ghost" size="sm" className="-ml-2" render={<Link href={backHref} />}>
           <ArrowLeft className="size-4" data-icon="inline-start" />

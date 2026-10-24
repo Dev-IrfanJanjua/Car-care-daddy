@@ -10,19 +10,29 @@ import { GripVertical, Sparkles } from 'lucide-react'
 const BEFORE_SRC = '/images/before-windshield.jpg'
 const AFTER_SRC = '/images/after-windshield.jpg'
 
-export function BeforeAfterSlider() {
+export function BeforeAfterSlider({
+  beforeSrc = BEFORE_SRC,
+  afterSrc = AFTER_SRC,
+  alt = 'Windshield',
+  priority = false,
+}: {
+  beforeSrc?: string
+  afterSrc?: string
+  alt?: string
+  priority?: boolean
+}) {
   const [value, setValue] = useState(50)
 
   return (
     <div className="relative mx-auto aspect-16/10 w-full max-w-3xl touch-none overflow-hidden rounded-2xl border border-border/60 shadow-xl select-none sm:aspect-video">
       <div className="absolute inset-0">
         <Image
-          src={BEFORE_SRC}
-          alt="Windshield before restoration, showing haze and swirl marks"
+          src={beforeSrc}
+          alt={`${alt} before restoration`}
           fill
           sizes="(min-width: 768px) 768px, 100vw"
           className="object-cover"
-          priority
+          priority={priority}
         />
         <span className="absolute top-4 left-4 rounded-full bg-ink-950/75 px-3 py-1 text-xs font-semibold tracking-[0.18em] text-chrome-100 uppercase backdrop-blur">
           Before
@@ -31,12 +41,12 @@ export function BeforeAfterSlider() {
 
       <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - value}% 0 0)` }}>
         <Image
-          src={AFTER_SRC}
-          alt="Windshield after restoration, clear and reflective"
+          src={afterSrc}
+          alt={`${alt} after restoration`}
           fill
           sizes="(min-width: 768px) 768px, 100vw"
           className="object-cover"
-          priority
+          priority={priority}
         />
         <span className="absolute top-4 right-4 flex items-center gap-1 rounded-full bg-gold px-3 py-1 text-xs font-semibold tracking-[0.18em] text-gold-foreground uppercase shadow">
           <Sparkles className="size-3" />
