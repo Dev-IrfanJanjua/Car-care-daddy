@@ -7,7 +7,7 @@ import {
   assignTechnician,
   updateBookingNotes,
   rescheduleBooking,
-} from '@/lib/actions/admin/bookings'
+} from '../actions/bookings'
 import type { Database } from '@/lib/types/database.types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'

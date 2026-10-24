@@ -4,9 +4,9 @@
 //
 // NEXT_PUBLIC_SITE_URL should be set in production; the localhost fallback
 // keeps dev links clickable without extra config.
-export function siteUrl() {
-  return (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '')
-}
+import { siteUrl } from '@/lib/site-url'
+
+export { siteUrl }
 
 export function bookingSuccessUrl(bookingId: string, accessToken: string) {
   return `${siteUrl()}/book/success/${bookingId}?t=${accessToken}`

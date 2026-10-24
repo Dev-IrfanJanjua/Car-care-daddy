@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { RevenueTrendChart } from './revenue-trend-chart'
-import { TopServicesChart } from './top-services-chart'
+import { RevenueTrendChart } from '@/features/admin'
+import { TopServicesChart } from '@/features/admin'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 function startOfWeek(date: Date) {

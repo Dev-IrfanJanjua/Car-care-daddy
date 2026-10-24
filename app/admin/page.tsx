@@ -1,12 +1,15 @@
 import Link from 'next/link'
 import { CalendarCheck, CalendarRange, DollarSign, Target, Wrench } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { syncBookingStatuses } from '@/features/admin'
 import { formatCompactNumber, formatCompactCurrency, formatPrice, formatAppointment } from '@/lib/format'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { BOOKING_STATUS_STYLES, formatBookingStatus } from '@/lib/booking-status'
 
 export default async function AdminDashboardPage() {
+  // Advance confirmed/in-progress bookings before counting them (throttled).
+  await syncBookingStatuses().catch(() => null)
   const supabase = await createClient()
 
   const now = new Date()

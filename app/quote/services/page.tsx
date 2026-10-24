@@ -3,9 +3,8 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { getServiceCatalog } from '@/lib/pricing/service-catalog'
 import { getBusinessContact } from '@/lib/business-contact'
-import { ServiceSelector } from './service-selector'
+import { ServiceSelector, WizardShell } from '@/features/booking'
 import type { Database } from '@/lib/types/database.types'
-import { WizardShell } from '@/components/quote/wizard-shell'
 import { Button } from '@/components/ui/button'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']

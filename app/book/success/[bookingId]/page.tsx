@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getBusinessContact } from '@/lib/business-contact'
-import { BookingSuccessCard } from './success-card'
+import { BookingSuccessCard } from '@/features/booking'
 
 export default async function BookingSuccessPage({
   params,

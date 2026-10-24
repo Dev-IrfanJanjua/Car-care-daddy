@@ -56,7 +56,7 @@ function toProfileUrl(raw: string | null, host: string) {
  * dead link. That matters because every one of these is free text -- an admin
  * can save a typo, and a typo must not take a contact button down.
  *
- * Cached like the catalogs, and lib/actions/admin/settings.ts invalidates the
+ * Cached like the catalogs, and features/admin/actions/settings.ts invalidates the
  * tag on save so an edit is live immediately.
  */
 export const getBusinessContact = unstable_cache(

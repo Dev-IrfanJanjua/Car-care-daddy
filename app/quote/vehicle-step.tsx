@@ -25,12 +25,14 @@ export function VehicleStep({
   initialMake,
   initialModel,
   initialYear,
+  initialServices,
 }: {
   makes: Make[]
   models: Model[]
   initialMake?: string
   initialModel?: string
   initialYear?: string
+  initialServices?: string
 }) {
   const router = useRouter()
   const [make, setMake] = useState<Make | null>(
@@ -57,6 +59,8 @@ export function VehicleStep({
       year,
       class: model.vehicle_class,
     })
+    // Carried from the home page price finder; the service step preselects it.
+    if (initialServices) params.set('services', initialServices)
     router.push(`/quote/services?${params.toString()}`)
   }
 

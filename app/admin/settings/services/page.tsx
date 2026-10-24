@@ -1,12 +1,12 @@
 import Link from 'next/link'
 import { ArrowLeft, Car, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { updateServicePrices } from '@/lib/actions/admin/settings'
+import { updateServicePrices } from '@/features/admin'
 import {
   createService,
   updateService,
   toggleServiceActive,
-} from '@/lib/actions/admin/catalog'
+} from '@/features/admin'
 import { VEHICLE_CLASSES } from '@/lib/vehicles/classes'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'

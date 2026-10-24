@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { syncBookingStatuses } from '@/features/admin'
 import type { Database } from '@/lib/types/database.types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -32,6 +33,7 @@ export default async function AdminBookingsPage({
   searchParams: Promise<{ status?: string }>
 }) {
   const { status } = await searchParams
+  await syncBookingStatuses().catch(() => null)
   const supabase = await createClient()
 
   let query = supabase

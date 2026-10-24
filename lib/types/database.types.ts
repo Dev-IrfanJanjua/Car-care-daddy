@@ -388,6 +388,14 @@ export type Database = {
           instagram_url: string | null
           hours: Json | null
           service_area: Json | null
+          color_scheme: string
+          accent_color: string | null
+          default_theme: string
+          hero_media_type: string
+          hero_video_url: string | null
+          hero_image_url: string | null
+          hero_poster_url: string | null
+          auto_status: boolean
         }
         Insert: {
           id?: boolean
@@ -398,6 +406,14 @@ export type Database = {
           instagram_url?: string | null
           hours?: Json | null
           service_area?: Json | null
+          color_scheme?: string
+          accent_color?: string | null
+          default_theme?: string
+          hero_media_type?: string
+          hero_video_url?: string | null
+          hero_image_url?: string | null
+          hero_poster_url?: string | null
+          auto_status?: boolean
         }
         Update: {
           id?: boolean
@@ -408,6 +424,14 @@ export type Database = {
           instagram_url?: string | null
           hours?: Json | null
           service_area?: Json | null
+          color_scheme?: string
+          accent_color?: string | null
+          default_theme?: string
+          hero_media_type?: string
+          hero_video_url?: string | null
+          hero_image_url?: string | null
+          hero_poster_url?: string | null
+          auto_status?: boolean
         }
         Relationships: []
       }

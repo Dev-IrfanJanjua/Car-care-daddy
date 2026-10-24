@@ -12,7 +12,7 @@ export const SERVICE_CATALOG_TAG = 'service-catalog'
  * filtered per request so that every one of those callers shares a single cache
  * entry; the filtering is trivial in memory.
  *
- * lib/actions/admin/catalog.ts revalidates this tag on every catalog write, so
+ * features/admin/actions/catalog.ts revalidates this tag on every catalog write, so
  * a price change is live immediately rather than after the hour expires.
  */
 export const getServiceCatalog = unstable_cache(

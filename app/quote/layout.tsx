@@ -1,4 +1,10 @@
-import { SiteHeader } from '@/components/home/site-header'
+import type { Metadata } from 'next'
+import { SiteHeader } from '@/features/site-shell'
+
+export const metadata: Metadata = {
+  title: 'Get an instant price',
+  description: 'Pick your car and the glass work you need — see a transparent price in seconds.',
+}
 
 // Every quote step used to render without the site header -- a carry-over
 // from when these were treated as a focused, chrome-free flow. A layout here

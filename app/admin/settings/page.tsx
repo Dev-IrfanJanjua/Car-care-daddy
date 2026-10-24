@@ -5,7 +5,7 @@ import {
   updateBusinessSettings,
   updateBusinessHours,
   updateServiceArea,
-} from '@/lib/actions/admin/settings'
+} from '@/features/admin'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'

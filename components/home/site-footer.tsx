@@ -34,20 +34,21 @@ export async function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-1">
-            <Link href="/" className="flex items-center gap-2.5">
-              <span className="flex h-9 w-19 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-ink-950 ring-1 ring-gold-hairline">
-                <Image
-                  src="/images/logo-mark.jpg"
-                  alt=""
-                  width={1180}
-                  height={520}
-                  className="h-full w-full object-cover"
-                />
-              </span>
-              <span className="text-base font-bold tracking-tight">
-                <span className="text-gold-ink">Car Care</span>{' '}
-                <span className="text-foreground">Daddy</span>
-              </span>
+            <Link href="/" className="inline-flex items-center">
+              <Image
+                src="/images/logo-light.png"
+                alt="Car Aurum — Premium Auto Care"
+                width={720}
+                height={305}
+                className="logo-on-light h-12 w-auto"
+              />
+              <Image
+                src="/images/logo-dark.png"
+                alt="Car Aurum — Premium Auto Care"
+                width={720}
+                height={305}
+                className="logo-on-dark h-12 w-auto"
+              />
             </Link>
             <p className="mt-4 max-w-xs text-sm text-chrome-500">
               Professional windshield and glass restoration, delivered to your doorstep anywhere
@@ -152,7 +153,7 @@ export async function SiteFooter() {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-border/60 pt-6 text-xs text-chrome-500 sm:flex-row">
-          <p>&copy; {year} Car Care Daddy. All rights reserved.</p>
+          <p>&copy; {year} Car Aurum. All rights reserved.</p>
           <p className="italic">Your Car, Our Care.</p>
         </div>
       </div>

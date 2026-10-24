@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
-import { AppSidebar } from './app-sidebar'
-import { AdminBreadcrumb } from './admin-breadcrumb'
+import { AppSidebar, AdminBreadcrumb } from '@/features/admin'
+import { ThemeToggle } from '@/features/theme'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -27,6 +27,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-4">
           <SidebarTrigger />
           <AdminBreadcrumb />
+          <ThemeToggle />
         </header>
         <main className="flex-1 p-6">{children}</main>
       </SidebarInset>

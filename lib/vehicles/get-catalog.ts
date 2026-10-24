@@ -10,7 +10,7 @@ export const VEHICLE_CATALOG_TAG = 'vehicle-catalog'
  * rows -- and it was hitting the database on every visit to the first step of
  * the quote flow, from a function region on the far side of the world from it.
  * The catalog only changes when an admin edits it, and
- * lib/actions/admin/catalog.ts revalidates this tag when they do, so the hour
+ * features/admin/actions/catalog.ts revalidates this tag when they do, so the hour
  * is a backstop rather than the mechanism.
  */
 export const getVehicleCatalog = unstable_cache(
