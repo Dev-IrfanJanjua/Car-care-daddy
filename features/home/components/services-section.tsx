@@ -14,6 +14,8 @@ export type HomeService = {
   category: string | null
   /** cheapest price across vehicle classes; null when nothing is priced yet */
   fromPrice: number | null
+  /** on hold: shown, but not bookable and without a price */
+  comingSoon?: boolean
 }
 
 // The first four cards form the 7/5 + 5/7 bento; any further ones sit three to a row.
@@ -51,22 +53,26 @@ export function ServicesSection({ services }: { services: HomeService[] }) {
                   fill
                   sizes="(min-width:1024px) 600px, (min-width:640px) 50vw, 100vw"
                   style={{ objectPosition: style.position }}
-                  className="-z-20 object-cover brightness-110 saturate-110 transition-transform duration-1000 group-hover:scale-[1.06]"
+                  className={`-z-20 object-cover brightness-110 saturate-110 transition-transform duration-1000 group-hover:scale-[1.06] ${s.comingSoon ? 'grayscale-[0.6]' : ''}`}
                 />
                 <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,color-mix(in_oklab,var(--ink-900)_97%,transparent)_0%,color-mix(in_oklab,var(--ink-900)_82%,transparent)_28%,color-mix(in_oklab,var(--ink-900)_34%,transparent)_60%,transparent_100%)]" />
 
-                {i === 0 && (
+                {s.comingSoon ? (
+                  <span className="absolute top-5 left-5 rounded-[9px] border border-line-2 bg-ink-900/70 px-3.5 py-1.5 text-[0.72rem] font-bold tracking-[0.08em] text-chrome-100 uppercase backdrop-blur-md">
+                    Coming soon
+                  </span>
+                ) : i === 0 && (
                   <span className="absolute top-5 left-5 rounded-[9px] bg-gold-500 px-3.5 py-1.5 text-[0.72rem] font-bold tracking-[0.08em] text-gold-foreground uppercase">
                     Most popular
                   </span>
                 )}
-                {meta && (
+                {meta && !s.comingSoon && (
                   <span className="absolute top-5 right-5 inline-flex items-center gap-1.5 rounded-[9px] border border-line-2 bg-ink-900/60 px-3 py-1.5 text-[0.74rem] text-chrome-100 backdrop-blur-md">
                     <Clock aria-hidden className="size-[13px] text-gold-ink" />
                     {meta.duration}
                   </span>
                 )}
-                {s.fromPrice != null && (
+                {s.fromPrice != null && !s.comingSoon && (
                   <span className="absolute top-[58px] right-5 rounded-[9px] bg-gold-500 px-3 py-1 text-[0.74rem] font-bold text-gold-foreground">
                     From {formatPrice(s.fromPrice)}
                   </span>
@@ -74,7 +80,7 @@ export function ServicesSection({ services }: { services: HomeService[] }) {
 
                 <div className="w-full p-7">
                   <h3 className="mb-2 font-display text-2xl font-semibold text-chrome-100">{s.name}</h3>
-                  {meta && (
+                  {meta && !s.comingSoon && (
                     <span className="mb-2.5 inline-flex items-center gap-1.5 text-[0.78rem] font-semibold text-gold-400">
                       <ShieldCheck aria-hidden className="size-[15px]" />
                       {meta.warranty}

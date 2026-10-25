@@ -13,7 +13,21 @@ export const metadata: Metadata = {
 }
 
 export default async function GalleryPage() {
-  const [contact, items] = await Promise.all([getBusinessContact(), getGallery()])
+  const [contact, published] = await Promise.all([getBusinessContact(), getGallery()])
+  // Until the first pair is uploaded (Admin → Gallery) show the same built-in pair as the home page.
+  const items = published.length
+    ? published
+    : [
+        {
+          id: 'default',
+          title: 'Windshield restoration',
+          service: 'Windshield',
+          beforeUrl: '/images/before-windshield.jpg',
+          afterUrl: '/images/after-windshield.jpg',
+          isPublished: true,
+          isFeatured: false,
+        },
+      ]
 
   return (
     <div className="flex flex-1 flex-col">

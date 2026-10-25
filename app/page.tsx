@@ -54,15 +54,17 @@ export default async function Home() {
     return amounts.length ? Math.min(...amounts) : null
   }
   const bookable = allServices.filter((s) => !s.coming_soon)
-  const homeServices: HomeService[] = bookable
-    .filter((s) => !s.is_package)
+  // Services on hold are shown (greyed, "Coming soon", no price) after the
+  // bookable ones, so visitors can see what's on the way.
+  const homeServices: HomeService[] = [...bookable.filter((s) => !s.is_package), ...allServices.filter((s) => s.coming_soon && !s.is_package)]
     .slice(0, 6)
     .map((s) => ({
       id: s.id,
       name: s.name,
       description: s.description,
       category: s.category,
-      fromPrice: fromPrice(s.id),
+      fromPrice: s.coming_soon ? null : fromPrice(s.id),
+      comingSoon: s.coming_soon,
     }))
   const homeBundles: HomeBundle[] = bookable
     .filter((s) => s.is_package)
