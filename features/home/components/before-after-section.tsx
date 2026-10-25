@@ -1,25 +1,38 @@
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 import { Reveal } from '@/components/motion/reveal'
-import { BeforeAfterSlider } from './before-after-slider'
+import { BeforeAfterCarousel, type CarouselItem } from './before-after-carousel'
+import { SectionHead, SectionShell } from './section-head'
 
-export function BeforeAfterSection({ pair }: { pair?: { before: string; after: string; title: string } }) {
+const FALLBACK: CarouselItem = {
+  id: 'default',
+  title: 'Windshield restoration',
+  category: 'Windshield',
+  before: '/images/before-windshield.jpg',
+  after: '/images/after-windshield.jpg',
+}
+
+/** "Real results": the gallery's published pairs in a carousel (a built-in pair until the first upload). */
+export function BeforeAfterSection({ items }: { items: CarouselItem[] }) {
+  const slides = items.length ? items : [FALLBACK]
   return (
-    <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-16">
-      <Reveal className="mx-auto flex max-w-2xl flex-col items-center text-center">
-        <span className="text-xs font-semibold tracking-[0.18em] text-gold-ink uppercase">
-          Real results
-        </span>
-        <span className="rule-gold mt-3" />
-        <h2 className="mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl">
-          See the difference
-        </h2>
-        <p className="mt-3 text-muted-foreground">
-          Drag the slider to see what a CeO₂ restoration does to a hazed, spotted windshield.
-        </p>
+    <SectionShell id="results" className="bg-ink-950">
+      <Reveal>
+        <SectionHead
+          center
+          eyebrow="Real results"
+          title="See the difference"
+          lead="Drag, swipe or tap through our latest before & after work."
+        />
       </Reveal>
-
-      <Reveal delay={0.1} className="mt-10">
-        <BeforeAfterSlider beforeSrc={pair?.before} afterSrc={pair?.after} alt={pair?.title} />
+      <Reveal delay={0.08}>
+        <BeforeAfterCarousel items={slides} />
       </Reveal>
-    </section>
+      <div className="mt-11 text-center">
+        <Link href="/gallery" className="inline-flex items-center gap-2 text-[0.92rem] font-semibold text-gold-ink [&_svg]:transition-transform hover:[&_svg]:translate-x-1">
+          Open the full gallery <ArrowRight className="size-4" />
+        </Link>
+      </div>
+    </SectionShell>
   )
 }

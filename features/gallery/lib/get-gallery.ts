@@ -30,8 +30,14 @@ export const getGallery = unstable_cache(
   { tags: [GALLERY_TAG], revalidate: 3600 }
 )
 
-/** The pair shown in the home page slider: the featured item, else the newest. */
-export function pickFeatured(items: GalleryItem[]) {
-  const item = items.find((i) => i.isFeatured) ?? items[0]
-  return item ? { before: item.beforeUrl, after: item.afterUrl, title: item.title } : undefined
+/** The pairs shown in the home carousel: featured items first, then the newest, up to six. */
+export function pickCarouselItems(items: GalleryItem[], max = 6) {
+  const ordered = [...items.filter((i) => i.isFeatured), ...items.filter((i) => !i.isFeatured)]
+  return ordered.slice(0, max).map((i) => ({
+    id: i.id,
+    title: i.title,
+    category: i.service,
+    before: i.beforeUrl,
+    after: i.afterUrl,
+  }))
 }

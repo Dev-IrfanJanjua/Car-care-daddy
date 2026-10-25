@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'motion/react'
 import { ArrowRight, Check } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { siteButton } from '@/components/ui/site-button'
 import { WhatsAppIcon } from '@/components/icons/brand-icons'
 import { formatPrice } from '@/lib/format'
 import { WARRANTY_YEARS } from '@/lib/contact'
@@ -28,8 +28,10 @@ type HeroProps = {
   /** admin-controlled photo/video; omitted fields fall back to the bundled ones */
   media?: HeroMedia
   whatsappUrl: string
-  /** cheapest price of the first service, for the floating "starting from" chip */
+  /** cheapest price of the first service, for the floating "from" chip */
   startingPrice: number | null
+  /** that service's name, for the chip's label ("Windshield from") */
+  startingLabel?: string
   /** the price finder, rendered by the page so it can stay a server-fed component */
   children: ReactNode
 }
@@ -39,34 +41,30 @@ type HeroProps = {
  * underneath. The photo is an arch in the light theme and a double brass frame
  * in the dark one -- same markup, the `dk:` variant swaps the shape.
  */
-export function Hero({ whatsappUrl, startingPrice, children, media = DEFAULT_MEDIA, content = DEFAULT_CONTENT }: HeroProps) {
+export function Hero({ whatsappUrl, startingPrice, startingLabel, children, media = DEFAULT_MEDIA, content = DEFAULT_CONTENT }: HeroProps) {
   const showImage = media.type === 'image' && !!media.imageUrl
   const poster = media.posterUrl || '/images/hero-poster.jpg'
   const video = media.videoUrl || '/videos/Video1.mp4'
+  // "Windshield Restoration" -> "Windshield from"
+  const chipLabel = `${startingLabel?.split(' ')[0] ?? 'Starting'} from`
   return (
-    <section className="relative isolate bg-background pt-6 pb-14 sm:pt-12 lg:pb-20">
-      {/* soft pools of colour; clipped here so the price finder's halo isn't */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-24 -left-24 size-96 rounded-full bg-gold-500/10 blur-3xl" />
-        <div className="absolute top-32 -right-24 size-[28rem] rounded-full bg-gold-500/10 blur-3xl" />
-      </div>
-
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_26.5rem] lg:gap-14">
+    <section className="relative isolate bg-background pt-8 pb-10 sm:pt-[34px] dk:pb-14">
+      <div className="mx-auto max-w-[1200px] px-[18px] sm:px-6">
+        <div className="grid items-start gap-x-[60px] gap-y-6 lg:grid-cols-[minmax(0,1fr)_430px]">
           {/* ---- visual (first on mobile, so the headline never sits on the photo) ---- */}
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7 }}
-            className="relative order-first mx-auto w-full max-w-sm lg:order-last lg:max-w-none"
+            className="relative order-first lg:order-last lg:mt-2.5 dk:lg:mb-5"
           >
-            <div className="relative h-64 overflow-hidden rounded-t-[8rem] rounded-b-3xl shadow-2xl shadow-gold-700/25 sm:h-80 lg:h-[29rem] lg:rounded-t-[13.5rem] dk:rounded-xs dk:shadow-[0_0_0_8px_var(--background),0_0_0_9px_var(--gold-500),0_0_0_17px_var(--background),0_0_0_18px_color-mix(in_oklch,var(--gold-500)_45%,transparent)]">
+            <div className="relative mx-5 h-[260px] overflow-hidden rounded-t-[130px] rounded-b-3xl shadow-[0_40px_70px_-34px_rgba(60,40,10,0.5)] sm:mx-0 lg:mr-4 lg:ml-auto lg:h-[470px] lg:w-[430px] lg:rounded-t-[215px] lg:rounded-b-[28px] dk:mx-[26px] dk:h-[240px] dk:rounded-xs dk:shadow-[0_0_0_6px_var(--background),0_0_0_7px_var(--gold-500),0_40px_80px_-30px_rgba(0,0,0,0.7)] dk:sm:mx-0 dk:lg:mr-11 dk:lg:h-[430px] dk:lg:w-[410px] dk:lg:shadow-[0_0_0_8px_var(--background),0_0_0_9px_var(--gold-500),0_0_0_17px_var(--background),0_0_0_18px_color-mix(in_oklab,var(--gold-500)_45%,transparent),0_40px_80px_-30px_rgba(0,0,0,0.7)]">
               <Image
                 src={showImage ? media.imageUrl : poster}
                 alt=""
                 fill
                 priority
-                sizes="(min-width:1024px) 424px, 90vw"
+                sizes="(min-width:1024px) 430px, 90vw"
                 className="object-cover object-[55%_center]"
               />
               {!showImage && (
@@ -85,27 +83,27 @@ export function Hero({ whatsappUrl, startingPrice, children, media = DEFAULT_MED
               )}
             </div>
 
-            <div className="absolute top-8 -left-2 rounded-xl border border-border bg-card px-4 py-3 shadow-xl sm:-left-6 dk:rounded-xs dk:border-gold-500">
-              <p className="text-xs font-medium text-chrome-500">{WARRANTY_YEARS}-year warranty</p>
-              <p className="font-display text-lg font-semibold text-gold-ink">Guaranteed</p>
+            <div className="absolute top-[60px] -left-[100px] hidden rounded-[18px] border border-line bg-white px-[18px] py-3 text-[0.78rem] font-semibold text-foreground shadow-[0_18px_40px_-18px_rgba(0,0,0,0.35)] lg:block dk:rounded-xs dk:border-gold-500 dk:bg-card dk:shadow-[0_18px_40px_-18px_rgba(0,0,0,0.7)]">
+              {WARRANTY_YEARS}-year warranty
+              <b className="block font-display text-[1.15rem] font-semibold text-gold-ink">Guaranteed</b>
             </div>
             {startingPrice != null && (
-              <div className="absolute -right-2 bottom-6 rounded-xl border border-border bg-card px-4 py-3 shadow-xl sm:-right-4 dk:rounded-xs dk:border-gold-500">
-                <p className="text-xs font-medium text-chrome-500">Starting from</p>
-                <p className="font-display text-lg font-semibold text-gold-ink">{formatPrice(startingPrice)}</p>
+              <div className="absolute -right-5 -bottom-[7px] hidden rounded-[18px] border border-line bg-white px-[18px] py-3 text-[0.78rem] font-semibold text-foreground shadow-[0_18px_40px_-18px_rgba(0,0,0,0.35)] lg:block dk:-right-[30px] dk:rounded-xs dk:border-gold-500 dk:bg-card dk:shadow-[0_18px_40px_-18px_rgba(0,0,0,0.7)]">
+                {chipLabel}
+                <b className="block font-display text-[1.15rem] font-semibold text-gold-ink">{formatPrice(startingPrice)}</b>
               </div>
             )}
           </motion.div>
 
           {/* ---- copy ---- */}
-          <div>
+          <div className="flex flex-col items-start">
             <motion.span
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-sm font-medium text-gold-ink dk:rounded-xs dk:border-gold-500 dk:bg-transparent"
+              className="inline-flex items-center gap-2.5 rounded-full border border-transparent bg-white py-2 pr-4 pl-2.5 text-[0.82rem] font-medium text-gold-ink shadow-[0_8px_24px_-12px_rgba(0,0,0,0.2)] dk:rounded-xs dk:border-gold-500 dk:bg-transparent dk:shadow-none"
             >
-              <span aria-hidden className="size-2 rounded-full bg-emerald-500" />
+              <span aria-hidden className="size-2 rounded-full bg-[#46d37a] shadow-[0_0_0_4px_rgba(70,211,122,0.22)]" />
               {content.heroBadge}
             </motion.span>
 
@@ -113,9 +111,10 @@ export function Hero({ whatsappUrl, startingPrice, children, media = DEFAULT_MED
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.06 }}
-              className="mt-5 font-display text-4xl leading-[1.08] font-bold tracking-tight text-balance text-chrome-100 sm:text-5xl lg:text-6xl"
+              className="mt-4 mb-3.5 font-display text-[clamp(2.1rem,7.4vw,2.8rem)] leading-[1.06] font-semibold tracking-[-0.03em] text-balance text-chrome-100 sm:text-[clamp(2.2rem,4.4vw,3.8rem)] sm:leading-[1.04]"
             >
-              {content.heroHeadline}{' '}
+              {content.heroHeadline}
+              <br className="hidden sm:block" />{' '}
               <span className="text-gold-ink">{content.heroAccent}</span>
             </motion.h1>
 
@@ -123,7 +122,7 @@ export function Hero({ whatsappUrl, startingPrice, children, media = DEFAULT_MED
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.12 }}
-              className="mt-5 max-w-xl text-base leading-relaxed text-chrome-300 sm:text-lg"
+              className="max-w-[640px] text-base text-chrome-400 sm:text-[1.15rem] sm:leading-[1.6]"
             >
               {content.heroSubtext}
             </motion.p>
@@ -132,11 +131,11 @@ export function Hero({ whatsappUrl, startingPrice, children, media = DEFAULT_MED
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.18 }}
-              className="mt-6 grid gap-x-6 gap-y-2.5 sm:grid-cols-2"
+              className="mt-5 grid grid-cols-2 gap-x-3 gap-y-2 sm:mt-6 sm:flex sm:flex-wrap sm:gap-x-[26px]"
             >
               {content.heroPoints.map((p) => (
-                <li key={p} className="flex items-center gap-2.5 text-sm font-medium text-chrome-100">
-                  <Check aria-hidden className="size-4 shrink-0 text-gold" />
+                <li key={p} className="flex items-start gap-2.5 text-[0.84rem] font-medium text-chrome-100 sm:items-center sm:text-[0.95rem]">
+                  <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-gold-ink sm:mt-0 sm:size-[18px]" strokeWidth={2.6} />
                   {p}
                 </li>
               ))}
@@ -146,25 +145,21 @@ export function Hero({ whatsappUrl, startingPrice, children, media = DEFAULT_MED
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.24 }}
-              className="mt-8 flex flex-col gap-3 sm:flex-row"
+              className="mt-[22px] flex w-full flex-col gap-3.5 sm:w-auto sm:flex-row"
             >
-              <Button
-                size="lg"
-                className="h-12 rounded-full px-7 text-base shadow-lg shadow-gold-500/30 dk:rounded-md dk:tracking-wider dk:uppercase"
-                render={<Link href="/quote" />}
-              >
+              <Link href="/quote" className={siteButton({ size: 'lg' })}>
                 Book now
-                <ArrowRight className="size-4" data-icon="inline-end" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="h-12 rounded-full px-7 text-base dk:rounded-md dk:border-gold-500 dk:bg-transparent dk:tracking-wider dk:text-gold-ink dk:uppercase"
-                render={<a href={whatsappUrl} target="_blank" rel="noopener noreferrer" />}
+                <ArrowRight />
+              </Link>
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={siteButton({ variant: 'ghost', size: 'lg' })}
               >
-                <WhatsAppIcon className="size-4" data-icon="inline-start" />
+                <WhatsAppIcon />
                 WhatsApp us
-              </Button>
+              </a>
             </motion.div>
           </div>
         </div>
@@ -173,7 +168,7 @@ export function Hero({ whatsappUrl, startingPrice, children, media = DEFAULT_MED
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.32 }}
-          className="mt-14 lg:mt-16"
+          className="mt-9 lg:mt-8"
         >
           {children}
         </motion.div>

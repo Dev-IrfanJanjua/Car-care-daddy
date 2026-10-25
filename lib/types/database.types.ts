@@ -189,6 +189,7 @@ export type Database = {
           status: Database['public']['Enums']['lead_status']
           converted_booking_id: string | null
           source: string | null
+          message: string | null
         }
         Insert: {
           id?: string
@@ -204,6 +205,7 @@ export type Database = {
           status?: Database['public']['Enums']['lead_status']
           converted_booking_id?: string | null
           source?: string | null
+          message?: string | null
         }
         Update: {
           id?: string
@@ -219,6 +221,7 @@ export type Database = {
           status?: Database['public']['Enums']['lead_status']
           converted_booking_id?: string | null
           source?: string | null
+          message?: string | null
         }
         Relationships: []
       }

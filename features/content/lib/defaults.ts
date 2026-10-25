@@ -13,8 +13,8 @@ export const DEFAULT_CONTENT: HomeContent = {
     `${WARRANTY_YEARS}-year results warranty`,
     'Pay after the job',
   ],
-  ctaTitle: 'Ready for a crystal-clear windshield?',
-  ctaText: 'Get an instant price and book your doorstep appointment in under a minute.',
+  ctaTitle: 'Ready for clear glass again?',
+  ctaText: "Tell us your car and we'll send your exact price in minutes.",
   faqs: [
     {
       q: 'Do you really come to my home or office?',

@@ -65,6 +65,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
           {lead.quote_total !== null && (
             <p>Quoted total: {formatPrice(Number(lead.quote_total))}</p>
           )}
+          {lead.message && <p className="rounded-md bg-muted p-3 whitespace-pre-wrap">{lead.message}</p>}
           <Badge variant="outline" className="capitalize">
             {lead.status}
           </Badge>

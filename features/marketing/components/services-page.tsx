@@ -1,13 +1,12 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, Clock, ShieldCheck, Wallet } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { WhatsAppIcon } from '@/components/icons/brand-icons'
 import { Reveal } from '@/components/motion/reveal'
+import { siteButton } from '@/components/ui/site-button'
 import { formatPrice } from '@/lib/format'
 import { VEHICLE_CLASSES, vehicleClassLabel } from '@/lib/vehicles/classes'
-import { WARRANTY_YEARS } from '@/lib/contact'
-import { categoryStyle } from '@/features/home'
-import { PageHero } from './page-hero'
+import { categoryFeatures, categoryLabel, categoryMeta, categoryStyle, SectionHead, SectionShell } from '@/features/home'
+import { cn } from '@/lib/utils'
 
 export type ServiceRow = {
   id: string
@@ -20,97 +19,166 @@ export type ServiceRow = {
   prices: Partial<Record<string, number>>
 }
 
-const PROMISES = [
-  { icon: Clock, title: 'Done in 60–90 minutes', text: 'Most jobs finish within an hour and a half, at your door.' },
-  { icon: ShieldCheck, title: `${WARRANTY_YEARS}-year results warranty`, text: 'If the haze comes back from normal use, we put it right.' },
-  { icon: Wallet, title: 'Pay after the job', text: 'No deposit. You pay once you have seen the result.' },
-]
-
-export function ServicesPage({ services }: { services: ServiceRow[] }) {
+/**
+ * One alternating row per service: photo, name, what's included, the price for
+ * each car size, and the two ways to book. Everything but the bullet points and
+ * duration/warranty wording (copy per category) comes from the services table.
+ */
+export function ServicesList({ services, whatsappBase }: { services: ServiceRow[]; whatsappBase: string }) {
   return (
-    <>
-      <PageHero
-        eyebrow="What we do"
-        title="Every service, one clear price"
-        description="Pricing depends on your car's size, so you always see an exact figure for your vehicle before you book. Every job is done at your home or office in Lahore."
-      />
-
-      <section className="mx-auto max-w-6xl px-4 pb-8 sm:px-6 sm:pb-14">
-        <div className="grid gap-6 md:grid-cols-2">
-          {services.map((s, i) => {
-            const style = categoryStyle(s.category)
-            const Icon = style.icon
-            return (
-              <Reveal key={s.id} delay={i * 0.05}>
-                <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm dk:rounded-md">
-                  <div className="relative h-44 w-full">
-                    <Image
-                      src={style.image}
-                      alt=""
-                      fill
-                      sizes="(min-width: 768px) 560px, 100vw"
-                      className="object-cover"
-                      style={{ objectPosition: style.position }}
-                    />
-                    <div className="hero-scrim absolute inset-0" aria-hidden />
-                    <span className="absolute bottom-3 left-3 flex size-9 items-center justify-center rounded-lg bg-brand text-brand-foreground shadow dk:rounded-xs">
-                      <Icon className="size-5" />
-                    </span>
-                    {s.isPackage && (
-                      <span className="absolute top-3 right-3 rounded-full bg-ink-950/80 px-3 py-1 text-[11px] font-semibold tracking-wider text-chrome-100 uppercase">
-                        Package
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex flex-1 flex-col p-5">
-                    <h2 className="font-display text-xl font-semibold text-foreground">{s.name}</h2>
-                    {s.description && <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.description}</p>}
-
-                    {s.comingSoon ? (
-                      <p className="mt-5 rounded-lg bg-muted px-3 py-2 text-sm font-medium text-muted-foreground">Coming soon</p>
-                    ) : (
-                      <>
-                        <dl className="mt-5 grid grid-cols-3 gap-2 text-center">
-                          {VEHICLE_CLASSES.map((c) => (
-                            <div key={c} className="rounded-lg border border-border bg-background px-2 py-2.5 dk:rounded-xs">
-                              <dt className="text-[11px] font-medium text-muted-foreground">{vehicleClassLabel(c)}</dt>
-                              <dd className="mt-0.5 font-display text-sm font-semibold whitespace-nowrap text-gold-ink">
-                                {s.prices[c] != null ? formatPrice(s.prices[c]!) : '—'}
-                              </dd>
-                            </div>
-                          ))}
-                        </dl>
-                        <Button className="mt-5 w-full sm:w-auto sm:self-start" render={<Link href="/quote" />}>
-                          Get my exact price
-                          <ArrowRight className="size-4" data-icon="inline-end" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </article>
-              </Reveal>
-            )
-          })}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 pb-10 sm:px-6 sm:pb-16">
-        <div className="grid gap-4 rounded-2xl border border-border bg-card p-6 sm:grid-cols-3 dk:rounded-md">
-          {PROMISES.map((p) => (
-            <div key={p.title} className="flex gap-3">
-              <p.icon className="mt-0.5 size-5 shrink-0 text-gold-ink" />
-              <div>
-                <h3 className="font-medium text-foreground">{p.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{p.text}</p>
+    <SectionShell className="pt-5 sm:pt-5">
+      {services.map((s, i) => {
+        const style = categoryStyle(s.category)
+        const meta = categoryMeta(s.category)
+        const features = categoryFeatures(s.category)
+        return (
+          <Reveal key={s.id}>
+            <article
+              id={s.id}
+              className="grid scroll-mt-28 items-center gap-8 border-b border-line py-10 last:border-0 lg:grid-cols-2 lg:gap-16 lg:py-14"
+            >
+              <div
+                className={cn(
+                  'zone-dark relative aspect-[4/3] overflow-hidden rounded-2xl border border-line bg-ink-800 dk:rounded-sm',
+                  i % 2 === 1 && 'lg:order-2'
+                )}
+              >
+                <Image
+                  src={style.image}
+                  alt={s.name}
+                  fill
+                  sizes="(min-width:1024px) 560px, 100vw"
+                  style={{ objectPosition: style.position }}
+                  className="object-cover brightness-110 saturate-110"
+                />
               </div>
-            </div>
-          ))}
+
+              <div>
+                <span className="font-display text-[0.9rem] tracking-[0.2em] text-gold-ink uppercase">
+                  {String(i + 1).padStart(2, '0')} — {categoryLabel(s.category)}
+                </span>
+                <h2 className="mt-2.5 mb-3.5 font-display text-[clamp(1.6rem,3vw,2.2rem)] leading-[1.15] font-semibold tracking-[-0.03em] text-chrome-100">
+                  {s.name}
+                </h2>
+                {s.description && <p className="max-w-[60ch] text-[1.05rem] text-chrome-400">{s.description}</p>}
+
+                {features.length > 0 && (
+                  <ul className="my-6 grid gap-x-5 gap-y-2.5 sm:grid-cols-2">
+                    {features.map((f) => (
+                      <li key={f} className="flex gap-2.5 text-[0.92rem] text-chrome-100">
+                        <span aria-hidden className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-gold-500/20 text-gold-ink">
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="m2 6.5 3 3 5-6" />
+                          </svg>
+                        </span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {!s.comingSoon && (
+                  <div className="mb-6 grid grid-cols-3 gap-2">
+                    {VEHICLE_CLASSES.map((c) => (
+                      <span key={c} className="rounded-lg border border-line bg-card px-3 py-2.5">
+                        <small className="block text-[0.7rem] tracking-[0.08em] text-chrome-400 uppercase">{vehicleClassLabel(c)}</small>
+                        <b className="font-display text-[0.98rem] font-semibold whitespace-nowrap text-gold-ink">
+                          {s.prices[c] != null ? formatPrice(s.prices[c]!) : '—'}
+                        </b>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {meta && (
+                  <div className="mb-6 flex flex-wrap gap-6 text-[0.9rem] text-chrome-400">
+                    <div>
+                      <b className="block font-display text-chrome-100">{meta.duration}</b>Typical time
+                    </div>
+                    <div>
+                      <b className="block font-display text-chrome-100">Doorstep</b>We come to you
+                    </div>
+                    <div>
+                      <b className="block font-display text-chrome-100">{meta.warranty.replace(/ ·.*$/, '')}</b>Warranty
+                    </div>
+                  </div>
+                )}
+
+                {s.comingSoon ? (
+                  <p className="inline-block rounded-lg bg-tint px-4 py-2 text-sm font-medium text-chrome-400">Coming soon</p>
+                ) : (
+                  <div className="flex flex-wrap gap-3">
+                    <Link href="/quote" className={siteButton()}>
+                      Book this service
+                    </Link>
+                    <a
+                      href={`${whatsappBase}?text=${encodeURIComponent(`Hi, I would like a price for ${s.name}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={siteButton({ variant: 'ghost' })}
+                    >
+                      <WhatsAppIcon /> Get price
+                    </a>
+                  </div>
+                )}
+              </div>
+            </article>
+          </Reveal>
+        )
+      })}
+    </SectionShell>
+  )
+}
+
+/** Every service against every car size, as a table. */
+export function PricingTable({ services }: { services: ServiceRow[] }) {
+  const priced = services.filter((s) => !s.comingSoon)
+  return (
+    <SectionShell id="pricing" className="pt-5 sm:pt-5">
+      <Reveal>
+        <SectionHead
+          center
+          eyebrow="Pricing"
+          title="Simple prices,"
+          accent="by car type"
+          lead="The price depends on the size of your car. Not sure which size yours is? Look it up below."
+        />
+      </Reveal>
+      <Reveal>
+        <div className="overflow-x-auto rounded-[14px] border border-line-2 bg-card shadow-[0_22px_50px_-34px_rgba(18,32,46,0.3)] dk:rounded-sm dk:border-gold-500/45 dk:shadow-none">
+          <table className="w-full min-w-[560px] border-collapse">
+            <thead>
+              <tr>
+                <th className="border-b border-line px-6 pt-5 pb-4 text-left align-bottom text-[0.74rem] font-semibold tracking-[0.12em] text-chrome-400 uppercase">
+                  Service
+                </th>
+                {VEHICLE_CLASSES.map((c) => (
+                  <th key={c} className="border-b border-line px-4 pt-5 pb-4 text-center font-display text-[0.95rem] font-semibold text-chrome-100">
+                    {vehicleClassLabel(c)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {priced.map((s) => (
+                <tr key={s.id} className="group">
+                  <td className="border-b border-line px-6 py-[18px] font-medium text-chrome-100 group-last:border-0 group-hover:bg-gold-500/5">
+                    {s.name}
+                  </td>
+                  {VEHICLE_CLASSES.map((c) => (
+                    <td key={c} className="border-b border-line px-4 py-[18px] text-center font-medium text-chrome-100 group-last:border-0 group-hover:bg-gold-500/5">
+                      {s.prices[c] != null ? formatPrice(s.prices[c]!) : '—'}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <p className="mt-4 text-center text-xs text-muted-foreground">
+        <p className="mt-3.5 text-center text-[0.84rem] text-chrome-500">
           Prices shown are per vehicle size. Your exact total is confirmed on the next screen, before you book.
         </p>
-      </section>
-    </>
+      </Reveal>
+    </SectionShell>
   )
 }

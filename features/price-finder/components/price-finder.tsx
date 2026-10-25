@@ -2,8 +2,8 @@
 
 import { useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Search, ShieldCheck, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { ArrowRight, Clock, Search, ShieldCheck, X } from 'lucide-react'
+import { siteButton } from '@/components/ui/site-button'
 import { formatPrice } from '@/lib/format'
 import { WARRANTY_YEARS } from '@/lib/contact'
 import { vehicleClassLabel } from '@/lib/vehicles/classes'
@@ -73,33 +73,37 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
   const showList = open && suggestions.length > 0
   const noMatch = open && !vehicle && query.trim().length > 1 && suggestions.length === 0
 
+  const LABEL = 'mb-2 block text-[0.76rem] font-semibold tracking-[0.08em] text-chrome-400 uppercase'
+  const FIELD =
+    'h-[58px] w-full rounded-[10px] border-[1.5px] border-line-2 bg-background px-[18px] text-[1.02rem] text-foreground outline-none placeholder:text-chrome-500/75 focus-visible:border-gold-500 focus-visible:ring-4 focus-visible:ring-gold-500/20'
+
   return (
     <section
       id="price-finder"
       aria-labelledby="price-finder-title"
-      className="price-finder-glow relative rounded-2xl border-2 border-gold-500 bg-card p-5 sm:p-8 dk:rounded-md"
+      className="price-finder-glow relative max-w-[1120px] rounded-[22px] border-2 border-gold-500 bg-card px-5 pt-8 pb-6 text-left sm:px-[38px] sm:pt-[34px] sm:pb-7 dk:rounded-sm"
     >
-      <span className="absolute -top-3.5 left-6 rounded-full bg-gold-500 px-4 py-1.5 text-[0.68rem] font-bold tracking-[0.16em] text-gold-foreground uppercase sm:left-8 dk:rounded-xs">
+      <span className="absolute -top-[15px] left-5 rounded-full bg-gold-500 px-4 py-1.5 text-[0.68rem] font-bold tracking-[0.16em] text-gold-foreground uppercase sm:left-[38px] dk:rounded-xs">
         Instant price · No sign-up
       </span>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,.85fr)_minmax(0,1.45fr)_minmax(0,.9fr)_minmax(0,.95fr)] lg:items-start lg:gap-6">
-        <div className="pt-1">
-          <h2 id="price-finder-title" className="font-display text-2xl font-semibold text-chrome-100">
+      <div className="grid items-start gap-x-[22px] gap-y-3 [grid-template-areas:'t''car''svc''price''btn''m''link'] min-[700px]:grid-cols-2 min-[700px]:[grid-template-areas:'t_t''car_svc''price_btn''m_link'] min-[1100px]:grid-cols-[1fr_1.4fr_.85fr_200px_190px] min-[1100px]:[grid-template-areas:'t_car_svc_price_btn''m_m_m_link_link']">
+        <div className="[grid-area:t]">
+          <h2 id="price-finder-title" className="font-display text-[1.35rem] font-semibold tracking-[-0.02em] text-chrome-100 min-[1100px]:whitespace-nowrap">
             Find your price
           </h2>
-          <p className="mt-2 text-sm text-chrome-500">
-            Type your car&apos;s name and see your exact price instantly.
+          <p className="mt-2 max-w-[24ch] text-[0.82rem] text-chrome-400 max-[1099px]:max-w-none">
+            Type your car&apos;s name — see your exact price instantly. No sign-up.
           </p>
         </div>
 
         {/* Car */}
-        <div>
-          <label htmlFor="pf-car" className="mb-2 block text-xs font-semibold tracking-[0.14em] text-chrome-500 uppercase">
+        <div className="relative [grid-area:car]">
+          <label htmlFor="pf-car" className={LABEL}>
             Your car
           </label>
           <div className="relative">
-            <Search aria-hidden className="pointer-events-none absolute top-1/2 left-4 size-[1.1rem] -translate-y-1/2 text-chrome-500" />
+            <Search aria-hidden className="pointer-events-none absolute top-1/2 left-[17px] z-[2] size-[18px] -translate-y-1/2 text-chrome-400" />
             <input
               ref={inputRef}
               id="pf-car"
@@ -120,14 +124,14 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
               onFocus={() => setOpen(true)}
               onBlur={() => setTimeout(() => setOpen(false), 120)}
               onKeyDown={onKeyDown}
-              className="h-14 w-full rounded-xl border-[1.5px] border-input bg-background pr-11 pl-12 text-base text-foreground outline-none placeholder:text-chrome-500/80 focus-visible:border-gold-500 focus-visible:ring-4 focus-visible:ring-gold-500/20 dk:rounded-md"
+              className={cn(FIELD, 'pr-11 pl-12')}
             />
             {query && (
               <button
                 type="button"
                 aria-label="Clear car"
                 onClick={clear}
-                className="absolute top-1/2 right-3 flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-chrome-500 hover:bg-muted hover:text-foreground"
+                className="absolute top-1/2 right-2.5 flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-chrome-400 hover:bg-tint hover:text-foreground"
               >
                 <X className="size-4" />
               </button>
@@ -137,7 +141,7 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
               <ul
                 id={listId}
                 role="listbox"
-                className="absolute inset-x-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-border bg-popover py-1 shadow-xl dk:rounded-md"
+                className="absolute inset-x-0 top-full z-30 mt-1.5 overflow-hidden rounded-xl border border-line-2 bg-popover py-1 shadow-xl dk:rounded-sm"
               >
                 {suggestions.map((v, i) => (
                   <li
@@ -152,17 +156,17 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
                     onMouseEnter={() => setActive(i)}
                     className={cn(
                       'flex cursor-pointer items-center justify-between gap-3 px-4 py-2.5 text-sm',
-                      i === active ? 'bg-muted text-foreground' : 'text-chrome-300'
+                      i === active ? 'bg-tint text-foreground' : 'text-chrome-300'
                     )}
                   >
                     <span>{v.label}</span>
-                    <span className="text-xs text-chrome-500">{vehicleClassLabel(v.vehicleClass)}</span>
+                    <span className="text-xs text-chrome-400">{vehicleClassLabel(v.vehicleClass)}</span>
                   </li>
                 ))}
               </ul>
             )}
             {noMatch && (
-              <div className="absolute inset-x-0 top-full z-30 mt-2 rounded-xl border border-border bg-popover px-4 py-3 text-sm text-chrome-300 shadow-xl dk:rounded-md">
+              <div className="absolute inset-x-0 top-full z-30 mt-1.5 rounded-xl border border-line-2 bg-popover px-4 py-3 text-sm text-chrome-300 shadow-xl dk:rounded-sm">
                 No match yet.{' '}
                 <Link href="/quote/not-listed" className="font-semibold text-gold-ink underline-offset-4 hover:underline">
                   Request a quote by hand
@@ -172,18 +176,18 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
           </div>
 
           {chips.length > 0 && (
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="text-[0.68rem] font-semibold tracking-[0.14em] text-chrome-500 uppercase">Quick pick</span>
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+              <span className="mr-0.5 w-[3.1rem] text-[0.7rem] leading-[1.5] tracking-[0.1em] text-chrome-400 uppercase">Quick pick:</span>
               {chips.map((v) => (
                 <button
                   key={v.id}
                   type="button"
                   onClick={() => choose(v)}
                   className={cn(
-                    'rounded-full border px-3.5 py-1.5 text-sm transition-colors dk:rounded-xs',
+                    'rounded-full border px-3 py-1.5 text-[0.78rem] font-medium transition-colors dk:rounded-full',
                     vehicle?.id === v.id
                       ? 'border-gold-500 bg-gold-500 text-gold-foreground'
-                      : 'border-border bg-background text-foreground hover:border-gold-500'
+                      : 'border-line-2 bg-tint text-foreground hover:border-gold-500 hover:text-gold-ink'
                   )}
                 >
                   {v.model}
@@ -194,15 +198,15 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
         </div>
 
         {/* Service */}
-        <div>
-          <label htmlFor="pf-service" className="mb-2 block text-xs font-semibold tracking-[0.14em] text-chrome-500 uppercase">
+        <div className="[grid-area:svc]">
+          <label htmlFor="pf-service" className={LABEL}>
             Service
           </label>
           <select
             id="pf-service"
             value={service?.id ?? ''}
             onChange={(e) => setServiceId(e.target.value)}
-            className="h-14 w-full rounded-xl border-[1.5px] border-input bg-background px-4 text-base text-foreground outline-none focus-visible:border-gold-500 focus-visible:ring-4 focus-visible:ring-gold-500/20 dk:rounded-md"
+            className={cn(FIELD, 'text-ellipsis')}
           >
             {services.map((s) => (
               <option key={s.id} value={s.id}>
@@ -212,47 +216,57 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
           </select>
         </div>
 
-        {/* Price + CTA */}
-        <div className="flex flex-col gap-3">
-          <div aria-live="polite">
-            <p className="text-xs font-semibold tracking-[0.14em] text-chrome-500 uppercase">Your price</p>
-            {vehicle && price != null ? (
-              <>
-                <p className="font-display text-4xl leading-tight font-bold whitespace-nowrap text-gold-ink">
-                  {formatPrice(price)}
-                </p>
-                <p className="text-xs text-chrome-500">
-                  {vehicle.label} · {vehicleClassLabel(vehicle.vehicleClass)}
-                </p>
-              </>
-            ) : vehicle ? (
-              <p className="mt-1 text-sm text-chrome-300">Price on request for this car — book and we&apos;ll confirm.</p>
-            ) : (
-              <>
-                <p className="font-display text-3xl leading-tight font-bold whitespace-nowrap text-chrome-100">
-                  {fromPrice != null ? <><span className="text-base font-medium text-chrome-500">from </span>{formatPrice(fromPrice)}</> : '—'}
-                </p>
-                <p className="text-xs text-chrome-500">Pick your car for your exact price</p>
-              </>
-            )}
-          </div>
-          <Button
-            size="lg"
-            className="h-14 w-full text-base font-semibold shadow-lg shadow-gold-500/30 dk:rounded-md dk:tracking-wider dk:uppercase"
-            render={<Link href={buildQuoteHref(vehicle, service?.id ?? null)} />}
-          >
-            Book this
-            <ArrowRight className="size-4" data-icon="inline-end" />
-          </Button>
+        {/* Price */}
+        <div aria-live="polite" className="self-center [grid-area:price]">
+          <p className="text-[0.76rem] font-semibold tracking-[0.1em] text-chrome-400 uppercase">Your price</p>
+          {vehicle && price != null ? (
+            <>
+              <p className="mt-0.5 font-display text-[2.1rem] leading-[1.1] font-semibold tracking-[-0.03em] whitespace-nowrap text-gold-ink">
+                {formatPrice(price)}
+              </p>
+              <p className="mt-0.5 max-w-[24ch] text-[0.74rem] leading-snug text-chrome-400">
+                {vehicle.label} · {vehicleClassLabel(vehicle.vehicleClass)}
+              </p>
+            </>
+          ) : vehicle ? (
+            <p className="mt-1 text-sm text-chrome-300">Price on request for this car — book and we&apos;ll confirm.</p>
+          ) : (
+            <>
+              <p className="mt-0.5 font-display text-[2.1rem] leading-[1.1] font-semibold tracking-[-0.03em] whitespace-nowrap text-gold-ink">
+                {fromPrice != null ? (
+                  <>
+                    <span className="mr-1 text-base font-medium tracking-normal text-chrome-400">from</span>
+                    {formatPrice(fromPrice)}
+                  </>
+                ) : (
+                  '—'
+                )}
+              </p>
+              <p className="mt-0.5 max-w-[24ch] text-[0.74rem] leading-snug text-chrome-400">Pick your car for your exact price</p>
+            </>
+          )}
         </div>
-      </div>
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-border pt-4 text-sm">
-        <p className="flex items-center gap-2 text-chrome-500">
-          <ShieldCheck className="size-4 text-gold" />
-          {WARRANTY_YEARS}-year results warranty
+        <Link
+          href={buildQuoteHref(vehicle, service?.id ?? null)}
+          className={cn(siteButton({ size: 'lg' }), 'h-[60px] w-full self-center shadow-[0_18px_36px_-14px_color-mix(in_oklab,var(--gold-500)_75%,transparent)] [grid-area:btn]')}
+        >
+          Book this
+          <ArrowRight />
+        </Link>
+
+        <p className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[0.78rem] text-chrome-400 [grid-area:m]">
+          <span className="inline-flex items-center gap-1.5">
+            <Clock className="size-3.5 text-gold-ink" /> 60–90 min
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <ShieldCheck className="size-3.5 text-gold-ink" /> {WARRANTY_YEARS}-year results warranty
+          </span>
         </p>
-        <Link href="/quote/not-listed" className="font-semibold text-gold-ink underline-offset-4 hover:underline">
+        <Link
+          href="/quote/not-listed"
+          className="text-[0.88rem] font-semibold text-gold-ink underline-offset-4 [grid-area:link] hover:underline min-[700px]:justify-self-end"
+        >
           Can&apos;t find your car? Choose the type yourself
         </Link>
       </div>

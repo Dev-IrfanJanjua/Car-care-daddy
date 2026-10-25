@@ -53,6 +53,7 @@
 
   --chrome-100: #2b2a28; /* headings */
   --chrome-300: #4a4640; /* body text */
+  --chrome-400: #6a665f; /* the design's "muted" -- secondary text on a card */
   --chrome-500: #6a665f; /* muted text */
 
   --brand: var(--gold-500);
@@ -127,6 +128,7 @@
 
   --chrome-100: #f1e8d2; /* cream */
   --chrome-300: #d6cdb6;
+  --chrome-400: #c4bca6;
   --chrome-500: #a3ae9f;
 
   --brand-foreground: #0e2b25;
@@ -134,6 +136,10 @@
   --gold-ink: var(--gold-400);
   --gold-foreground: #0e2b25;
   --gold-hairline: color-mix(in oklch, var(--gold-500) 45%, transparent);
+
+  --line: color-mix(in oklab, var(--gold-500) 22%, transparent);
+  --line-2: color-mix(in oklab, var(--gold-500) 40%, transparent);
+  --tint: color-mix(in oklab, var(--gold-500) 7%, transparent);
 
   --input: #5a7a6d;
   --destructive: oklch(0.704 0.191 22.216);
@@ -198,8 +204,12 @@
   --color-gold-hairline: var(--gold-hairline);
   --color-chrome-100: var(--chrome-100);
   --color-chrome-300: var(--chrome-300);
+  --color-chrome-400: var(--chrome-400);
   --color-chrome-500: var(--chrome-500);
   --color-chrome: var(--chrome);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-tint: var(--tint);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
@@ -258,6 +268,14 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  /* v3 light theme: two soft champagne washes in the corners of the pearl page. */
+  :root[data-theme="light"] body {
+    background-image:
+      radial-gradient(circle at 100% 0, rgba(234, 223, 200, 0.9), transparent 38%),
+      radial-gradient(circle at 0 70%, rgba(241, 230, 208, 0.8), transparent 36%);
+    background-repeat: no-repeat;
+    background-attachment: scroll;
   }
   html {
     @apply font-sans;
