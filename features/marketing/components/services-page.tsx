@@ -78,7 +78,7 @@ export function ServicesList({ services, whatsappBase }: { services: ServiceRow[
                 )}
 
                 {!s.comingSoon && (
-                  <div className="mb-6 grid grid-cols-3 gap-2">
+                  <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {VEHICLE_CLASSES.map((c) => (
                       <span key={c} className="rounded-lg border border-line bg-card px-3 py-2.5">
                         <small className="block text-[0.7rem] tracking-[0.08em] text-chrome-400 uppercase">{vehicleClassLabel(c)}</small>

@@ -6,6 +6,7 @@ import { SectionHead, SectionShell } from './section-head'
 
 const FALLBACK: CarouselItem = {
   id: 'default',
+  kind: 'compare',
   title: 'Windshield restoration',
   category: 'Windshield',
   before: '/images/before-windshield.jpg',

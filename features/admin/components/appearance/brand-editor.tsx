@@ -23,7 +23,7 @@ import { createMediaUploadUrl, saveBrandSettings, type MediaKind } from '../../a
 
 export type BrandDraft = BrandSettings & { autoStatus: boolean }
 
-type HeroKind = Exclude<MediaKind, 'gallery'>
+type HeroKind = Exclude<MediaKind, 'gallery' | 'galleryVideo'>
 type Files = Partial<Record<HeroKind, File>>
 
 function without(files: Files, key: HeroKind): Files {

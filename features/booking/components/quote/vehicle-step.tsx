@@ -26,6 +26,7 @@ export function VehicleStep({
   initialModel,
   initialYear,
   initialServices,
+  initialBundle,
 }: {
   makes: Make[]
   models: Model[]
@@ -33,6 +34,7 @@ export function VehicleStep({
   initialModel?: string
   initialYear?: string
   initialServices?: string
+  initialBundle?: string
 }) {
   const router = useRouter()
   const [make, setMake] = useState<Make | null>(
@@ -47,6 +49,11 @@ export function VehicleStep({
     () => (make ? models.filter((m) => m.make_id === make.id) : []),
     [models, make]
   )
+  const notListedHref = `/quote/not-listed${
+    initialServices || initialBundle
+      ? `?${new URLSearchParams({ ...(initialServices ? { services: initialServices } : {}), ...(initialBundle ? { bundle: initialBundle } : {}) })}`
+      : ''
+  }`
   const canSubmit = Boolean(make && model && year.length === 4)
 
   function handleSubmit(e: FormEvent) {
@@ -61,6 +68,7 @@ export function VehicleStep({
     })
     // Carried from the home page price finder; the service step preselects it.
     if (initialServices) params.set('services', initialServices)
+    if (initialBundle) params.set('bundle', initialBundle)
     router.push(`/quote/services?${params.toString()}`)
   }
 
@@ -86,8 +94,8 @@ export function VehicleStep({
           <ComboboxContent>
             <ComboboxEmpty>
               No brand matches that.{' '}
-              <Link href="/quote/not-listed" className="font-medium text-gold-ink hover:underline">
-                Request a quote by hand
+              <Link href={notListedHref} className="font-medium text-gold-ink hover:underline">
+                Choose your car type instead
               </Link>
             </ComboboxEmpty>
             <ComboboxList>
@@ -120,8 +128,8 @@ export function VehicleStep({
           <ComboboxContent>
             <ComboboxEmpty>
               No model matches that.{' '}
-              <Link href="/quote/not-listed" className="font-medium text-gold-ink hover:underline">
-                Request a quote by hand
+              <Link href={notListedHref} className="font-medium text-gold-ink hover:underline">
+                Choose your car type instead
               </Link>
             </ComboboxEmpty>
             <ComboboxList>
@@ -160,8 +168,8 @@ export function VehicleStep({
 
       <p className="text-center text-sm text-muted-foreground">
         Can&apos;t find your car?{' '}
-        <Link href="/quote/not-listed" className="font-medium text-gold-ink hover:underline">
-          Request a quote by hand
+        <Link href={notListedHref} className="font-medium text-gold-ink hover:underline">
+          Choose your car type
         </Link>
       </p>
     </form>

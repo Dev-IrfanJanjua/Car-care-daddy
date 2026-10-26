@@ -1,4 +1,5 @@
 import { getServiceCatalog } from './service-catalog'
+import { getBundles, applyDiscount } from '@/features/bundles'
 import type { Database } from '@/lib/types/database.types'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']
@@ -6,7 +7,10 @@ type VehicleClass = Database['public']['Enums']['vehicle_class']
 export type QuoteLineItem = {
   serviceId: string
   name: string
+  /** what the customer pays for this line (bundle discount already applied) */
   price: number
+  /** list price, only when a bundle discount lowered `price` */
+  originalPrice?: number
 }
 
 export type QuoteResult = {
@@ -25,7 +29,8 @@ export type QuoteResult = {
 // booking path no longer waits on a database round trip to price an order.
 export async function calculateQuote(
   vehicleClass: VehicleClass,
-  serviceIds: string[]
+  serviceIds: string[],
+  bundleId?: string | null
 ): Promise<QuoteResult> {
   if (serviceIds.length === 0) {
     return { lineItems: [], subtotal: 0, discount: 0, total: 0 }
@@ -54,9 +59,32 @@ export async function calculateQuote(
       price: priceByService.get(s.id)!,
     }))
 
-  const subtotal = lineItems.reduce((sum, item) => sum + item.price, 0)
-  const discount = 0
-  const total = subtotal - discount
+  // A bundle's percentage applies to its own services, and only when every one
+  // of them is in the order and sellable. It is re-derived here from the
+  // bundles table, never taken from the client: the id is the only input.
+  if (bundleId) {
+    const bundle = (await getBundles()).find((b) => b.id === bundleId)
+    const have = new Map(lineItems.map((l) => [l.serviceId, l]))
+    if (bundle && bundle.discountPercent > 0 && bundle.serviceIds.length > 0 && bundle.serviceIds.every((id) => have.has(id))) {
+      const parts = bundle.serviceIds.map((id) => have.get(id)!)
+      const listTotal = parts.reduce((sum, l) => sum + l.price, 0)
+      const discountedTotal = applyDiscount(listTotal, bundle.discountPercent)
+      // Round each line, then put any rounding remainder on the last one so the
+      // lines add up to exactly the discounted bundle total.
+      let allocated = 0
+      parts.forEach((l, i) => {
+        const orig = l.price
+        const next = i === parts.length - 1 ? discountedTotal - allocated : applyDiscount(orig, bundle.discountPercent)
+        allocated += next
+        l.originalPrice = orig
+        l.price = next
+      })
+    }
+  }
 
-  return { lineItems, subtotal, discount, total }
+  const total = lineItems.reduce((sum, item) => sum + item.price, 0)
+  const listSubtotal = lineItems.reduce((sum, item) => sum + (item.originalPrice ?? item.price), 0)
+  const discount = listSubtotal - total
+
+  return { lineItems, subtotal: listSubtotal, discount, total }
 }

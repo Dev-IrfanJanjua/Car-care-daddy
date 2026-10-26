@@ -12,6 +12,7 @@ const LIMITS = {
   image: { max: 8 * 1024 * 1024, types: ['image/jpeg', 'image/png', 'image/webp'] },
   poster: { max: 8 * 1024 * 1024, types: ['image/jpeg', 'image/png', 'image/webp'] },
   gallery: { max: 8 * 1024 * 1024, types: ['image/jpeg', 'image/png', 'image/webp'] },
+  galleryVideo: { max: 50 * 1024 * 1024, types: ['video/mp4', 'video/webm'] },
 } as const
 
 export type MediaKind = keyof typeof LIMITS
@@ -32,7 +33,7 @@ export async function createMediaUploadUrl(kind: MediaKind, fileName: string, co
   if (size > rule.max) throw new Error(`File too large (max ${Math.round(rule.max / 1024 / 1024)} MB).`)
 
   const ext = (fileName.split('.').pop() ?? '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin'
-  const folder = kind === 'gallery' ? 'gallery' : 'hero'
+  const folder = kind === 'gallery' || kind === 'galleryVideo' ? 'gallery' : 'hero'
   const path = `${folder}/${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`
 
   const admin = createAdminClient()

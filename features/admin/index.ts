@@ -1,6 +1,7 @@
 // Server actions
 export * from './actions/bookings'
 export * from './actions/brand'
+export * from './actions/bundles'
 export * from './actions/catalog'
 export * from './actions/content'
 export * from './actions/gallery'
@@ -22,3 +23,4 @@ export { TopServicesChart } from './components/reports/top-services-chart'
 export { ContentEditor } from './components/content/content-editor'
 export { GalleryManager } from './components/gallery/gallery-manager'
 export { BrandEditor } from './components/appearance/brand-editor'
+export { BundleEditor } from './components/bundles/bundle-editor'

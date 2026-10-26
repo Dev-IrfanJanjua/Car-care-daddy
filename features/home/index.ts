@@ -1,6 +1,6 @@
 export { Hero, type HeroMedia } from './components/hero'
 export { StripSection } from './components/strip-section'
-export { BundlesSection, type HomeBundle } from './components/bundles-section'
+export { BundlesSection } from './components/bundles-section'
 export { ServicesSection, type HomeService } from './components/services-section'
 export { WhyChooseUsSection } from './components/why-choose-us-section'
 export { HowItWorksSection } from './components/how-it-works-section'

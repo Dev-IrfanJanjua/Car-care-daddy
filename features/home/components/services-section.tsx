@@ -28,13 +28,14 @@ const SPAN = ['lg:col-span-7 lg:min-h-[460px]', 'lg:col-span-5 lg:min-h-[460px]'
 const WORDS = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine']
 
 export function ServicesSection({ services }: { services: HomeService[] }) {
-  const count = WORDS[services.length] || 'Many'
+  const live = services.filter((s) => !s.comingSoon).length
+  const count = WORDS[live] || 'Many'
   return (
     <SectionShell id="services">
       <Reveal>
         <SectionHead
           eyebrow="What we do"
-          title={`${count} ${services.length === 1 ? 'way' : 'ways'} we make your car`}
+          title={`${count} ${live === 1 ? 'way' : 'ways'} we make your car`}
           accent="look & see like new"
           lead="Every job is priced upfront, done at your doorstep in Lahore and backed by a 3-year results warranty."
         />

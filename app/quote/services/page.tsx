@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { getServiceCatalog } from '@/lib/pricing/service-catalog'
+import { getBundles } from '@/features/bundles'
 import { getBusinessContact } from '@/lib/business-contact'
 import { ServiceSelector, WizardShell } from '@/features/booking'
 import type { Database } from '@/lib/types/database.types'
@@ -18,9 +19,10 @@ export default async function ServicesStepPage({
     year?: string
     class?: string
     services?: string
+    bundle?: string
   }>
 }) {
-  const { make, model, year, class: vehicleClass, services: preselected } = await searchParams
+  const { make, model, year, class: vehicleClass, services: preselected, bundle: bundleId } = await searchParams
 
   if (!make || !model || !year || !vehicleClass) {
     redirect('/quote')
@@ -28,9 +30,10 @@ export default async function ServicesStepPage({
 
   // Cached catalog, filtered to this vehicle class in memory -- see
   // lib/pricing/service-catalog.ts for why this is not queried per request.
-  const [{ services, prices }, contact] = await Promise.all([
+  const [{ services, prices }, contact, bundles] = await Promise.all([
     getServiceCatalog(),
     getBusinessContact(),
+    getBundles(),
   ])
 
   const priceByService = new Map(
@@ -44,13 +47,21 @@ export default async function ServicesStepPage({
     .filter((s) => s.coming_soon || priceByService.has(s.id))
     .map((s) => ({ ...s, price: priceByService.get(s.id) ?? 0 }))
 
+  // A bundle opens the picker with its services ticked; the selector keeps the
+  // discount only while all of them stay selected.
+  const bundle = bundles.find((b) => b.id === bundleId)
+  const bundleInfo =
+    bundle && bundle.serviceIds.every((id) => priceByService.has(id) && services.find((s) => s.id === id && !s.coming_soon))
+      ? { id: bundle.id, name: bundle.name, percent: bundle.discountPercent, serviceIds: bundle.serviceIds }
+      : undefined
+
   const vehicleQuery = new URLSearchParams({ make, model, year, class: vehicleClass }).toString()
 
   return (
     <WizardShell
       currentStep={1}
       title="Select service"
-      description={`${year} ${make} ${model}`}
+      description={`${year} ${make === 'Other' ? '' : `${make} `}${model}`}
       phone={{ display: contact.whatsappDisplay, telHref: `tel:+${contact.whatsappNumber}` }}
       footer={
         // ServiceSelector carries its own "N selected / total / Next Step"
@@ -66,7 +77,8 @@ export default async function ServicesStepPage({
       <ServiceSelector
         services={servicesWithPrice}
         vehicleParams={{ make, model, year, class: vehicleClass }}
-        initialSelectedIds={preselected ? preselected.split(',').filter(Boolean) : []}
+        initialSelectedIds={preselected ? preselected.split(',').filter(Boolean) : (bundleInfo?.serviceIds ?? [])}
+        bundle={bundleInfo}
       />
     </WizardShell>
   )

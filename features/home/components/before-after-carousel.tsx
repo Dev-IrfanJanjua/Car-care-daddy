@@ -1,7 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ChevronLeft, ChevronRight, ArrowLeftRight } from 'lucide-react'
+import Image from 'next/image'
+import { ChevronLeft, ChevronRight, ArrowLeftRight, ImageIcon, Video } from 'lucide-react'
+import { VideoPlayer } from '@/components/media/video-player'
 import { cn } from '@/lib/utils'
 import { BeforeAfterSlider } from './before-after-slider'
 
@@ -10,8 +12,13 @@ export type CarouselItem = {
   title: string
   /** service label shown above the title */
   category: string
-  before: string
-  after: string
+  kind: 'compare' | 'video' | 'image'
+  /** compare */
+  before?: string | null
+  after?: string | null
+  /** video / image */
+  src?: string | null
+  poster?: string | null
 }
 
 /**
@@ -24,18 +31,19 @@ export function BeforeAfterCarousel({ items }: { items: CarouselItem[] }) {
   const n = items.length
   const [idx, setIdx] = useState(0)
   const [paused, setPaused] = useState(false)
+  const [playing, setPlaying] = useState(false)
   const startX = useRef<number | null>(null)
 
   const go = useCallback((i: number) => setIdx(((i % n) + n) % n), [n])
 
   useEffect(() => {
-    if (n < 2 || paused) return
+    if (n < 2 || paused || playing) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const t = setInterval(() => {
       if (!document.hidden) setIdx((i) => (i + 1) % n)
     }, 6500)
     return () => clearInterval(t)
-  }, [n, paused, idx])
+  }, [n, paused, playing, idx])
 
   return (
     <div className="relative">
@@ -59,11 +67,23 @@ export function BeforeAfterCarousel({ items }: { items: CarouselItem[] }) {
         >
           {items.map((it, i) => (
             <div key={it.id} className="zone-dark relative aspect-[4/3] w-full flex-none bg-black sm:aspect-video" aria-hidden={i !== idx}>
-              <BeforeAfterSlider beforeSrc={it.before} afterSrc={it.after} alt={it.title} priority={i === 0} />
+              {it.kind === 'video' && it.src ? (
+                <VideoPlayer src={it.src} poster={it.poster} title={it.title} active={i === idx} onPlayingChange={i === idx ? setPlaying : undefined} />
+              ) : it.kind === 'image' && it.src ? (
+                <Image src={it.src} alt={it.title} fill sizes="(min-width: 1200px) 1152px, 100vw" className="object-cover brightness-110 saturate-110" />
+              ) : it.before && it.after ? (
+                <BeforeAfterSlider beforeSrc={it.before} afterSrc={it.after} alt={it.title} priority={i === 0} />
+              ) : null}
 
               <span className="pointer-events-none absolute top-5 left-5 z-[5] flex items-center gap-2 rounded-[9px] border border-line-2 bg-ink-900/60 px-3.5 py-[7px] text-[0.72rem] font-bold tracking-[0.1em] text-chrome-100 uppercase backdrop-blur-md">
-                <ArrowLeftRight aria-hidden className="size-3.5 text-gold-ink" />
-                Before / After
+                {it.kind === 'video' ? (
+                  <Video aria-hidden className="size-3.5 text-gold-ink" />
+                ) : it.kind === 'image' ? (
+                  <ImageIcon aria-hidden className="size-3.5 text-gold-ink" />
+                ) : (
+                  <ArrowLeftRight aria-hidden className="size-3.5 text-gold-ink" />
+                )}
+                {it.kind === 'video' ? 'Video' : it.kind === 'image' ? 'Photo' : 'Before / After'}
               </span>
 
               {/* soft shade so the caption reads over any photo */}

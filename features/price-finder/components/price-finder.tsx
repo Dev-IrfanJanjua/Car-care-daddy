@@ -6,7 +6,7 @@ import { ArrowRight, Clock, Search, ShieldCheck, X } from 'lucide-react'
 import { siteButton } from '@/components/ui/site-button'
 import { formatPrice } from '@/lib/format'
 import { WARRANTY_YEARS } from '@/lib/contact'
-import { vehicleClassLabel } from '@/lib/vehicles/classes'
+import { VEHICLE_TYPES, vehicleClassLabel } from '@/lib/vehicles/classes'
 import { cn } from '@/lib/utils'
 import type { FinderVehicle, PriceFinderData } from '../types'
 import { findByModelName, searchVehicles } from '../lib/match-vehicle'
@@ -27,6 +27,7 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
   const [serviceId, setServiceId] = useState(services[0]?.id ?? '')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(0)
+  const [typeOpen, setTypeOpen] = useState(false)
 
   const suggestions = useMemo(
     () => (vehicle ? [] : searchVehicles(vehicles, query)),
@@ -45,6 +46,14 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
     setVehicle(v)
     setQuery(v.label)
     setOpen(false)
+  }
+
+  // A car that isn't listed: pick the body type and get the same price.
+  function chooseType(t: (typeof VEHICLE_TYPES)[number]) {
+    setVehicle({ id: `type-${t.id}`, make: 'Other', model: t.name, label: `${t.name} (car type)`, vehicleClass: t.id })
+    setQuery(`${t.name} (car type)`)
+    setOpen(false)
+    setTypeOpen(false)
   }
 
   function clear() {
@@ -168,9 +177,16 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
             {noMatch && (
               <div className="absolute inset-x-0 top-full z-30 mt-1.5 rounded-xl border border-line-2 bg-popover px-4 py-3 text-sm text-chrome-300 shadow-xl dk:rounded-sm">
                 No match yet.{' '}
-                <Link href="/quote/not-listed" className="font-semibold text-gold-ink underline-offset-4 hover:underline">
-                  Request a quote by hand
-                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false)
+                    setTypeOpen(true)
+                  }}
+                  className="font-semibold text-gold-ink underline-offset-4 hover:underline"
+                >
+                  Choose your car type instead
+                </button>
               </div>
             )}
           </div>
@@ -263,12 +279,31 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
             <ShieldCheck className="size-3.5 text-gold-ink" /> {WARRANTY_YEARS}-year results warranty
           </span>
         </p>
-        <Link
-          href="/quote/not-listed"
-          className="text-[0.88rem] font-semibold text-gold-ink underline-offset-4 [grid-area:link] hover:underline min-[700px]:justify-self-end"
-        >
-          Can&apos;t find your car? Choose the type yourself
-        </Link>
+        <div className="flex flex-col gap-2 [grid-area:link] min-[700px]:items-end">
+          <button
+            type="button"
+            aria-expanded={typeOpen}
+            onClick={() => setTypeOpen((o) => !o)}
+            className="text-[0.88rem] font-semibold text-gold-ink underline-offset-4 hover:underline"
+          >
+            Can&apos;t find your car? Choose the type yourself
+          </button>
+          {typeOpen && (
+            <div role="group" aria-label="Car type" className="flex flex-wrap gap-2 min-[700px]:justify-end">
+              {VEHICLE_TYPES.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  title={t.examples}
+                  onClick={() => chooseType(t)}
+                  className="rounded-full border border-line-2 bg-background px-3.5 py-1.5 text-[0.82rem] font-medium text-chrome-100 transition hover:border-gold-500 hover:text-gold-ink"
+                >
+                  {t.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </section>
   )

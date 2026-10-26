@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { formatPrice } from '@/lib/format'
+import { applyDiscount } from '@/features/bundles'
 
 type Service = {
   id: string
@@ -32,10 +33,13 @@ export function ServiceSelector({
   services,
   vehicleParams,
   initialSelectedIds = [],
+  bundle,
 }: {
   services: Service[]
   vehicleParams: { make: string; model: string; year: string; class: string }
   initialSelectedIds?: string[]
+  /** set when the visitor came from a bundle card */
+  bundle?: { id: string; name: string; percent: number; serviceIds: string[] }
 }) {
   const router = useRouter()
 
@@ -47,10 +51,19 @@ export function ServiceSelector({
     () => new Set(initialSelectedIds.filter((id) => bookable.some((s) => s.id === id)))
   )
 
-  const total = useMemo(
-    () => bookable.filter((s) => selected.has(s.id)).reduce((sum, s) => sum + s.price, 0),
-    [bookable, selected]
-  )
+  // The bundle price holds only while every service in the bundle is ticked;
+  // un-ticking one drops it back to normal prices (the server re-checks this).
+  const bundleOn = Boolean(bundle && bundle.percent > 0 && bundle.serviceIds.every((id) => selected.has(id)))
+
+  const { total, saving } = useMemo(() => {
+    const picked = bookable.filter((s) => selected.has(s.id))
+    const list = picked.reduce((sum, s) => sum + s.price, 0)
+    if (!bundleOn || !bundle) return { total: list, saving: 0 }
+    const parts = picked.filter((s) => bundle.serviceIds.includes(s.id))
+    const partsList = parts.reduce((sum, s) => sum + s.price, 0)
+    const save = partsList - applyDiscount(partsList, bundle.percent)
+    return { total: list - save, saving: save }
+  }, [bookable, selected, bundleOn, bundle])
 
   const groups = useMemo(() => {
     const byCategory = new Map<string, Service[]>()
@@ -95,6 +108,7 @@ export function ServiceSelector({
     const params = new URLSearchParams({
       ...vehicleParams,
       services: Array.from(selected).join(','),
+      ...(bundleOn && bundle ? { bundle: bundle.id } : {}),
     })
     // The "review your quote" screen this used to lead to is gone -- prices
     // are already visible on every row above, so a whole extra step just to
@@ -104,6 +118,26 @@ export function ServiceSelector({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {bundle && (
+        <p
+          role="status"
+          className={cn(
+            'flex gap-2.5 rounded-lg border px-4 py-3 text-sm',
+            bundleOn ? 'border-gold-500/50 bg-gold-500/10 text-foreground' : 'border-border text-muted-foreground'
+          )}
+        >
+          <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-gold-ink" />
+          <span>
+            {bundleOn ? (
+              <>
+                <b>{bundle.name} bundle</b> — {bundle.percent}% off is applied to these services. Changing the services removes the bundle price.
+              </>
+            ) : (
+              <>The {bundle.name} bundle price needs all of its services ticked.</>
+            )}
+          </span>
+        </p>
+      )}
       <div className="space-y-6">
         {groups.map(([category, items]) => (
           <div key={category} className="space-y-2.5">
@@ -254,7 +288,10 @@ export function ServiceSelector({
           {selected.size > 0 && <Check className="size-4 text-brand" />}
           {selected.size} service{selected.size === 1 ? '' : 's'} selected
         </span>
-        <span className="text-lg font-bold tabular-nums">{formatPrice(total)}</span>
+        <span className="text-right">
+          {saving > 0 && <span className="block text-xs font-medium text-[#1a8f50]">Bundle saving −{formatPrice(saving)}</span>}
+          <span className="text-lg font-bold tabular-nums">{formatPrice(total)}</span>
+        </span>
       </div>
 
       <Button

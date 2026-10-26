@@ -63,7 +63,7 @@ function Field({
 }
 
 export type Upsell = { id: string; name: string; description: string | null; price: number }
-export type QuoteLine = { serviceId: string; name: string; price: number }
+export type QuoteLine = { serviceId: string; name: string; price: number; originalPrice?: number }
 
 type Step = 2 | 3 | 4
 
@@ -89,6 +89,9 @@ export function BookingWizard(props: {
   year: string
   vehicleClass: string
   services: string
+  /** bundle id when its discount applies, else '' */
+  bundle: string
+  discount: number
   lineItems: QuoteLine[]
   total: number
   upsells: Upsell[]
@@ -156,6 +159,7 @@ export function BookingWizard(props: {
       <input type="hidden" name="year" value={props.year} />
       <input type="hidden" name="class" value={props.vehicleClass} />
       <input type="hidden" name="services" value={submittedServices} />
+      <input type="hidden" name="bundle" value={props.bundle} />
       <input type="hidden" name="customerName" value={customerName} />
       <input type="hidden" name="customerEmail" value={customerEmail} />
       <input type="hidden" name="customerPhone" value={normalizedPhone} />
@@ -302,7 +306,7 @@ export function BookingWizard(props: {
                   </p>
                   <p className="mt-1">
                     <span className="font-semibold text-gold-ink">Vehicle:</span> {props.year}{' '}
-                    {props.make} {props.model}
+                    {props.make === 'Other' ? '' : `${props.make} `}{props.model}
                   </p>
                   <p className="mt-1">
                     <span className="font-semibold text-gold-ink">Address:</span> {serviceAddress},{' '}
@@ -315,7 +319,12 @@ export function BookingWizard(props: {
                     {props.lineItems.map((item) => (
                       <li key={item.serviceId} className="flex justify-between text-sm">
                         <span>{item.name}</span>
-                        <span className="tabular-nums">{formatPrice(item.price)}</span>
+                        <span className="tabular-nums">
+                          {item.originalPrice != null && (
+                            <s className="mr-2 text-muted-foreground">{formatPrice(item.originalPrice)}</s>
+                          )}
+                          {formatPrice(item.price)}
+                        </span>
                       </li>
                     ))}
                     {props.upsells
@@ -329,6 +338,13 @@ export function BookingWizard(props: {
                   </ul>
 
                   <Separator className="my-4" />
+
+                  {props.discount > 0 && (
+                    <p className="mb-3 flex justify-between text-sm font-medium text-[#1a8f50]">
+                      <span>Bundle saving</span>
+                      <span className="tabular-nums">−{formatPrice(props.discount)}</span>
+                    </p>
+                  )}
 
                   <div className="flex items-center justify-between rounded-lg bg-brand/5 px-4 py-3">
                     <span className="text-lg font-semibold">Total price</span>

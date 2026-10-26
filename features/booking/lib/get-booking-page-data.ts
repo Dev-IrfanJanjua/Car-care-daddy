@@ -11,6 +11,7 @@ export type BookingSearchParams = {
   year?: string
   class?: string
   services?: string
+  bundle?: string
 }
 
 /**
@@ -26,13 +27,14 @@ export async function getBookingPageData({
   year,
   class: vehicleClass,
   services,
+  bundle,
 }: BookingSearchParams) {
   if (!make || !model || !year || !vehicleClass || !services) return null
 
   const selectedIds = services.split(',').filter(Boolean)
 
   const [quote, { services: allServices, prices }, contact] = await Promise.all([
-    calculateQuote(vehicleClass as VehicleClass, selectedIds),
+    calculateQuote(vehicleClass as VehicleClass, selectedIds, bundle),
     getServiceCatalog(),
     getBusinessContact(),
   ])
@@ -72,7 +74,7 @@ export async function getBookingPageData({
       price: priceByService.get(s.id)!,
     }))
 
-  const servicesQuery = new URLSearchParams({ make, model, year, class: vehicleClass, services }).toString()
+  const servicesQuery = new URLSearchParams({ make, model, year, class: vehicleClass, services, ...(bundle ? { bundle } : {}) }).toString()
 
   return {
     make,
@@ -82,6 +84,9 @@ export async function getBookingPageData({
     services,
     lineItems: quote.lineItems,
     total: quote.total,
+    subtotal: quote.subtotal,
+    discount: quote.discount,
+    bundle: quote.discount > 0 ? bundle ?? '' : '',
     upsells,
     servicesBackHref: `/quote/services?${servicesQuery}`,
     phone: { display: contact.whatsappDisplay, telHref: `tel:+${contact.whatsappNumber}` },

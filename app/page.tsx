@@ -13,8 +13,8 @@ import {
   TestimonialsSection,
   BookingCtaSection,
   type HomeService,
-  type HomeBundle,
 } from '@/features/home'
+import { getBundles, priceBundles } from '@/features/bundles'
 import { getBrandSettings } from '@/features/brand'
 import { getHomeContent, FaqSection } from '@/features/content'
 import { getGallery, pickCarouselItems } from '@/features/gallery'
@@ -27,7 +27,7 @@ export default async function Home() {
   // Services and prices come from the cached catalog; only the reviews are
   // fetched per request. That takes the homepage from three round trips to a
   // database in Tokyo down to one.
-  const [{ data: reviews }, { services: allServices, prices }, contact, finder, brand, content, gallery] = await Promise.all([
+  const [{ data: reviews }, { services: allServices, prices }, contact, finder, brand, content, gallery, bundleRows] = await Promise.all([
     supabase
       .from('reviews')
       .select('rating, comment')
@@ -43,6 +43,7 @@ export default async function Home() {
     getBrandSettings(),
     getHomeContent(),
     getGallery(),
+    getBundles(),
   ])
 
   // Driven from the catalog rather than a hardcoded list, so the homepage
@@ -66,10 +67,7 @@ export default async function Home() {
       fromPrice: s.coming_soon ? null : fromPrice(s.id),
       comingSoon: s.coming_soon,
     }))
-  const homeBundles: HomeBundle[] = bookable
-    .filter((s) => s.is_package)
-    .slice(0, 3)
-    .map((s) => ({ id: s.id, name: s.name, description: s.description, fromPrice: fromPrice(s.id) }))
+  const homeBundles = priceBundles(bundleRows, allServices, prices).slice(0, 3)
 
   // Customer rating shown in the stats strip: the live average of the public
   // reviews, once there are at least three of them.

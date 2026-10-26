@@ -99,6 +99,21 @@ export async function toggleServiceActive(serviceId: string, isActive: boolean) 
   revalidateCatalog()
 }
 
+/**
+ * "Coming soon" keeps a service visible (greyed, no price) but takes it out of
+ * every quote and booking -- the server drops it even from a hand-made URL.
+ */
+export async function toggleServiceComingSoon(serviceId: string, comingSoon: boolean) {
+  const { supabase } = await requireAdmin()
+
+  const { error } = await supabase.from('services').update({ coming_soon: comingSoon }).eq('id', serviceId)
+  if (error) throw error
+
+  revalidateCatalog()
+  revalidatePath('/services')
+  revalidatePath('/admin/bundles')
+}
+
 // ---------------------------------------------------------------------------
 // Vehicle catalog
 // ---------------------------------------------------------------------------

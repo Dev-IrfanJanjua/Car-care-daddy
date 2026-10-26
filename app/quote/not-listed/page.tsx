@@ -1,66 +1,20 @@
-import { captureUnlistedVehicleLead, QuoteShell } from '@/features/booking'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
+import { QuoteShell, VehicleTypePicker } from '@/features/booking'
 
-export default function VehicleNotListedPage() {
+export const metadata = { title: 'Choose your car type' }
+
+export default async function VehicleNotListedPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ services?: string; bundle?: string; type?: string }>
+}) {
+  const { services, bundle, type } = await searchParams
   return (
     <QuoteShell
       backHref="/quote"
-      title="Tell us about your car"
-      description="We price a few models by hand. Send us the details and we'll get back to you with an exact quote."
+      title="Choose your car type"
+      description="Can't find your car? Pick the body type closest to it and you'll get the same price."
     >
-      <form action={captureUnlistedVehicleLead} className="space-y-4">
-        {/* honeypot: hidden from people and screen readers, bots fill it in */}
-        <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
-          <label>
-            Company
-            <input type="text" name="company" tabIndex={-1} autoComplete="off" defaultValue="" />
-          </label>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="make">Car Brand</Label>
-            <Input id="make" name="make" required placeholder="Subaru" className="h-11" />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="model">Model</Label>
-            <Input id="model" name="model" required placeholder="Outback" className="h-11" />
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="year">Year</Label>
-          <Input
-            id="year"
-            name="year"
-            type="number"
-            min={1950}
-            max={new Date().getFullYear() + 1}
-            placeholder="2022"
-            className="h-11"
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="fullName">Your name</Label>
-          <Input id="fullName" name="fullName" className="h-11" />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" name="email" type="email" required className="h-11" />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="phone">Phone (optional)</Label>
-          <Input id="phone" name="phone" type="tel" className="h-11" />
-        </div>
-
-        <Button type="submit" size="lg" className="h-11 w-full text-base">
-          Request a quote
-        </Button>
-      </form>
+      <VehicleTypePicker initialServices={services} initialBundle={bundle} initialType={type} />
     </QuoteShell>
   )
 }

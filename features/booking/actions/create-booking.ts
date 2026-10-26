@@ -29,6 +29,9 @@ export async function createBooking(formData: FormData) {
     throw new Error('No valid services selected')
   }
 
+  const bundleRaw = String(formData.get('bundle') || '')
+  const bundleId = bundleRaw && isUuid(bundleRaw) ? bundleRaw : null
+
   const customerName = text(formData, 'customerName', { label: 'Name', max: 80, min: 2, required: true })
   const customerEmail = email(text(formData, 'customerEmail', { label: 'Email', max: 120, required: true }))
   const serviceAddress = text(formData, 'serviceAddress', { label: 'Address', max: 250, min: 6, required: true })
@@ -66,7 +69,7 @@ export async function createBooking(formData: FormData) {
   await rateLimit('booking', { max: 6, windowSeconds: 3600, extra: customerPhone, extraMax: 3 })
 
   // Re-verified server-side -- never trust the client-submitted total.
-  const quote = await calculateQuote(vehicleClass, serviceIds)
+  const quote = await calculateQuote(vehicleClass, serviceIds, bundleId)
 
   if (quote.lineItems.length === 0) {
     throw new Error('No valid services selected')

@@ -18,6 +18,7 @@ import {
   FileText,
   Images,
   LogOut,
+  Package,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -49,6 +50,7 @@ const NAV_ITEMS = [
 // Settings, which is where the day-to-day pricing work actually happens.
 const CATALOG_ITEMS = [
   { href: '/admin/settings/services', label: 'Services & pricing', icon: Tags },
+  { href: '/admin/bundles', label: 'Bundles', icon: Package },
   { href: '/admin/settings/vehicles', label: 'Vehicles', icon: Car },
   { href: '/admin/appearance', label: 'Appearance', icon: Palette },
   { href: '/admin/content', label: 'Home content', icon: FileText },

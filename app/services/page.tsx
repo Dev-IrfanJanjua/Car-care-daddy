@@ -2,8 +2,9 @@ import type { Metadata } from 'next'
 import { getBusinessContact } from '@/lib/business-contact'
 import { getServiceCatalog } from '@/lib/pricing/service-catalog'
 import { SiteHeader, SiteFooter } from '@/features/site-shell'
-import { BookingCtaSection, BundlesSection, SectionShell, type HomeBundle } from '@/features/home'
+import { BookingCtaSection, BundlesSection, SectionShell } from '@/features/home'
 import { PageHero, ServicesList, PricingTable, type ServiceRow } from '@/features/marketing'
+import { getBundles, priceBundles } from '@/features/bundles'
 import { getHomeContent, FaqSection } from '@/features/content'
 import { PriceFinder, getPriceFinderData } from '@/features/price-finder'
 
@@ -14,11 +15,12 @@ export const metadata: Metadata = {
 }
 
 export default async function Services() {
-  const [{ services, prices }, content, contact, finder] = await Promise.all([
+  const [{ services, prices }, content, contact, finder, bundleRows] = await Promise.all([
     getServiceCatalog(),
     getHomeContent(),
     getBusinessContact(),
     getPriceFinderData(),
+    getBundles(),
   ])
 
   const rows: ServiceRow[] = services.map((s) => ({
@@ -31,12 +33,7 @@ export default async function Services() {
     prices: Object.fromEntries(prices.filter((p) => p.service_id === s.id).map((p) => [p.vehicle_class, p.base_price])),
   }))
   const singles = rows.filter((r) => !r.isPackage)
-  const bundles: HomeBundle[] = rows
-    .filter((r) => r.isPackage && !r.comingSoon)
-    .map((r) => {
-      const amounts = Object.values(r.prices).filter((n): n is number => typeof n === 'number')
-      return { id: r.id, name: r.name, description: r.description, fromPrice: amounts.length ? Math.min(...amounts) : null }
-    })
+  const bundles = priceBundles(bundleRows, services, prices)
 
   return (
     <div className="flex flex-1 flex-col">
