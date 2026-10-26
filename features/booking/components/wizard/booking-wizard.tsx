@@ -38,7 +38,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 function SubmitButton() {
   const { pending } = useFormStatus()
   return (
-    <SiteButton type="submit" disabled={pending} >
+    <SiteButton type="submit" disabled={pending} className="h-11 px-5 sm:h-[52px] sm:px-7">
       {pending ? (
         'Booking…'
       ) : (
@@ -55,14 +55,26 @@ function Field({
   id,
   label,
   className,
+  error,
   ...props
-}: React.ComponentProps<typeof Input> & { id: string; label: string }) {
+}: React.ComponentProps<typeof Input> & { id: string; label: string; error?: string }) {
   return (
     <div className={className}>
-      <Label htmlFor={id} className="mb-1.5 text-muted-foreground">
+      <Label htmlFor={id} className={cn('mb-1.5', error ? 'text-red-600' : 'text-muted-foreground')}>
         {label}
       </Label>
-      <Input id={id}  {...props} />
+      <Input
+        id={id}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
+        className={cn(error && 'border-red-500 bg-red-500/5 ring-2 ring-red-500/20 focus-visible:border-red-500 focus-visible:ring-red-500/30')}
+        {...props}
+      />
+      {error && (
+        <p id={`${id}-error`} role="alert" className="mt-1.5 text-xs font-medium text-red-600">
+          {error}
+        </p>
+      )}
     </div>
   )
 }
@@ -238,12 +250,46 @@ export function BookingWizard(props: {
     setSelectedIds(next)
   }
 
+  // Next is never disabled: pressing it with something missing highlights what
+  // is wrong (red border + message) and scrolls to it, instead of leaving the
+  // customer with a dead button and no explanation.
+  const [showErrors, setShowErrors] = useState(false)
+  const errors = {
+    name: customerName.trim() ? '' : 'Please enter your full name.',
+    email: EMAIL_RE.test(customerEmail) ? '' : customerEmail ? 'Enter a valid email, like you@example.com.' : 'Please enter your email.',
+    phone: isValidPhone(normalizedPhone) ? '' : customerPhone ? 'Enter an 11-digit number starting with 0, e.g. 03001234567.' : 'Please enter your phone number.',
+    address: serviceAddress.trim() ? '' : 'Please enter the address where we should come.',
+  }
+  const shown = (k: keyof typeof errors) => (showErrors ? errors[k] : '')
+
   function goNext() {
-    if (step === 2 && informationValid) setStep(3)
-    else if (step === 3 && scheduleValid) setStep(4)
+    if (step === 2) {
+      if (informationValid) {
+        setShowErrors(false)
+        setStep(3)
+        return
+      }
+      setShowErrors(true)
+      const firstBad = (['name', 'email', 'phone', 'address'] as const).find((k) => errors[k])
+      const ids = { name: 'customerNameField', email: 'customerEmailField', phone: 'customerPhoneField', address: 'serviceAddressField' }
+      if (firstBad) {
+        const el = document.getElementById(ids[firstBad])
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        el?.focus({ preventScroll: true })
+      }
+    } else if (step === 3) {
+      if (scheduleValid) {
+        setShowErrors(false)
+        setStep(4)
+      } else {
+        setShowErrors(true)
+        document.getElementById('schedule-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }
   }
 
   function goBack() {
+    setShowErrors(false)
     if (step === 3) setStep(2)
     else if (step === 4) setStep(3)
   }
@@ -283,12 +329,12 @@ export function BookingWizard(props: {
         footer={
           <>
             {step === 2 ? (
-              <SiteButton variant="quiet" size="sm" render={<Link href={props.servicesBackHref} />}>
+              <SiteButton variant="quiet" size="sm" className="px-1 sm:px-5" render={<Link href={props.servicesBackHref} />}>
                 <ArrowLeft className="size-4" data-icon="inline-start" />
                 Back
               </SiteButton>
             ) : (
-              <SiteButton type="button" variant="quiet" size="sm" onClick={goBack}>
+              <SiteButton type="button" variant="quiet" size="sm" className="px-1 sm:px-5" onClick={goBack}>
                 <ArrowLeft className="size-4" data-icon="inline-start" />
                 Back
               </SiteButton>
@@ -299,9 +345,7 @@ export function BookingWizard(props: {
             ) : (
               <SiteButton
                 type="button"
-               
-                
-                disabled={step === 2 ? !informationValid : !scheduleValid}
+                className="h-11 px-5 sm:h-[52px] sm:px-7"
                 onClick={goNext}
               >
                 Next Step
@@ -327,6 +371,7 @@ export function BookingWizard(props: {
                   </legend>
                   <Field
                     id="customerNameField"
+                    error={shown('name')}
                     label="Full name"
                     placeholder="Ayesha Khan"
                     autoComplete="name"
@@ -336,6 +381,7 @@ export function BookingWizard(props: {
                   />
                   <Field
                     id="customerEmailField"
+                    error={shown('email')}
                     type="email"
                     label="Email"
                     placeholder="you@example.com"
@@ -346,6 +392,7 @@ export function BookingWizard(props: {
                   />
                   <Field
                     id="customerPhoneField"
+                    error={shown('phone')}
                     type="tel"
                     label="Phone"
                     placeholder="03001234567"
@@ -369,6 +416,7 @@ export function BookingWizard(props: {
                   </legend>
                   <Field
                     id="serviceAddressField"
+                    error={shown('address')}
                     label="Street address"
                     placeholder="House 12, Street 4, DHA Phase 5"
                     autoComplete="street-address"
@@ -395,7 +443,14 @@ export function BookingWizard(props: {
             )}
 
             {step === 3 && (
+              <>
+                {showErrors && !scheduleValid && (
+                  <p id="schedule-error" role="alert" className="mb-4 rounded-lg border border-red-500 bg-red-500/5 px-4 py-3 text-sm font-medium text-red-600">
+                    Please choose a date and a time to continue.
+                  </p>
+                )}
               <DateTimePicker hours={props.hours} booked={props.bookedTimes} value={scheduledAt} onChange={setScheduledAt} />
+              </>
             )}
 
             {step === 4 && (
