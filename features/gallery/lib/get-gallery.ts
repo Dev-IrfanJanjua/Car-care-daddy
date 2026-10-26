@@ -17,8 +17,11 @@ export const getGallery = unstable_cache(
         id: r.id,
         title: r.title,
         service: r.service ?? '',
+        kind: r.kind ?? 'compare',
         beforeUrl: r.before_url,
         afterUrl: r.after_url,
+        mediaUrl: r.media_url,
+        posterUrl: r.poster_url,
         isPublished: r.is_published,
         isFeatured: r.is_featured,
       }))
@@ -30,8 +33,17 @@ export const getGallery = unstable_cache(
   { tags: [GALLERY_TAG], revalidate: 3600 }
 )
 
-/** The pair shown in the home page slider: the featured item, else the newest. */
-export function pickFeatured(items: GalleryItem[]) {
-  const item = items.find((i) => i.isFeatured) ?? items[0]
-  return item ? { before: item.beforeUrl, after: item.afterUrl, title: item.title } : undefined
+/** Home slider: the featured items (up to six); if none are featured yet, the newest six. */
+export function pickCarouselItems(items: GalleryItem[], max = 6) {
+  const featured = items.filter((i) => i.isFeatured)
+  return (featured.length ? featured : items).slice(0, max).map((i) => ({
+    id: i.id,
+    title: i.title,
+    category: i.service,
+    kind: i.kind,
+    before: i.beforeUrl,
+    after: i.afterUrl,
+    src: i.mediaUrl,
+    poster: i.posterUrl,
+  }))
 }

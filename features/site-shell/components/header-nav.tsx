@@ -1,10 +1,12 @@
 'use client'
 
+import { waLink, helpMessageForPath } from '@/lib/whatsapp/messages'
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { siteButton } from '@/components/ui/site-button'
 import { ThemeToggle } from '@/features/theme'
 import {
   Sheet,
@@ -46,7 +48,7 @@ export function HeaderNav({ contact }: { contact: Contact }) {
 
   return (
     <>
-      <nav className="hidden items-center gap-7 lg:flex" aria-label="Primary">
+      <nav className="hidden items-center gap-1.5 lg:flex" aria-label="Primary">
         {MAIN_NAV_LINKS.map((link) => {
           const active = isActive(pathname, link.href)
           return (
@@ -55,50 +57,35 @@ export function HeaderNav({ contact }: { contact: Contact }) {
               href={link.href}
               aria-current={active ? 'page' : undefined}
               className={cn(
-                'relative py-1 text-sm font-semibold tracking-wide uppercase transition-colors',
-                active ? 'text-gold-ink' : 'text-chrome-300 hover:text-chrome-100'
+                'rounded-full px-4 py-2 text-[0.92rem] font-medium transition-colors',
+                active
+                  ? 'bg-gold-500/10 text-foreground ring-1 ring-line-2 dk:bg-gold-500/14 dk:ring-gold-500/35'
+                  : 'text-chrome-400 hover:bg-tint hover:text-foreground'
               )}
             >
               {link.label}
-              {active && (
-                <span
-                  aria-hidden
-                  className="absolute inset-x-0 -bottom-1.5 h-0.5 rounded-full bg-gold-500"
-                />
-              )}
             </Link>
           )
         })}
       </nav>
 
-      <div className="hidden items-center gap-6 lg:flex">
-        <a
-          href={contact.telHref}
-          className="flex items-center gap-2 text-sm font-semibold text-chrome-100 transition-colors hover:text-gold-ink"
-        >
-          <Phone className="size-4 text-gold" />
+      <div className="flex items-center gap-2.5">
+        <a href={contact.telHref} className={cn(siteButton({ variant: 'ghost', size: 'sm' }), 'hidden lg:inline-flex')}>
+          <Phone className="text-gold-ink" />
           {contact.whatsappDisplay}
         </a>
-        <ThemeToggle />
-        <Button className="shadow-md shadow-ink-950/20" render={<Link href="/quote" />}>
-          Book Now
-        </Button>
-      </div>
-
-      {/* Below lg: nav + phone move into a drawer, Book Now stays on the bar --
-          the one action worth never hiding behind a menu tap. */}
-      <div className="flex items-center gap-2 lg:hidden">
-        <ThemeToggle />
-        <Button size="sm" className="shadow-md shadow-ink-950/20" render={<Link href="/quote" />}>
-          Book Now
-        </Button>
+        <Link href="/quote" className={cn(siteButton({ size: 'sm' }), 'hidden sm:inline-flex')}>
+          Book now
+        </Link>
+        <ThemeToggle className="size-11 rounded-full border-line-2 bg-tint text-foreground hover:border-gold-500 hover:bg-tint hover:text-gold-ink" />
 
         <Sheet open={open} onOpenChange={setOpen}>
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             aria-label="Open menu"
             nativeButton
+            className="size-11 rounded-lg border-line-2 bg-transparent lg:hidden"
             render={<SheetTrigger />}
           >
             <Menu className="size-5" />
@@ -122,10 +109,10 @@ export function HeaderNav({ contact }: { contact: Contact }) {
                     onClick={closeMenu}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'rounded-lg px-3 py-2.5 text-base font-semibold tracking-wide uppercase transition-colors',
+                      'rounded-[10px] border px-4 py-3.5 font-display text-xl font-medium transition-colors',
                       active
-                        ? 'bg-ink-800 text-gold-ink'
-                        : 'text-chrome-300 hover:bg-ink-800 hover:text-chrome-100'
+                        ? 'border-line-2 bg-gold-500/10 text-gold-ink'
+                        : 'border-transparent text-chrome-300 hover:bg-tint hover:text-chrome-100'
                     )}
                   >
                     {link.label}
@@ -144,12 +131,9 @@ export function HeaderNav({ contact }: { contact: Contact }) {
                 {contact.whatsappDisplay}
               </a>
 
-              <Button
-                className="w-full shadow-md shadow-ink-950/20"
-                render={<Link href="/quote" onClick={closeMenu} />}
-              >
-                Book Now
-              </Button>
+              <Link href="/quote" onClick={closeMenu} className={cn(siteButton(), 'w-full')}>
+                Book now
+              </Link>
 
               <div className="flex items-center gap-3 pt-1">
                 <a
@@ -171,7 +155,7 @@ export function HeaderNav({ contact }: { contact: Contact }) {
                   <InstagramIcon className="size-4" />
                 </a>
                 <a
-                  href={contact.whatsappUrl}
+                  href={waLink(contact.whatsappUrl, helpMessageForPath(pathname))}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="WhatsApp"

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { TriangleAlert } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { SiteButton } from '@/components/ui/site-button'
 
 export default function Error({ reset }: { error: Error; reset: () => void }) {
   return (
@@ -16,10 +16,10 @@ export default function Error({ reset }: { error: Error; reset: () => void }) {
             That didn&apos;t work as expected. Try again — nothing was charged.
           </p>
           <div className="mt-6 flex gap-3">
-            <Button onClick={reset}>Try again</Button>
-            <Button variant="outline" render={<Link href="/" />}>
+            <SiteButton onClick={reset}>Try again</SiteButton>
+            <SiteButton variant="ghost" render={<Link href="/" />}>
               Back to home
-            </Button>
+            </SiteButton>
           </div>
         </CardContent>
       </Card>

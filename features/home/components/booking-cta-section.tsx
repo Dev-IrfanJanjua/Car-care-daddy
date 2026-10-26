@@ -1,56 +1,51 @@
+import { waLink, SITE_MESSAGES } from '@/lib/whatsapp/messages'
 import Link from 'next/link'
-import { ArrowRight, ShieldCheck, Star, Timer } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { GlowBackground } from '@/components/motion/glow-background'
+import { WhatsAppIcon } from '@/components/icons/brand-icons'
 import { Reveal } from '@/components/motion/reveal'
+import { siteButton } from '@/components/ui/site-button'
+import { DEFAULT_CONTENT } from '@/features/content/client'
+import { SectionShell } from './section-head'
 
-const trustPoints = [
-  { icon: ShieldCheck, label: '3-year results warranty' },
-  { icon: Timer, label: 'Doorstep service in Lahore' },
-  { icon: Star, label: '4.9/5 average rating' },
-]
-
+/**
+ * The closing call to action. The headline and sub-line are editable under
+ * Admin → Home content; the buttons always go to the quote flow and to the
+ * business's WhatsApp.
+ */
 export function BookingCtaSection({
-  title = 'Ready for a crystal-clear windshield?',
-  text = 'Get an instant price and book your doorstep appointment in under a minute.',
+  title = DEFAULT_CONTENT.ctaTitle,
+  text = DEFAULT_CONTENT.ctaText,
+  whatsappUrl,
+  whatsappMessage = SITE_MESSAGES.bookNow,
+  eyebrow = 'Free doorstep service',
 }: {
   title?: string
   text?: string
+  whatsappUrl: string
+  /** pre-filled WhatsApp text; defaults to a general booking enquiry */
+  whatsappMessage?: string
+  eyebrow?: string
 }) {
   return (
-    <section className="zone-dark relative mx-auto my-8 max-w-6xl overflow-hidden rounded-3xl border border-gold-hairline px-4 py-12 text-center sm:my-16 sm:px-6 sm:py-16 dk:rounded-md">
-      <GlowBackground className="rounded-3xl" />
-
-      <Reveal className="flex flex-col items-center">
-        <span className="text-xs font-semibold tracking-[0.18em] text-gold-ink uppercase">
-          Book in a minute
-        </span>
-        <span className="rule-gold mt-3" />
-        <h2 className="mt-4 font-display text-3xl font-bold tracking-tight text-balance sm:text-4xl">
-          {title}
-        </h2>
-        <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-          {text}
-        </p>
-
-        <Button
-          size="lg"
-          className="mt-8 h-12 px-7 text-base shadow-lg shadow-ink-900/25"
-          render={<Link href="/quote" />}
-        >
-          Book Now
-          <ArrowRight className="size-4" data-icon="inline-end" />
-        </Button>
-
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-          {trustPoints.map((point) => (
-            <span key={point.label} className="flex items-center gap-1.5">
-              <point.icon className="size-4 text-gold-ink" />
-              {point.label}
-            </span>
-          ))}
+    <SectionShell flush>
+      <Reveal>
+        <div className="zone-dark rounded-[26px] border border-gold-500/40 bg-ink-800 px-[22px] py-10 text-center sm:px-10 sm:py-14 dk:rounded-sm dk:border-gold-500/45">
+          <span className="inline-flex items-center gap-2.5 text-[0.7rem] font-semibold tracking-[0.26em] text-gold-ink uppercase before:h-px before:w-[34px] before:bg-current before:content-['']">
+            {eyebrow}
+          </span>
+          <h2 className="mx-auto mt-3.5 mb-4 max-w-[16ch] font-display text-[clamp(1.6rem,3vw,2.35rem)] leading-[1.18] font-semibold tracking-[-0.03em] text-balance text-chrome-100">
+            {title}
+          </h2>
+          <p className="mx-auto mb-[34px] max-w-[60ch] text-[1.05rem] text-chrome-400">{text}</p>
+          <div className="flex flex-wrap justify-center gap-3.5">
+            <Link href="/quote" className={siteButton()}>
+              Book now
+            </Link>
+            <a href={waLink(whatsappUrl, whatsappMessage)} target="_blank" rel="noopener noreferrer" className={siteButton({ variant: 'ghost' })}>
+              <WhatsAppIcon /> Chat on WhatsApp
+            </a>
+          </div>
         </div>
       </Reveal>
-    </section>
+    </SectionShell>
   )
 }

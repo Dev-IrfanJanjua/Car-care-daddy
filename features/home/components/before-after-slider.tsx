@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { GripVertical, Sparkles } from 'lucide-react'
 
 // Two real photographs, not one image with a filter applied to fake a result.
 // NOTE: these are two different cars. Replace with a genuine pair from a single
@@ -10,57 +9,65 @@ import { GripVertical, Sparkles } from 'lucide-react'
 const BEFORE_SRC = '/images/before-windshield.jpg'
 const AFTER_SRC = '/images/after-windshield.jpg'
 
+/**
+ * Drag-to-compare: the "after" photo sits on the right of the handle, the
+ * "before" on the left. A transparent range input on top carries the drag, so
+ * mouse, touch and arrow keys all work with no pointer-capture code.
+ * Fills its parent (position: absolute inset-0) so it can live in a slide or a
+ * grid tile alike.
+ */
 export function BeforeAfterSlider({
   beforeSrc = BEFORE_SRC,
   afterSrc = AFTER_SRC,
   alt = 'Windshield',
   priority = false,
+  sizes = '(min-width: 1200px) 1152px, 100vw',
 }: {
   beforeSrc?: string
   afterSrc?: string
   alt?: string
   priority?: boolean
+  sizes?: string
 }) {
   const [value, setValue] = useState(50)
 
   return (
-    <div className="relative mx-auto aspect-16/10 w-full max-w-3xl touch-none overflow-hidden rounded-2xl border border-border/60 shadow-xl select-none sm:aspect-video">
-      <div className="absolute inset-0">
-        <Image
-          src={beforeSrc}
-          alt={`${alt} before restoration`}
-          fill
-          sizes="(min-width: 768px) 768px, 100vw"
-          className="object-cover"
-          priority={priority}
-        />
-        <span className="absolute top-4 left-4 rounded-full bg-ink-950/75 px-3 py-1 text-xs font-semibold tracking-[0.18em] text-chrome-100 uppercase backdrop-blur">
-          Before
-        </span>
-      </div>
-
-      <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - value}% 0 0)` }}>
+    <div data-compare className="absolute inset-0 touch-pan-y select-none">
+      <Image
+        src={beforeSrc}
+        alt={`${alt} before restoration`}
+        fill
+        sizes={sizes}
+        priority={priority}
+        draggable={false}
+        className="pointer-events-none object-cover brightness-110 saturate-110"
+      />
+      <div className="absolute inset-0" style={{ clipPath: `inset(0 0 0 ${value}%)` }}>
         <Image
           src={afterSrc}
           alt={`${alt} after restoration`}
           fill
-          sizes="(min-width: 768px) 768px, 100vw"
-          className="object-cover"
+          sizes={sizes}
           priority={priority}
+          draggable={false}
+          className="pointer-events-none object-cover brightness-110 saturate-110"
         />
-        <span className="absolute top-4 right-4 flex items-center gap-1 rounded-full bg-gold px-3 py-1 text-xs font-semibold tracking-[0.18em] text-gold-foreground uppercase shadow">
-          <Sparkles className="size-3" />
-          After
-        </span>
       </div>
 
+      <span className="absolute top-5 right-5 z-[3] rounded-[9px] bg-gold-500 px-3.5 py-1.5 text-[0.72rem] font-bold tracking-[0.14em] text-gold-foreground uppercase">
+        After
+      </span>
+
       <div
-        className="absolute inset-y-0 z-10 w-0.5 bg-white shadow-[0_0_0_1px_var(--ink-950)]"
+        aria-hidden
+        className="absolute inset-y-0 z-[3] w-0.5 -translate-x-px bg-white shadow-[0_0_20px_rgba(0,0,0,0.5)]"
         style={{ left: `${value}%` }}
       >
-        <div className="absolute top-1/2 left-1/2 flex size-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-card text-foreground shadow-lg ring-1 ring-gold/40">
-          <GripVertical className="size-4" />
-        </div>
+        <span className="absolute top-1/2 left-1/2 grid size-[52px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white shadow-lg">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m9 7-5 5 5 5M15 7l5 5-5 5" />
+          </svg>
+        </span>
       </div>
 
       <input
@@ -70,7 +77,7 @@ export function BeforeAfterSlider({
         value={value}
         onChange={(e) => setValue(Number(e.target.value))}
         aria-label="Drag to compare before and after"
-        className="absolute inset-0 z-20 h-full w-full cursor-ew-resize appearance-none bg-transparent opacity-0"
+        className="absolute inset-0 z-[4] h-full w-full cursor-ew-resize appearance-none bg-transparent opacity-0"
       />
     </div>
   )

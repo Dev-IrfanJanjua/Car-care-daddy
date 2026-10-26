@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Compass } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { SiteButton } from '@/components/ui/site-button'
 
 export default function NotFound() {
   return (
@@ -14,10 +14,10 @@ export default function NotFound() {
             This link may have expired, or the page never existed.
           </p>
           <div className="mt-6 flex gap-3">
-            <Button render={<Link href="/quote" />}>Get a quote</Button>
-            <Button variant="outline" render={<Link href="/" />}>
+            <SiteButton render={<Link href="/quote" />}>Get a quote</SiteButton>
+            <SiteButton variant="ghost" render={<Link href="/" />}>
               Back to home
-            </Button>
+            </SiteButton>
           </div>
         </CardContent>
       </Card>

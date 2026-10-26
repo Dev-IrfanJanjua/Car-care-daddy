@@ -189,6 +189,7 @@ export type Database = {
           status: Database['public']['Enums']['lead_status']
           converted_booking_id: string | null
           source: string | null
+          message: string | null
         }
         Insert: {
           id?: string
@@ -204,6 +205,7 @@ export type Database = {
           status?: Database['public']['Enums']['lead_status']
           converted_booking_id?: string | null
           source?: string | null
+          message?: string | null
         }
         Update: {
           id?: string
@@ -219,6 +221,7 @@ export type Database = {
           status?: Database['public']['Enums']['lead_status']
           converted_booking_id?: string | null
           source?: string | null
+          message?: string | null
         }
         Relationships: []
       }
@@ -443,8 +446,11 @@ export type Database = {
           id: string
           title: string
           service: string | null
-          before_url: string
-          after_url: string
+          before_url: string | null
+          after_url: string | null
+          kind: 'compare' | 'video' | 'image'
+          media_url: string | null
+          poster_url: string | null
           is_published: boolean
           is_featured: boolean
           created_at: string
@@ -453,8 +459,11 @@ export type Database = {
           id?: string
           title: string
           service?: string | null
-          before_url: string
-          after_url: string
+          before_url?: string | null
+          after_url?: string | null
+          kind?: 'compare' | 'video' | 'image'
+          media_url?: string | null
+          poster_url?: string | null
           is_published?: boolean
           is_featured?: boolean
           created_at?: string
@@ -463,10 +472,52 @@ export type Database = {
           id?: string
           title?: string
           service?: string | null
-          before_url?: string
-          after_url?: string
+          before_url?: string | null
+          after_url?: string | null
+          kind?: 'compare' | 'video' | 'image'
+          media_url?: string | null
+          poster_url?: string | null
           is_published?: boolean
           is_featured?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      bundles: {
+        Row: {
+          id: string
+          slug: string
+          name: string
+          badge: string | null
+          description: string | null
+          discount_percent: number
+          service_ids: string[]
+          is_active: boolean
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          name: string
+          badge?: string | null
+          description?: string | null
+          discount_percent?: number
+          service_ids?: string[]
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          slug?: string
+          name?: string
+          badge?: string | null
+          description?: string | null
+          discount_percent?: number
+          service_ids?: string[]
+          is_active?: boolean
+          sort_order?: number
           created_at?: string
         }
         Relationships: []
@@ -591,15 +642,18 @@ export type Database = {
     }
     Enums: {
       user_role: 'customer' | 'admin'
-      // 'compact' | 'standard' | 'large' are the live price tiers (0007).
-      // The six below are retired US body classes kept because Postgres
-      // cannot drop an enum label in place. Do not use them for new rows.
+      // hatchback | sedan | crossover | suv are the live car types (0018).
+      // compact / standard / large (0007) and the US body classes below are
+      // retired but kept because Postgres cannot drop an enum label in place.
+      // Do not use them for new rows.
       vehicle_class:
+        | 'hatchback'
+        | 'crossover'
+        | 'sedan'
+        | 'suv'
         | 'compact'
         | 'standard'
         | 'large'
-        | 'sedan'
-        | 'suv'
         | 'truck'
         | 'van'
         | 'coupe'

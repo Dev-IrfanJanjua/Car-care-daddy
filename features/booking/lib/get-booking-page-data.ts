@@ -1,6 +1,8 @@
 import { getServiceCatalog } from '@/lib/pricing/service-catalog'
 import { calculateQuote } from '@/lib/pricing/calculate-quote'
 import { getBusinessContact } from '@/lib/business-contact'
+import { getBookedTimes } from './get-booked-times'
+import { getBundles } from '@/features/bundles'
 import type { Database } from '@/lib/types/database.types'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']
@@ -11,6 +13,7 @@ export type BookingSearchParams = {
   year?: string
   class?: string
   services?: string
+  bundle?: string
 }
 
 /**
@@ -26,15 +29,18 @@ export async function getBookingPageData({
   year,
   class: vehicleClass,
   services,
+  bundle,
 }: BookingSearchParams) {
   if (!make || !model || !year || !vehicleClass || !services) return null
 
   const selectedIds = services.split(',').filter(Boolean)
 
-  const [quote, { services: allServices, prices }, contact] = await Promise.all([
-    calculateQuote(vehicleClass as VehicleClass, selectedIds),
+  const [quote, { services: allServices, prices }, contact, bookedTimes, allBundles] = await Promise.all([
+    calculateQuote(vehicleClass as VehicleClass, selectedIds, bundle),
     getServiceCatalog(),
     getBusinessContact(),
+    getBookedTimes(),
+    getBundles(),
   ])
 
   if (quote.lineItems.length === 0) return null
@@ -45,34 +51,33 @@ export async function getBookingPageData({
       .map((p) => [p.service_id, Number(p.base_price)])
   )
 
-  // Groups the customer has already chosen from. Their alternatives must not
-  // appear here: this control only adds to the total, so offering the other
-  // glass treatment would rebuild, through the upsell, the double-charge the
-  // picker refuses to allow.
-  const chosenGroups = new Set(
-    allServices
-      .filter((s) => selectedIds.includes(s.id) && s.exclusive_group)
-      .map((s) => s.exclusive_group)
-  )
-
+  // Every sellable service for this car type. The confirmation step lets the
+  // customer add to, swap within, or bundle these; alternatives in an exclusive
+  // group replace each other there, so nothing here needs pre-filtering. A
+  // coming-soon service has no sellable price and is left out.
   const upsells = allServices
-    // coming_soon is excluded here as well as in the picker -- it has no
-    // sellable price, so offering it would produce a free line item.
-    .filter(
-      (s) =>
-        !s.coming_soon &&
-        !selectedIds.includes(s.id) &&
-        !(s.exclusive_group && chosenGroups.has(s.exclusive_group)) &&
-        priceByService.has(s.id)
-    )
+    .filter((s) => !s.coming_soon && priceByService.has(s.id))
     .map((s) => ({
       id: s.id,
       name: s.name,
       description: s.description,
       price: priceByService.get(s.id)!,
+      exclusiveGroup: s.exclusive_group,
     }))
 
-  const servicesQuery = new URLSearchParams({ make, model, year, class: vehicleClass, services }).toString()
+  // Bundles the customer could switch to on the confirmation step: every part
+  // must be sellable for this car type. (The server re-derives the discount from
+  // the chosen services when the booking is made.)
+  const bundleOptions = allBundles
+    .filter(
+      (b) =>
+        b.discountPercent > 0 &&
+        b.serviceIds.length > 1 &&
+        b.serviceIds.every((id) => allServices.some((s) => s.id === id && !s.coming_soon) && priceByService.has(id))
+    )
+    .map((b) => ({ id: b.id, name: b.name, badge: b.badge, percent: b.discountPercent, serviceIds: b.serviceIds }))
+
+  const servicesQuery = new URLSearchParams({ make, model, year, class: vehicleClass, services, ...(bundle ? { bundle } : {}) }).toString()
 
   return {
     make,
@@ -82,9 +87,14 @@ export async function getBookingPageData({
     services,
     lineItems: quote.lineItems,
     total: quote.total,
+    subtotal: quote.subtotal,
+    discount: quote.discount,
+    bundle: quote.discount > 0 ? bundle ?? '' : '',
     upsells,
-    servicesBackHref: `/quote/services?${servicesQuery}`,
-    phone: { display: contact.whatsappDisplay, telHref: `tel:+${contact.whatsappNumber}` },
+    bundleOptions,
+    servicesBackHref: `/quote?${servicesQuery}`,
+    phone: { display: contact.whatsappDisplay, telHref: `tel:+${contact.whatsappNumber}`, whatsappUrl: contact.whatsappUrl },
     hours: contact.hours,
+    bookedTimes,
   }
 }

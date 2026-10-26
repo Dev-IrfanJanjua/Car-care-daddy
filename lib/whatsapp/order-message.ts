@@ -28,7 +28,7 @@ export function buildOrderMessage(order: OrderDetails) {
     .join('\n')
 
   return [
-    "Hi! I'd like to confirm my Car Aurum booking.",
+    `Hi Car Aurum! 👋 It's ${order.customerName.trim().split(' ')[0]} — I've just placed a booking on your website and would like to confirm it.`,
     '',
     `Name: ${order.customerName}`,
     `Vehicle: ${order.vehicle}`,
@@ -42,6 +42,8 @@ export function buildOrderMessage(order: OrderDetails) {
     // Short ref so the shop can match the chat to a row in /admin/bookings
     // without the customer pasting a full UUID.
     `Ref: ${order.bookingId.slice(0, 8)}`,
+    '',
+    'Please confirm my appointment. Thank you!',
   ].join('\n')
 }
 

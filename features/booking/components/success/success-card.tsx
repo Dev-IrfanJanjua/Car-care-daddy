@@ -4,9 +4,10 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { CircleCheck, MessageCircle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { SiteButton } from '@/components/ui/site-button'
 import { formatAppointment, formatPrice } from '@/lib/format'
 import { orderWhatsAppUrl } from '@/lib/whatsapp/order-message'
+import { bookingFollowUpMessage } from '@/lib/whatsapp/messages'
 
 export type BookingSummary = {
   id: string
@@ -63,6 +64,17 @@ export function BookingSuccessCard({
     whatsappNumber
   )
 
+  // After the order is sent, the second button is a follow-up: a question or a
+  // change to this specific booking, with the ref and appointment already typed.
+  const followUpUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+    bookingFollowUpMessage({
+      name: booking.customer_name,
+      ref: booking.id.slice(0, 8),
+      vehicle,
+      when: formatAppointment(booking.scheduled_at),
+    })
+  )}`
+
   const rows = [
     { label: 'Vehicle', value: vehicle },
     { label: 'Where', value: `${booking.service_address}, ${booking.service_city}` },
@@ -113,27 +125,27 @@ export function BookingSuccessCard({
 
         {sent ? (
           <div className="mt-7 flex flex-col gap-2 sm:flex-row">
-            <Button className="h-11 flex-1" render={<Link href="/" />}>
+            <SiteButton className="w-full sm:flex-1" render={<Link href="/" />}>
               Back to home
-            </Button>
-            <Button
-              variant="outline"
-              className="h-11 flex-1"
-              render={<a href={waUrl} target="_blank" rel="noopener noreferrer" />}
+            </SiteButton>
+            <SiteButton
+              variant="ghost"
+              className="w-full sm:flex-1"
+              render={<a href={followUpUrl} target="_blank" rel="noopener noreferrer" />}
             >
-              Open WhatsApp again
-            </Button>
+              Change or ask about my booking
+            </SiteButton>
           </div>
         ) : (
           <div className="mt-7 flex flex-col items-center gap-3">
-            <Button
-              className="h-12 w-full text-base"
+            <SiteButton
+              className="w-full"
               onClick={() => setSent(true)}
               render={<a href={waUrl} target="_blank" rel="noopener noreferrer" />}
             >
               <MessageCircle className="size-5" data-icon="inline-start" />
               Send order on WhatsApp
-            </Button>
+            </SiteButton>
             {/* Escape hatch for anyone who sent from another device, or whose
                 browser refused to open the app -- they still reach the
                 confirmed state instead of being stuck on this screen. */}

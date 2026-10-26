@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { isDayBookable, slotsForDate, combineDateAndSlot, type DayHours } from '@/lib/business-hours'
+import { slotsForDate, combineDateAndSlot, isSlotTaken, BOOKING_GAP_MINUTES, type DayHours } from '@/lib/business-hours'
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const MONTH_LABEL = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' })
@@ -34,13 +34,26 @@ function mondayIndex(date: Date) {
  */
 export function DateTimePicker({
   hours,
+  booked = [],
   value,
   onChange,
 }: {
   hours: DayHours | null
+  /** start times (UTC ISO) of bookings that already hold a slot */
+  booked?: string[]
   value: Date | null
   onChange: (date: Date) => void
 }) {
+  const bookedMs = useMemo(() => booked.map((b) => new Date(b).getTime()).filter((n) => !Number.isNaN(n)), [booked])
+
+  // Every slot of a day with whether it is still free. A day with nothing free
+  // (closed, or fully booked) is greyed out in the calendar.
+  const slotStates = (day: Date) =>
+    slotsForDate(hours, day).map((label) => ({
+      label,
+      taken: isSlotTaken(combineDateAndSlot(day, label), bookedMs),
+    }))
+
   const today = useMemo(() => startOfDay(new Date()), [])
   const [viewMonth, setViewMonth] = useState(() => {
     const base = value ?? today
@@ -63,7 +76,9 @@ export function DateTimePicker({
     return days
   }, [viewMonth])
 
-  const slots = selectedDay ? slotsForDate(hours, selectedDay) : []
+  const slots = selectedDay ? slotStates(selectedDay) : []
+  const anyTaken = slots.some((s) => s.taken)
+  const allTaken = slots.length > 0 && slots.every((s) => s.taken)
   const selectedSlotLabel =
     value && selectedDay && sameDay(value, selectedDay)
       ? new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(value)
@@ -87,7 +102,7 @@ export function DateTimePicker({
             onClick={() => setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
             disabled={isCurrentMonth}
             aria-label="Previous month"
-            className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+            className="flex size-8 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
           >
             <ChevronLeft className="size-4" />
           </button>
@@ -96,7 +111,7 @@ export function DateTimePicker({
             type="button"
             onClick={() => setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
             aria-label="Next month"
-            className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex size-8 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <ChevronRight className="size-4" />
           </button>
@@ -112,7 +127,7 @@ export function DateTimePicker({
           {cells.map((day, i) => {
             if (!day) return <span key={`blank-${i}`} />
 
-            const disabled = day < today || !isDayBookable(hours, day)
+            const disabled = day < today || !slotStates(day).some((s) => !s.taken)
             const selected = selectedDay && sameDay(day, selectedDay)
 
             return (
@@ -124,10 +139,10 @@ export function DateTimePicker({
                 className={cn(
                   'flex aspect-square items-center justify-center rounded-lg text-sm font-medium transition-colors',
                   selected
-                    ? 'bg-gold text-gold-foreground'
+                    ? 'cursor-pointer bg-gold text-gold-foreground'
                     : disabled
-                      ? 'text-muted-foreground/40'
-                      : 'text-foreground hover:bg-muted'
+                      ? 'cursor-not-allowed text-muted-foreground/40'
+                      : 'cursor-pointer text-foreground hover:bg-muted'
                 )}
               >
                 {day.getDate()}
@@ -143,23 +158,36 @@ export function DateTimePicker({
           <>
             <p className="mt-0.5 text-xs text-muted-foreground">{DAY_LABEL.format(selectedDay)}</p>
             {slots.length > 0 ? (
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                {slots.map((slot) => (
-                  <button
-                    key={slot}
-                    type="button"
-                    onClick={() => pickSlot(slot)}
-                    className={cn(
-                      'rounded-lg border px-2 py-2 text-xs font-semibold transition-colors',
-                      selectedSlotLabel === slot
-                        ? 'border-brand bg-brand/5 text-gold-ink ring-1 ring-brand/30'
-                        : 'border-border hover:bg-muted'
-                    )}
-                  >
-                    {slot}
-                  </button>
-                ))}
-              </div>
+              <>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {slots.map(({ label, taken }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      disabled={taken}
+                      title={taken ? 'Already booked — choose another time' : undefined}
+                      onClick={() => pickSlot(label)}
+                      className={cn(
+                        'rounded-lg border px-2 py-2 text-xs font-semibold transition-colors',
+                        taken
+                          ? 'cursor-not-allowed border-dashed border-border bg-muted/50 text-muted-foreground/60 line-through'
+                          : selectedSlotLabel === label
+                            ? 'cursor-pointer border-brand bg-brand/5 text-gold-ink ring-1 ring-brand/30'
+                            : 'cursor-pointer border-border hover:bg-muted'
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {anyTaken && (
+                  <p role="status" className="mt-3 rounded-lg bg-muted/60 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+                    {allTaken
+                      ? 'We already have bookings for every time on this day — please choose another date.'
+                      : `Crossed-out times are taken: we already have a booking for them. We keep ${BOOKING_GAP_MINUTES / 60} hours between jobs, so please choose another time.`}
+                  </p>
+                )}
+              </>
             ) : (
               <p className="mt-3 text-sm text-muted-foreground">
                 We&apos;re closed that day — pick another.

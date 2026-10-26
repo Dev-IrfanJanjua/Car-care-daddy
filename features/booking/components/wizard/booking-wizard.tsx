@@ -1,5 +1,8 @@
 'use client'
 
+import { waLink, bookingHelpMessage } from '@/lib/whatsapp/messages'
+import { formatPrice, formatAppointment } from '@/lib/format'
+import { vehicleClassLabel, type VehicleClass } from '@/lib/vehicles/classes'
 import { useState } from 'react'
 import Link from 'next/link'
 import { useFormStatus } from 'react-dom'
@@ -10,30 +13,32 @@ import {
   Check,
   CircleCheck,
   MapPin,
+  Package,
   Plus,
   ShieldCheck,
+  Undo2,
   User,
 } from 'lucide-react'
 import { createBooking } from '../../actions/create-booking'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
+import { SiteButton } from '@/components/ui/site-button'
 import { FileDrop } from '@/components/ui/file-drop'
 import { Separator } from '@/components/ui/separator'
 import { WizardShell } from './wizard-shell'
 import { DateTimePicker } from './date-time-picker'
-import { formatPrice } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { SERVICE_CITY, WARRANTY_YEARS } from '@/lib/contact'
 import { normalizePhone, isValidPhone } from '@/lib/phone'
 import type { DayHours } from '@/lib/business-hours'
+import { applyDiscount } from '@/features/bundles'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function SubmitButton() {
   const { pending } = useFormStatus()
   return (
-    <Button type="submit" disabled={pending} size="lg" className="h-11">
+    <SiteButton type="submit" disabled={pending} >
       {pending ? (
         'Booking…'
       ) : (
@@ -42,7 +47,7 @@ function SubmitButton() {
           Confirm Booking
         </>
       )}
-    </Button>
+    </SiteButton>
   )
 }
 
@@ -57,13 +62,14 @@ function Field({
       <Label htmlFor={id} className="mb-1.5 text-muted-foreground">
         {label}
       </Label>
-      <Input id={id} className="h-11" {...props} />
+      <Input id={id}  {...props} />
     </div>
   )
 }
 
-export type Upsell = { id: string; name: string; description: string | null; price: number }
-export type QuoteLine = { serviceId: string; name: string; price: number }
+export type Upsell = { id: string; name: string; description: string | null; price: number; exclusiveGroup: string | null }
+export type BundleOption = { id: string; name: string; badge: string | null; percent: number; serviceIds: string[] }
+export type QuoteLine = { serviceId: string; name: string; price: number; originalPrice?: number }
 
 type Step = 2 | 3 | 4
 
@@ -89,12 +95,18 @@ export function BookingWizard(props: {
   year: string
   vehicleClass: string
   services: string
+  /** bundle id when its discount applies, else '' */
+  bundle: string
+  discount: number
   lineItems: QuoteLine[]
   total: number
   upsells: Upsell[]
+  bundleOptions: BundleOption[]
   servicesBackHref: string
-  phone: { display: string; telHref: string }
+  phone: { display: string; telHref: string; whatsappUrl: string }
   hours: DayHours | null
+  /** start times of existing bookings (UTC ISO) */
+  bookedTimes: string[]
 }) {
   const [step, setStep] = useState<Step>(2)
 
@@ -103,7 +115,6 @@ export function BookingWizard(props: {
   const [customerPhone, setCustomerPhone] = useState('')
   const [serviceAddress, setServiceAddress] = useState('')
   const [scheduledAt, setScheduledAt] = useState<Date | null>(null)
-  const [added, setAdded] = useState<Set<string>>(() => new Set())
 
   const normalizedPhone = normalizePhone(customerPhone)
   const informationValid =
@@ -114,17 +125,117 @@ export function BookingWizard(props: {
 
   const scheduleValid = scheduledAt !== null
 
-  const submittedServices = [...props.services.split(',').filter(Boolean), ...added].join(',')
-  const runningTotal =
-    props.total + props.upsells.filter((u) => added.has(u.id)).reduce((sum, u) => sum + u.price, 0)
+  // The booking's services. Starts as what the customer chose on step 1 and can
+  // be changed here: add a service, swap one glass option for another, or switch
+  // to a bundle. `bundleId` is the bundle whose price is applied (it starts as
+  // whatever the customer arrived with); `snapshot` remembers the booking as it
+  // was before a bundle was applied, so "Revert" puts it back exactly.
+  const initialIds = props.services.split(',').filter(Boolean)
+  const [selectedIds, setSelectedIds] = useState<string[]>(initialIds)
+  const [bundleId, setBundleId] = useState(props.bundle)
+  const [snapshot, setSnapshot] = useState<{ ids: string[]; bundleId: string } | null>(null)
 
-  function toggleUpsell(id: string) {
-    setAdded((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
+  const selectedSet = new Set(selectedIds)
+  const initialSet = new Set(initialIds)
+
+  const svc = new Map(props.upsells.map((u) => [u.id, u]))
+  // Selected services that were already priced by the server (e.g. arrived with
+  // a bundle) still resolve: upsells holds every sellable service.
+  const priceOf = (id: string) => svc.get(id)?.price ?? 0
+
+  // Applying `ids` to the booking: a service in an exclusive group replaces the
+  // others in its group (one glass treatment at a time).
+  function withExclusivity(base: string[], incoming: string[]) {
+    const groups = new Set(incoming.map((id) => svc.get(id)?.exclusiveGroup).filter(Boolean))
+    const kept = base.filter((id) => !incoming.includes(id) && !groups.has(svc.get(id)?.exclusiveGroup ?? ''))
+    return [...kept, ...incoming]
+  }
+
+  const bundleSaving = (b: BundleOption, ids: Set<string>) => {
+    const parts = b.serviceIds.reduce((sum, id) => sum + (ids.has(id) ? priceOf(id) : 0), 0)
+    return parts - applyDiscount(parts, b.percent)
+  }
+
+  // A bundle only counts while every one of its services is still in the booking.
+  const activeBundle = props.bundleOptions.find((b) => b.id === bundleId && b.serviceIds.every((id) => selectedSet.has(id))) ?? null
+  const discount = activeBundle ? bundleSaving(activeBundle, selectedSet) : 0
+  const fullTotal = selectedIds.reduce((sum, id) => sum + priceOf(id), 0)
+  const runningTotal = fullTotal - discount
+
+  const submittedServices = selectedIds.join(',')
+
+  // "Need help finishing?" -- everything entered so far, ready to send.
+  const helpHref = waLink(
+    props.phone.whatsappUrl,
+    bookingHelpMessage(
+      {
+        car: [props.make, props.model].filter(Boolean).join(' '),
+        year: props.year || undefined,
+        carType: vehicleClassLabel(props.vehicleClass as VehicleClass),
+        services: selectedIds.map((id) => svc.get(id)?.name).filter((n): n is string => !!n),
+        total: runningTotal,
+        when: scheduledAt ? formatAppointment(scheduledAt.toISOString()) : undefined,
+        name: customerName.trim() || undefined,
+      },
+      formatPrice
+    )
+  )
+
+  // Bundles on offer: any bundle not applied yet. Services in the booking that
+  // clash with the bundle's (another glass option) are swapped out for it, and
+  // the card says exactly what is replaced and what is added.
+  const offers = props.bundleOptions
+    .filter((b) => b.id !== activeBundle?.id)
+    .map((b) => {
+      const next = withExclusivity(selectedIds, b.serviceIds)
+      const nextSet = new Set(next)
+      const removed = selectedIds.filter((id) => !nextSet.has(id))
+      const added = b.serviceIds.filter((id) => !selectedSet.has(id))
+      const saving = bundleSaving(b, nextSet)
+      const newTotal = next.reduce((sum, id) => sum + priceOf(id), 0) - saving
+      return { bundle: b, next, removed, added, saving, newTotal }
     })
+    // relevant when it shares a service with the booking or replaces one of it
+    .filter((o) => o.removed.length > 0 || o.bundle.serviceIds.some((id) => selectedSet.has(id)))
+
+  function applyBundle(o: (typeof offers)[number]) {
+    setSnapshot({ ids: selectedIds, bundleId })
+    setSelectedIds(o.next)
+    setBundleId(o.bundle.id)
+  }
+
+  function revertBundle() {
+    if (snapshot) {
+      setSelectedIds(snapshot.ids)
+      setBundleId(snapshot.bundleId)
+      setSnapshot(null)
+    } else {
+      setBundleId('') // arrived with a bundle: take the price off, keep the services
+    }
+  }
+
+  // Add or swap in one service from the list below. Services the customer
+  // chose in step 1 are locked in this list (they are changed by going back);
+  // anything added here can be taken off again, which also brings back whatever
+  // it replaced.
+  const [replaced, setReplaced] = useState<Record<string, string[]>>({})
+
+  function toggleService(id: string) {
+    if (initialSet.has(id) && selectedSet.has(id)) return
+    setSnapshot(null)
+    if (selectedSet.has(id)) {
+      const back = replaced[id] ?? []
+      setSelectedIds((prev) => [...prev.filter((x) => x !== id), ...back.filter((x) => !prev.includes(x))])
+      setReplaced((r) => {
+        const { [id]: _drop, ...rest } = r
+        void _drop
+        return rest
+      })
+      return
+    }
+    const next = withExclusivity(selectedIds, [id])
+    setReplaced((r) => ({ ...r, [id]: selectedIds.filter((x) => !next.includes(x)) }))
+    setSelectedIds(next)
   }
 
   function goNext() {
@@ -156,6 +267,7 @@ export function BookingWizard(props: {
       <input type="hidden" name="year" value={props.year} />
       <input type="hidden" name="class" value={props.vehicleClass} />
       <input type="hidden" name="services" value={submittedServices} />
+      <input type="hidden" name="bundle" value={activeBundle?.id ?? ''} />
       <input type="hidden" name="customerName" value={customerName} />
       <input type="hidden" name="customerEmail" value={customerEmail} />
       <input type="hidden" name="customerPhone" value={normalizedPhone} />
@@ -167,33 +279,34 @@ export function BookingWizard(props: {
         title={meta.title}
         description={meta.description}
         phone={props.phone}
+        helpHref={helpHref}
         footer={
           <>
             {step === 2 ? (
-              <Button variant="ghost" size="sm" render={<Link href={props.servicesBackHref} />}>
+              <SiteButton variant="quiet" size="sm" render={<Link href={props.servicesBackHref} />}>
                 <ArrowLeft className="size-4" data-icon="inline-start" />
                 Back
-              </Button>
+              </SiteButton>
             ) : (
-              <Button type="button" variant="ghost" size="sm" onClick={goBack}>
+              <SiteButton type="button" variant="quiet" size="sm" onClick={goBack}>
                 <ArrowLeft className="size-4" data-icon="inline-start" />
                 Back
-              </Button>
+              </SiteButton>
             )}
 
             {step === 4 ? (
               <SubmitButton />
             ) : (
-              <Button
+              <SiteButton
                 type="button"
-                size="lg"
-                className="h-11"
+               
+                
                 disabled={step === 2 ? !informationValid : !scheduleValid}
                 onClick={goNext}
               >
                 Next Step
                 <ArrowRight className="size-4" data-icon="inline-end" />
-              </Button>
+              </SiteButton>
             )}
           </>
         }
@@ -282,7 +395,7 @@ export function BookingWizard(props: {
             )}
 
             {step === 3 && (
-              <DateTimePicker hours={props.hours} value={scheduledAt} onChange={setScheduledAt} />
+              <DateTimePicker hours={props.hours} booked={props.bookedTimes} value={scheduledAt} onChange={setScheduledAt} />
             )}
 
             {step === 4 && (
@@ -302,7 +415,7 @@ export function BookingWizard(props: {
                   </p>
                   <p className="mt-1">
                     <span className="font-semibold text-gold-ink">Vehicle:</span> {props.year}{' '}
-                    {props.make} {props.model}
+                    {props.make === 'Other' ? '' : `${props.make} `}{props.model}
                   </p>
                   <p className="mt-1">
                     <span className="font-semibold text-gold-ink">Address:</span> {serviceAddress},{' '}
@@ -312,23 +425,30 @@ export function BookingWizard(props: {
 
                 <div>
                   <ul className="space-y-2.5">
-                    {props.lineItems.map((item) => (
-                      <li key={item.serviceId} className="flex justify-between text-sm">
-                        <span>{item.name}</span>
-                        <span className="tabular-nums">{formatPrice(item.price)}</span>
-                      </li>
-                    ))}
-                    {props.upsells
-                      .filter((u) => added.has(u.id))
-                      .map((u) => (
-                        <li key={u.id} className="flex justify-between text-sm text-gold-ink">
-                          <span>{u.name} (added)</span>
-                          <span className="tabular-nums">+{formatPrice(u.price)}</span>
+                    {selectedIds.map((id) => {
+                      const item = svc.get(id)
+                      if (!item) return null
+                      const isAddedItem = !initialSet.has(id)
+                      return (
+                        <li key={id} className={cn('flex justify-between gap-3 text-sm', isAddedItem && 'text-gold-ink')}>
+                          <span>
+                            {item.name}
+                            {isAddedItem && ' (added)'}
+                          </span>
+                          <span className="tabular-nums">{isAddedItem ? '+' : ''}{formatPrice(item.price)}</span>
                         </li>
-                      ))}
+                      )
+                    })}
                   </ul>
 
                   <Separator className="my-4" />
+
+                  {discount > 0 && activeBundle && (
+                    <p className="mb-3 flex justify-between text-sm font-medium text-[#1a8f50]">
+                      <span>{activeBundle.name} bundle · {activeBundle.percent}% off</span>
+                      <span className="tabular-nums">−{formatPrice(discount)}</span>
+                    </p>
+                  )}
 
                   <div className="flex items-center justify-between rounded-lg bg-brand/5 px-4 py-3">
                     <span className="text-lg font-semibold">Total price</span>
@@ -338,6 +458,91 @@ export function BookingWizard(props: {
                   </div>
                 </div>
 
+                {/* Bundle: switch to one for a discount, or revert. Applied state is
+                    shown first and on its own so it can't be missed. */}
+                {activeBundle && (
+                  <div role="status" className="rounded-xl border-2 border-[#1a8f50]/50 bg-[#1a8f50]/8 p-4">
+                    <div className="flex items-start gap-3">
+                      <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-full bg-[#1a8f50] text-white">
+                        <Check className="size-5" strokeWidth={3} />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold">{activeBundle.name} bundle applied</p>
+                        <p className="mt-0.5 text-sm text-muted-foreground">
+                          You&apos;re saving <b className="text-[#1a8f50]">{formatPrice(discount)}</b> ({activeBundle.percent}% off these services).
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-[#1a8f50]/25 pt-3">
+                      <p className="text-xs text-muted-foreground">
+                        {snapshot
+                          ? 'Reverting puts your booking back exactly as it was before the bundle.'
+                          : 'Reverting takes the bundle price off and keeps your services.'}
+                      </p>
+                      <SiteButton type="button" variant="ghost" size="sm" className="cursor-pointer" onClick={revertBundle}>
+                        <Undo2 className="size-4" data-icon="inline-start" />
+                        Revert bundle
+                      </SiteButton>
+                    </div>
+                  </div>
+                )}
+
+                {offers.length > 0 && (
+                  <div>
+                    <p className="flex items-center gap-2 text-sm font-semibold">
+                      <Package className="size-4 text-gold-ink" />
+                      Turn it into a bundle &amp; save
+                    </p>
+                    <ul className="mt-3 space-y-3">
+                      {offers.map((o) => (
+                        <li key={o.bundle.id} className="relative overflow-hidden rounded-xl border-2 border-gold-500/60 bg-gold-500/6 p-4">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="font-display text-base font-semibold">{o.bundle.name}</span>
+                            <span className="rounded-full bg-gold-500 px-2.5 py-0.5 text-xs font-bold text-gold-foreground">
+                              Save {o.bundle.percent}%
+                            </span>
+                          </div>
+                          <ul className="mt-2.5 space-y-1.5 text-sm">
+                            {o.bundle.serviceIds.map((id) => {
+                              const have = selectedSet.has(id)
+                              return (
+                                <li key={id} className="flex items-center justify-between gap-3">
+                                  <span className="flex items-center gap-2">
+                                    <Check aria-hidden className={cn('size-4', have ? 'text-[#1a8f50]' : 'text-gold-ink')} />
+                                    {svc.get(id)?.name}
+                                  </span>
+                                  <span className={cn('text-xs font-medium', have ? 'text-muted-foreground' : 'text-gold-ink')}>
+                                    {have ? 'in your booking' : `+${formatPrice(priceOf(id))}`}
+                                  </span>
+                                </li>
+                              )
+                            })}
+                            {o.removed.map((id) => (
+                              <li key={id} className="flex items-center justify-between gap-3 text-muted-foreground">
+                                <span className="flex items-center gap-2">
+                                  <Undo2 aria-hidden className="size-4" />
+                                  <s>{svc.get(id)?.name}</s>
+                                </span>
+                                <span className="text-xs font-medium">replaced · −{formatPrice(priceOf(id))}</span>
+                              </li>
+                            ))}
+                          </ul>
+                          <div className="mt-3.5 flex flex-wrap items-center justify-between gap-3 border-t border-gold-500/30 pt-3.5">
+                            <p className="text-sm">
+                              <span className="text-muted-foreground">New total </span>
+                              <b className="text-lg tabular-nums text-gold-ink">{formatPrice(o.newTotal)}</b>
+                              <span className="ml-2 text-xs font-medium text-[#1a8f50]">bundle saves {formatPrice(o.saving)}</span>
+                            </p>
+                            <SiteButton type="button" size="sm" className="cursor-pointer" onClick={() => applyBundle(o)}>
+                              Switch to this bundle
+                            </SiteButton>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 {/* The upsell -- specifically here, in Confirmation, where the
                     total is already on screen and the customer is one tap
                     from booking anyway. Kept out of Information/Date & Time so
@@ -346,48 +551,54 @@ export function BookingWizard(props: {
                   <div>
                     <p className="text-sm font-semibold">Add to your booking</p>
                     <p className="mt-0.5 text-sm text-muted-foreground">
-                      Save a second visit — we can do these while we&apos;re with you.
+                      Save a second visit — add a service, or upgrade your glass option.
                     </p>
                     <ul className="mt-3 space-y-2">
-                      {props.upsells.map((u) => {
-                        const isAdded = added.has(u.id)
+                      {props.upsells.filter((u) => {
+                        // Only things that add to the booking: services already in
+                        // it, plain add-ons, and swaps to a pricier option. A swap
+                        // that would cost less is not offered.
+                        if (selectedSet.has(u.id)) return true
+                        const group = u.exclusiveGroup
+                        const clash = group ? selectedIds.filter((id) => svc.get(id)?.exclusiveGroup === group) : []
+                        return u.price - clash.reduce((sum, id) => sum + priceOf(id), 0) > 0
+                      }).map((u) => {
+                        const isOn = selectedSet.has(u.id)
+                        const group = u.exclusiveGroup
+                        const clashing = !isOn && group ? selectedIds.filter((id) => svc.get(id)?.exclusiveGroup === group) : []
+                        const swapNames = clashing.map((id) => svc.get(id)?.name).filter(Boolean)
+                        const delta = u.price - clashing.reduce((sum, id) => sum + priceOf(id), 0)
+                        const locked = isOn && initialSet.has(u.id)
                         return (
                           <li key={u.id}>
                             <button
                               type="button"
-                              onClick={() => toggleUpsell(u.id)}
-                              aria-pressed={isAdded}
+                              onClick={() => toggleService(u.id)}
+                              aria-pressed={isOn}
+                              disabled={locked}
+                              title={locked ? 'Part of your booking' : undefined}
                               className={cn(
-                                'flex w-full items-start gap-3 rounded-lg border p-3.5 text-left transition-colors',
-                                isAdded
-                                  ? 'border-brand bg-brand/5 ring-1 ring-brand/30'
-                                  : 'border-border hover:bg-muted'
+                                'flex w-full items-start gap-3 rounded-lg border p-3.5 text-left transition-colors disabled:cursor-default',
+                                isOn ? 'border-brand bg-brand/5 ring-1 ring-brand/30' : 'border-border hover:bg-muted'
                               )}
                             >
                               <span
                                 className={cn(
                                   'mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border',
-                                  isAdded
-                                    ? 'border-brand bg-brand text-white'
-                                    : 'border-muted-foreground/40'
+                                  isOn ? 'border-brand bg-brand text-white' : 'border-muted-foreground/40'
                                 )}
                               >
-                                {isAdded ? (
-                                  <Check className="size-3" />
-                                ) : (
-                                  <Plus className="size-3" />
-                                )}
+                                {isOn ? <Check className="size-3" /> : <Plus className="size-3" />}
                               </span>
                               <span className="flex-1">
                                 <span className="block text-sm font-medium">{u.name}</span>
-                                {u.description && (
-                                  <span className="mt-0.5 block text-xs text-muted-foreground">
-                                    {u.description}
-                                  </span>
+                                {u.description && <span className="mt-0.5 block text-xs text-muted-foreground">{u.description}</span>}
+                                {swapNames.length > 0 && (
+                                  <span className="mt-1 block text-xs font-medium text-gold-ink">Replaces {swapNames.join(' / ')}</span>
                                 )}
                               </span>
-                              <span className="text-sm font-semibold tabular-nums">
-                                +{formatPrice(u.price)}
+                              <span className="text-right text-sm font-semibold tabular-nums">
+                                {isOn ? (locked ? 'In booking' : 'Added · remove') : swapNames.length > 0 ? `${delta >= 0 ? '+' : '−'}${formatPrice(Math.abs(delta))}` : `+${formatPrice(u.price)}`}
                               </span>
                             </button>
                           </li>

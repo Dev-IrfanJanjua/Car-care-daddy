@@ -82,3 +82,17 @@ export function combineDateAndSlot(date: Date, slotLabel: string): Date {
   result.setHours(hour, Number(match[2]), 0, 0)
   return result
 }
+
+/**
+ * Minimum gap between two jobs. A booking at 2:00 PM keeps the team busy (the
+ * work plus travel), so nothing else can start until 4:00 PM -- and, for the
+ * same reason, nothing can start in the two hours before it either.
+ */
+export const BOOKING_GAP_MINUTES = 120
+
+/** True when `slot` starts too close to any already-booked time (ms timestamps). */
+export function isSlotTaken(slot: Date, bookedMs: number[]): boolean {
+  const gap = BOOKING_GAP_MINUTES * 60 * 1000
+  const t = slot.getTime()
+  return bookedMs.some((b) => Math.abs(t - b) < gap)
+}

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { RotateCcw } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { SiteButton } from '@/components/ui/site-button'
 
 // The quote wizard keeps all its state in the URL, so "start over" is a real
 // recovery path here -- worth offering instead of the generic error page.
@@ -18,10 +18,10 @@ export default function QuoteError({ reset }: { error: Error; reset: () => void 
             Something went wrong partway through. Starting over takes under a minute.
           </p>
           <div className="mt-6 flex gap-3">
-            <Button onClick={reset}>Try again</Button>
-            <Button variant="outline" render={<Link href="/quote" />}>
+            <SiteButton onClick={reset}>Try again</SiteButton>
+            <SiteButton variant="ghost" render={<Link href="/quote" />}>
               Start over
-            </Button>
+            </SiteButton>
           </div>
         </CardContent>
       </Card>

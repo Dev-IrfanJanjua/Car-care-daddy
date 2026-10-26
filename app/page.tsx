@@ -4,8 +4,9 @@ import { getBusinessContact } from '@/lib/business-contact'
 import { SiteHeader, SiteFooter } from '@/features/site-shell'
 import {
   Hero,
-  IntroVideoSection,
+  StripSection,
   ServicesSection,
+  BundlesSection,
   WhyChooseUsSection,
   HowItWorksSection,
   BeforeAfterSection,
@@ -13,9 +14,10 @@ import {
   BookingCtaSection,
   type HomeService,
 } from '@/features/home'
+import { getBundles, priceBundles } from '@/features/bundles'
 import { getBrandSettings } from '@/features/brand'
 import { getHomeContent, FaqSection } from '@/features/content'
-import { getGallery, pickFeatured } from '@/features/gallery'
+import { getGallery, pickCarouselItems } from '@/features/gallery'
 import { localBusinessJsonLd } from '@/lib/seo'
 import { PriceFinder, getPriceFinderData } from '@/features/price-finder'
 
@@ -25,7 +27,7 @@ export default async function Home() {
   // Services and prices come from the cached catalog; only the reviews are
   // fetched per request. That takes the homepage from three round trips to a
   // database in Tokyo down to one.
-  const [{ data: reviews }, { services: allServices }, contact, finder, brand, content, gallery] = await Promise.all([
+  const [{ data: reviews }, { services: allServices, prices }, contact, finder, brand, content, gallery, bundleRows] = await Promise.all([
     supabase
       .from('reviews')
       .select('rating, comment')
@@ -41,24 +43,36 @@ export default async function Home() {
     getBrandSettings(),
     getHomeContent(),
     getGallery(),
+    getBundles(),
   ])
 
   // Driven from the catalog rather than a hardcoded list, so the homepage
-  // can't drift from what customers can actually book.
-  // coming_soon is left out: these cards send people into the quote flow, and
-  // an unreleased service has nothing to quote.
-  const services = allServices.filter((s) => !s.coming_soon).slice(0, 6)
+  // can't drift from what customers can actually book. coming_soon is left
+  // out: these cards send people into the quote flow, and an unreleased
+  // service has nothing to quote. Packages get their own "Bundles" section.
+  const fromPrice = (serviceId: string) => {
+    const amounts = prices.filter((p) => p.service_id === serviceId).map((p) => p.base_price)
+    return amounts.length ? Math.min(...amounts) : null
+  }
+  const bookable = allServices.filter((s) => !s.coming_soon)
+  // Services on hold are shown (greyed, "Coming soon", no price) after the
+  // bookable ones, so visitors can see what's on the way.
+  const homeServices: HomeService[] = [...bookable.filter((s) => !s.is_package), ...allServices.filter((s) => s.coming_soon && !s.is_package)]
+    .slice(0, 6)
+    .map((s) => ({
+      id: s.id,
+      name: s.name,
+      description: s.description,
+      category: s.category,
+      fromPrice: s.coming_soon ? null : fromPrice(s.id),
+      comingSoon: s.coming_soon,
+    }))
+  const homeBundles = priceBundles(bundleRows, allServices, prices).slice(0, 3)
 
-  // No "from" price is computed any more: prices vary by vehicle class, and the
-  // cheapest tier shown as a headline figure under-quotes everyone driving
-  // something larger. The cards send people into the quote flow instead, which
-  // asks for the car before it shows a number.
-  const homeServices: HomeService[] = services.map((s) => ({
-    id: s.id,
-    name: s.name,
-    description: s.description,
-    category: s.category,
-  }))
+  // Customer rating shown in the stats strip: the live average of the public
+  // reviews, once there are at least three of them.
+  const rated = (reviews ?? []).map((r) => r.rating)
+  const rating = rated.length >= 3 ? rated.reduce((a, b) => a + b, 0) / rated.length : null
 
   // The hero's floating chip quotes the first bookable service's lowest tier.
   const headlineService = finder.services[0]
@@ -76,6 +90,7 @@ export default async function Home() {
         <Hero
           whatsappUrl={contact.whatsappUrl}
           startingPrice={headlinePrice}
+          startingLabel={headlineService?.name}
           content={content}
           media={{
             type: brand.heroMediaType,
@@ -86,14 +101,15 @@ export default async function Home() {
         >
           <PriceFinder data={finder} />
         </Hero>
-        <IntroVideoSection />
-        <WhyChooseUsSection />
+        <StripSection />
         {homeServices.length > 0 && <ServicesSection services={homeServices} />}
-        <BeforeAfterSection pair={pickFeatured(gallery)} />
+        <BundlesSection bundles={homeBundles} />
+        <BeforeAfterSection items={pickCarouselItems(gallery)} />
         <HowItWorksSection />
+        <WhyChooseUsSection rating={rating} />
         <TestimonialsSection reviews={reviews ?? undefined} />
         <FaqSection faqs={content.faqs} />
-        <BookingCtaSection title={content.ctaTitle} text={content.ctaText} />
+        <BookingCtaSection title={content.ctaTitle} text={content.ctaText} whatsappUrl={contact.whatsappUrl} />
       </main>
 
       <SiteFooter />

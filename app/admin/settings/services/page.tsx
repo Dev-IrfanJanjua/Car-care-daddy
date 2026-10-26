@@ -6,6 +6,7 @@ import {
   createService,
   updateService,
   toggleServiceActive,
+  toggleServiceComingSoon,
 } from '@/features/admin'
 import { VEHICLE_CLASSES } from '@/lib/vehicles/classes'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -28,7 +29,7 @@ export default async function ServiceSettingsPage() {
   const [{ data: services }, { data: prices }] = await Promise.all([
     supabase
       .from('services')
-      .select('id, name, description, category, is_active, sort_order')
+      .select('id, name, description, category, is_active, coming_soon, sort_order')
       .order('sort_order'),
     supabase.from('service_prices').select('service_id, vehicle_class, base_price'),
   ])
@@ -63,7 +64,7 @@ export default async function ServiceSettingsPage() {
             Add a service
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            A price row is created for all six vehicle classes at $0.00 — set the real prices in
+            A price row is created for all four car types at 0 — set the real prices in
             the matrix below, then activate it.
           </p>
         </CardHeader>
@@ -148,7 +149,13 @@ export default async function ServiceSettingsPage() {
                   </div>
                 </form>
 
-                <form action={toggleServiceActive.bind(null, s.id, !s.is_active)} className="mt-2">
+                <div className="mt-2 flex flex-wrap gap-2">
+                <form action={toggleServiceComingSoon.bind(null, s.id, !s.coming_soon)}>
+                  <Button type="submit" size="sm" variant="ghost" className={s.coming_soon ? 'bg-amber-500/15 text-amber-600' : 'bg-muted text-muted-foreground'}>
+                    {s.coming_soon ? 'Coming soon (on hold) — click to put on sale' : 'On sale — click to put on hold'}
+                  </Button>
+                </form>
+                <form action={toggleServiceActive.bind(null, s.id, !s.is_active)}>
                   <Button
                     type="submit"
                     size="sm"
@@ -162,6 +169,7 @@ export default async function ServiceSettingsPage() {
                     {s.is_active ? 'Active' : 'Inactive'}
                   </Button>
                 </form>
+                </div>
               </li>
             ))}
             {(services ?? []).length === 0 && (

@@ -2,7 +2,9 @@ import { getVehicleCatalog } from '@/lib/vehicles/get-catalog'
 import { getServiceCatalog } from '@/lib/pricing/service-catalog'
 import type { PriceFinderData } from '../types'
 
-const QUICK_PICKS = ['Corolla', 'Civic', 'Sportage']
+// Shown as one-tap chips under the car field; any name not in the catalog is
+// simply skipped, so this list can be generous.
+const QUICK_PICKS = ['Alto', 'Cultus', 'City', 'Corolla', 'Civic', 'Yaris', 'Sportage', 'Tucson', 'Fortuner', 'Elantra']
 
 /**
  * Everything the price bar needs, shaped for the client. Both catalogs are

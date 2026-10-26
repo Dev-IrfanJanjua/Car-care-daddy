@@ -16,13 +16,16 @@ export type AdminGalleryItem = {
   id: string
   title: string
   service: string
-  beforeUrl: string
-  afterUrl: string
+  kind: 'compare' | 'video' | 'image'
+  beforeUrl: string | null
+  afterUrl: string | null
+  mediaUrl: string | null
+  posterUrl: string | null
   isPublished: boolean
   isFeatured: boolean
 }
 
-function Picker({ id, label, file, onFile }: { id: string; label: string; file?: File; onFile: (f?: File) => void }) {
+function Picker({ id, label, file, onFile, video = false }: { id: string; label: string; file?: File; onFile: (f?: File) => void; video?: boolean }) {
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
@@ -31,12 +34,12 @@ function Picker({ id, label, file, onFile }: { id: string; label: string; file?:
         className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border bg-card px-3 py-3 text-sm text-foreground hover:bg-muted"
       >
         <Upload className="size-4 shrink-0" />
-        <span className="truncate">{file ? file.name : 'Choose a photo (JPG, PNG or WebP, up to 8 MB)'}</span>
+        <span className="truncate">{file ? file.name : video ? 'Choose a video (MP4 or WebM, up to 50 MB)' : 'Choose a photo (JPG, PNG or WebP, up to 8 MB)'}</span>
       </label>
       <input
         id={id}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept={video ? 'video/mp4,video/webm' : 'image/jpeg,image/png,image/webp'}
         className="sr-only"
         onChange={(e) => {
           onFile(e.target.files?.[0])
@@ -51,35 +54,54 @@ export function GalleryManager({ items }: { items: AdminGalleryItem[] }) {
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [service, setService] = useState('')
+  const [kind, setKind] = useState<'compare' | 'image' | 'video'>('compare')
   const [before, setBefore] = useState<File>()
   const [after, setAfter] = useState<File>()
+  const [media, setMedia] = useState<File>()
+  const [poster, setPoster] = useState<File>()
   const [featured, setFeatured] = useState(false)
   const [pending, start] = useTransition()
 
   const previews = useMemo(
-    () => ({ before: before ? URL.createObjectURL(before) : '', after: after ? URL.createObjectURL(after) : '' }),
-    [before, after]
+    () => ({
+      before: before ? URL.createObjectURL(before) : '',
+      after: after ? URL.createObjectURL(after) : '',
+      media: media ? URL.createObjectURL(media) : '',
+      poster: poster ? URL.createObjectURL(poster) : '',
+    }),
+    [before, after, media, poster]
   )
   useEffect(() => () => Object.values(previews).forEach((u) => u && URL.revokeObjectURL(u)), [previews])
 
-  async function upload(file: File) {
-    const { path, token, publicUrl } = await createMediaUploadUrl('gallery', file.name, file.type, file.size)
+  async function upload(file: File, as: 'gallery' | 'galleryVideo' = 'gallery') {
+    const { path, token, publicUrl } = await createMediaUploadUrl(as, file.name, file.type, file.size)
     const { error } = await createClient().storage.from('site-media').uploadToSignedUrl(path, token, file, { contentType: file.type })
     if (error) throw new Error(`Upload failed: ${error.message}`)
     return publicUrl
   }
 
   function add() {
-    if (!title.trim()) return toast.error('Give the job a short title')
-    if (!before || !after) return toast.error('Choose both a before and an after photo')
+    if (!title.trim()) return toast.error('Give it a short title')
+    if (kind === 'compare' && (!before || !after)) return toast.error('Choose both a before and an after photo')
+    if (kind === 'image' && !media) return toast.error('Choose a photo')
+    if (kind === 'video' && (!media || !poster)) return toast.error('Choose a video and a cover photo for it')
     start(async () => {
       try {
-        const [beforeUrl, afterUrl] = await Promise.all([upload(before), upload(after)])
-        await addGalleryItem({ title, service, beforeUrl, afterUrl, isFeatured: featured })
+        if (kind === 'compare') {
+          const [beforeUrl, afterUrl] = await Promise.all([upload(before!), upload(after!)])
+          await addGalleryItem({ kind, title, service, beforeUrl, afterUrl, isFeatured: featured })
+        } else if (kind === 'image') {
+          await addGalleryItem({ kind, title, service, mediaUrl: await upload(media!), isFeatured: featured })
+        } else {
+          const [mediaUrl, posterUrl] = await Promise.all([upload(media!, 'galleryVideo'), upload(poster!)])
+          await addGalleryItem({ kind, title, service, mediaUrl, posterUrl, isFeatured: featured })
+        }
         setTitle('')
         setService('')
         setBefore(undefined)
         setAfter(undefined)
+        setMedia(undefined)
+        setPoster(undefined)
         setFeatured(false)
         toast.success('Added to the gallery')
         router.refresh()
@@ -105,23 +127,42 @@ export function GalleryManager({ items }: { items: AdminGalleryItem[] }) {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Add a before / after pair</CardTitle>
+          <CardTitle>Add to the gallery</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Type">
+            {([['compare', 'Before / after pair'], ['image', 'Photo'], ['video', 'Video']] as const).map(([k, label]) => (
+              <Button key={k} type="button" size="sm" variant={kind === k ? 'default' : 'outline'} aria-pressed={kind === k} onClick={() => setKind(k)}>
+                {label}
+              </Button>
+            ))}
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="g-title">Title</Label>
               <Input id="g-title" value={title} maxLength={100} placeholder="Honda Civic windshield" onChange={(e) => setTitle(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="g-service">Service (optional)</Label>
+              <Label htmlFor="g-service">Category (Windshield, Glass, Headlights, Detailing…)</Label>
               <Input id="g-service" value={service} maxLength={80} placeholder="Windshield restoration" onChange={(e) => setService(e.target.value)} />
             </div>
-            <Picker id="g-before" label="Before photo" file={before} onFile={setBefore} />
-            <Picker id="g-after" label="After photo" file={after} onFile={setAfter} />
+            {kind === 'compare' && (
+              <>
+                <Picker id="g-before" label="Before photo" file={before} onFile={setBefore} />
+                <Picker id="g-after" label="After photo" file={after} onFile={setAfter} />
+              </>
+            )}
+            {kind === 'image' && <Picker id="g-media" label="Photo" file={media} onFile={setMedia} />}
+            {kind === 'video' && (
+              <>
+                <Picker id="g-video" label="Video" file={media} onFile={setMedia} video />
+                <Picker id="g-poster" label="Cover photo (shown before it plays)" file={poster} onFile={setPoster} />
+              </>
+            )}
           </div>
 
-          {(previews.before || previews.after) && (
+          {/* preview: what the visitor will see, before anything is saved */}
+          {kind === 'compare' && (previews.before || previews.after) && (
             <div className="grid grid-cols-2 gap-3">
               {[previews.before, previews.after].map((src, i) => (
                 <div key={i} className="aspect-video overflow-hidden rounded-lg border border-border bg-muted">
@@ -133,12 +174,31 @@ export function GalleryManager({ items }: { items: AdminGalleryItem[] }) {
               ))}
             </div>
           )}
+          {kind === 'image' && previews.media && (
+            <div className="aspect-video max-w-sm overflow-hidden rounded-lg border border-border bg-muted">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={previews.media} alt="Photo preview" className="size-full object-cover" />
+            </div>
+          )}
+          {kind === 'video' && (previews.media || previews.poster) && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="aspect-video overflow-hidden rounded-lg border border-border bg-black">
+                {previews.media && <video src={previews.media} controls muted playsInline className="size-full object-cover" />}
+              </div>
+              <div className="aspect-video overflow-hidden rounded-lg border border-border bg-muted">
+                {previews.poster && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={previews.poster} alt="Cover preview" className="size-full object-cover" />
+                )}
+              </div>
+            </div>
+          )}
 
           <label className="flex items-center gap-2 text-sm text-foreground">
             <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="size-4 accent-[var(--brand)]" />
-            Show this pair in the home page slider
+            Show this in the home page slider
           </label>
-          <p className="text-xs text-muted-foreground">Use the same car, angle and light for both photos so the slider is convincing.</p>
+          <p className="text-xs text-muted-foreground">For before/after pairs, use the same car, angle and light for both photos. Nothing is published until you press Add.</p>
           <Button type="button" onClick={add} disabled={pending}>
             {pending ? 'Uploading…' : 'Add to gallery'}
           </Button>
@@ -151,26 +211,36 @@ export function GalleryManager({ items }: { items: AdminGalleryItem[] }) {
         </CardHeader>
         <CardContent>
           {items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nothing yet. Until you add a pair, the public gallery shows a &ldquo;coming soon&rdquo; message and the home slider uses the built-in sample.</p>
+            <p className="text-sm text-muted-foreground">Nothing yet. Until you add something, the public gallery and home slider use a built-in sample.</p>
           ) : (
             <ul className="grid gap-4 md:grid-cols-2">
               {items.map((it) => (
                 <li key={it.id} className="space-y-3 rounded-xl border border-border p-3">
-                  <div className="grid grid-cols-2 gap-2">
-                    {[it.beforeUrl, it.afterUrl].map((src, i) => (
-                      <div key={i} className="aspect-video overflow-hidden rounded-md bg-muted">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={src} alt={i === 0 ? 'Before' : 'After'} loading="lazy" className="size-full object-cover" />
-                      </div>
-                    ))}
-                  </div>
+                  {it.kind === 'compare' ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      {[it.beforeUrl, it.afterUrl].map((src, i) => (
+                        <div key={i} className="aspect-video overflow-hidden rounded-md bg-muted">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          {src && <img src={src} alt={i === 0 ? 'Before' : 'After'} loading="lazy" className="size-full object-cover" />}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="aspect-video overflow-hidden rounded-md bg-muted">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      {(it.kind === 'video' ? it.posterUrl : it.mediaUrl) && <img src={(it.kind === 'video' ? it.posterUrl : it.mediaUrl) ?? ''} alt={it.title} loading="lazy" className="size-full object-cover" />}
+                    </div>
+                  )}
                   <div>
                     <p className="text-sm font-medium text-foreground">
                       {it.title}
                       {it.isFeatured && <span className="ml-2 rounded-full bg-brand px-2 py-0.5 text-[10px] font-semibold text-brand-foreground">On home page</span>}
                       {!it.isPublished && <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">Hidden</span>}
                     </p>
-                    {it.service && <p className="text-xs text-muted-foreground">{it.service}</p>}
+                    <p className="text-xs text-muted-foreground">
+                      {it.kind === 'compare' ? 'Before / after' : it.kind === 'video' ? 'Video' : 'Photo'}
+                      {it.service && ` · ${it.service}`}
+                    </p>
                   </div>
                   <div className="flex flex-wrap gap-1">
                     <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => run(() => setGalleryPublished(it.id, !it.isPublished), it.isPublished ? 'Hidden from the site' : 'Now visible')}>
