@@ -1,3 +1,4 @@
+import { waLink, SITE_MESSAGES } from '@/lib/whatsapp/messages'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getBusinessContact } from '@/lib/business-contact'
@@ -57,7 +58,7 @@ export default async function GalleryPage() {
                 <Link href="/quote" className={siteButton()}>
                   Get your price
                 </Link>
-                <a href={contact.whatsappUrl} target="_blank" rel="noopener noreferrer" className={siteButton({ variant: 'ghost' })}>
+                <a href={waLink(contact.whatsappUrl, SITE_MESSAGES.gallery)} target="_blank" rel="noopener noreferrer" className={siteButton({ variant: 'ghost' })}>
                   WhatsApp us
                 </a>
               </div>

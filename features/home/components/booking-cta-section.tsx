@@ -1,3 +1,4 @@
+import { waLink, SITE_MESSAGES } from '@/lib/whatsapp/messages'
 import Link from 'next/link'
 import { WhatsAppIcon } from '@/components/icons/brand-icons'
 import { Reveal } from '@/components/motion/reveal'
@@ -14,11 +15,14 @@ export function BookingCtaSection({
   title = DEFAULT_CONTENT.ctaTitle,
   text = DEFAULT_CONTENT.ctaText,
   whatsappUrl,
+  whatsappMessage = SITE_MESSAGES.bookNow,
   eyebrow = 'Free doorstep service',
 }: {
   title?: string
   text?: string
   whatsappUrl: string
+  /** pre-filled WhatsApp text; defaults to a general booking enquiry */
+  whatsappMessage?: string
   eyebrow?: string
 }) {
   return (
@@ -36,7 +40,7 @@ export function BookingCtaSection({
             <Link href="/quote" className={siteButton()}>
               Book now
             </Link>
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className={siteButton({ variant: 'ghost' })}>
+            <a href={waLink(whatsappUrl, whatsappMessage)} target="_blank" rel="noopener noreferrer" className={siteButton({ variant: 'ghost' })}>
               <WhatsAppIcon /> Chat on WhatsApp
             </a>
           </div>

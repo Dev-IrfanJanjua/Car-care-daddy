@@ -1,3 +1,5 @@
+import { WhatsAppTemplates } from '@/features/admin/components/whatsapp-templates'
+import { leadTemplates } from '@/lib/whatsapp/customer-messages'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
@@ -36,6 +38,15 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
   }
 
   const serviceIds = (lead.service_ids ?? []) as string[]
+  const { data: leadServices } =
+    serviceIds.length > 0 ? await supabase.from('services').select('id, name').in('id', serviceIds) : { data: [] }
+  const waTemplates = leadTemplates({
+    name: lead.full_name,
+    vehicle: [lead.vehicle_year, lead.vehicle_make, lead.vehicle_model].filter(Boolean).join(' '),
+    services: (leadServices ?? []).map((s) => s.name),
+    total: lead.quote_total !== null ? Number(lead.quote_total) : null,
+    message: lead.message,
+  })
   const canConvert = lead.status !== 'converted' && serviceIds.length > 0
   const convertAction = convertLeadToBooking.bind(null, id)
 
@@ -71,6 +82,8 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
           </Badge>
         </CardContent>
       </Card>
+
+      <WhatsAppTemplates phone={lead.phone} templates={waTemplates} />
 
       {lead.status !== 'converted' && (
         <Card>

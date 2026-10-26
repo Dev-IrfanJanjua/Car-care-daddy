@@ -1,3 +1,4 @@
+import { helpMessageForPath, GREETING_PHOTO } from '@/lib/whatsapp/messages'
 import type { Metadata } from 'next'
 import { getBusinessContact } from '@/lib/business-contact'
 import { getServiceCatalog } from '@/lib/pricing/service-catalog'
@@ -47,6 +48,7 @@ export default async function Services() {
           accent="done at your door"
           description="Restoration, not replacement. Pick what your car needs — we bring the equipment to your home or office anywhere in Lahore."
           whatsappUrl={contact.whatsappUrl}
+          whatsappMessage={helpMessageForPath('/services')}
         />
         <ServicesList services={singles} whatsappBase={contact.whatsappUrl} />
         <BundlesSection bundles={bundles} />
@@ -60,6 +62,7 @@ export default async function Services() {
           title="Send us a photo on WhatsApp"
           text="Tell us what's bothering you about your glass or lights and we'll recommend the right fix and a price — no obligation."
           whatsappUrl={contact.whatsappUrl}
+          whatsappMessage={`${GREETING_PHOTO}`}
         />
       </main>
       <SiteFooter />

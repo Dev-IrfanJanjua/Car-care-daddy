@@ -29,7 +29,7 @@ export function BeforeAfterSection({ items }: { items: CarouselItem[] }) {
       <Reveal delay={0.08}>
         <BeforeAfterCarousel items={slides} />
       </Reveal>
-      <div className="mt-11 text-center">
+      <div className="mt-5 text-center">
         <Link href="/gallery" className="inline-flex items-center gap-2 text-[0.92rem] font-semibold text-gold-ink [&_svg]:transition-transform hover:[&_svg]:translate-x-1">
           Open the full gallery <ArrowRight className="size-4" />
         </Link>

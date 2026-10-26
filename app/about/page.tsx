@@ -1,3 +1,4 @@
+import { SITE_MESSAGES } from '@/lib/whatsapp/messages'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { getBusinessContact } from '@/lib/business-contact'
@@ -29,6 +30,7 @@ export default async function About() {
           title="Let's bring your glass back to life"
           text="Get your exact price in under a minute, then book a slot that suits you."
           whatsappUrl={contact.whatsappUrl}
+          whatsappMessage={SITE_MESSAGES.about}
         />
       </main>
       <SiteFooter />

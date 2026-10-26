@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { submitReview } from '@/lib/actions/reviews'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
+import { SiteButton } from '@/components/ui/site-button'
 import { Label } from '@/components/ui/label'
 
 export default async function ReviewPage({
@@ -75,9 +75,9 @@ export default async function ReviewPage({
 
             <Textarea name="comment" placeholder="Tell us about your experience (optional)" rows={4} />
 
-            <Button type="submit" className="w-full">
+            <SiteButton type="submit" className="w-full">
               Submit review
-            </Button>
+            </SiteButton>
           </form>
         </CardContent>
       </Card>

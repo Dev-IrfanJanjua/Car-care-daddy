@@ -1,11 +1,17 @@
 'use server'
 
+import { notifyAdminOfNewLead } from '@/lib/notifications/new-lead-alert'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { rateLimit, RateLimitError } from '@/lib/security/rate-limit'
 import { text, email, ValidationError } from '@/lib/security/validate'
 import { normalizePhone, isValidPhone } from '@/lib/phone'
 
-export type MessageState = { ok: boolean; error?: string }
+export type MessageState = {
+  ok: boolean
+  error?: string
+  /** echoed back so the thank-you screen can offer a pre-filled WhatsApp follow-up */
+  sent?: { name: string; service: string; message: string }
+}
 
 /**
  * Contact-page form. Files the message as a lead (source "contact_form") so it
@@ -36,7 +42,11 @@ export async function sendContactMessage(_prev: MessageState, formData: FormData
       source: 'contact_form',
     })
     if (error) throw error
-    return { ok: true }
+
+    // Best-effort: the message is already saved, so a failed alert is only logged.
+    await notifyAdminOfNewLead({ name: fullName, phone, email: emailValue, service, message }).catch((e) => console.error('lead alert failed', e))
+
+    return { ok: true, sent: { name: fullName, service, message } }
   } catch (e) {
     if (e instanceof RateLimitError) return { ok: false, error: 'Too many messages. Please try again later or use WhatsApp.' }
     if (e instanceof ValidationError) return { ok: false, error: e.message }

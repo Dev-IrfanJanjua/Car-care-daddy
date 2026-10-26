@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { SiteButton } from '@/components/ui/site-button'
 import { GlowBackground } from '@/components/motion/glow-background'
 import { WhatsAppIcon } from '@/components/icons/brand-icons'
 
@@ -27,7 +27,7 @@ export function ComingSoonSection({
   children?: ReactNode
 }) {
   return (
-    <section className="relative isolate overflow-hidden bg-ink-900 py-20 sm:py-28">
+    <section className="relative isolate overflow-hidden bg-ink-900 py-14 sm:py-20">
       <GlowBackground />
 
       <div className="relative mx-auto flex max-w-2xl flex-col items-center px-4 text-center sm:px-6">
@@ -43,19 +43,19 @@ export function ComingSoonSection({
         {children}
 
         <div className="mt-8 flex w-full max-w-sm flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
-          <Button size="lg" className="h-12 px-6 text-base" render={<Link href="/quote" />}>
+          <SiteButton render={<Link href="/quote" />}>
             Get your price
             <ArrowRight className="size-4" data-icon="inline-end" />
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="h-12 px-6 text-base"
+          </SiteButton>
+          <SiteButton
+           
+            variant="ghost"
+           
             render={<a href={whatsappUrl} target="_blank" rel="noopener noreferrer" />}
           >
             <WhatsAppIcon className="size-4" />
             WhatsApp us
-          </Button>
+          </SiteButton>
         </div>
       </div>
     </section>

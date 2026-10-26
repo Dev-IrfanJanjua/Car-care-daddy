@@ -21,7 +21,7 @@ export function SectionHead({
   className?: string
 }) {
   return (
-    <div className={cn('mb-6 max-w-[720px] sm:mb-[34px]', center && 'mx-auto text-center', className)}>
+    <div className={cn('mb-4 max-w-[720px] sm:mb-6', center && 'mx-auto text-center', className)}>
       <span
         className={cn(
           'inline-flex items-center gap-2.5 text-[0.7rem] font-semibold tracking-[0.26em] text-gold-ink uppercase before:h-px before:w-[34px] before:bg-current before:content-[""] dk:tracking-[0.3em]',
@@ -58,7 +58,7 @@ export function SectionShell({
   flush?: boolean
 }) {
   return (
-    <section id={id} className={cn('relative py-12 sm:py-[72px]', flush && 'pt-0 sm:pt-0', className)}>
+    <section id={id} className={cn('relative py-6 sm:py-8', flush && 'pt-0 sm:pt-0', className)}>
       <div className="mx-auto max-w-[1200px] px-[18px] sm:px-6">{children}</div>
     </section>
   )

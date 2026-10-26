@@ -1,3 +1,4 @@
+import { waLink, SITE_MESSAGES } from '@/lib/whatsapp/messages'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getBusinessContact } from '@/lib/business-contact'
@@ -56,7 +57,7 @@ export async function SiteFooter() {
               <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className={SOCIAL}>
                 <InstagramIcon />
               </a>
-              <a href={contact.whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className={SOCIAL}>
+              <a href={waLink(contact.whatsappUrl, SITE_MESSAGES.footer)} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className={SOCIAL}>
                 <WhatsAppIcon />
               </a>
             </div>

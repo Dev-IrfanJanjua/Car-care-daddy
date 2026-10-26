@@ -1,3 +1,4 @@
+import { WhatsAppIcon } from '@/components/icons/brand-icons'
 import type { ReactNode } from 'react'
 import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -23,6 +24,7 @@ export function WizardShell({
   title,
   description,
   phone,
+  helpHref,
   footer,
   children,
 }: {
@@ -30,6 +32,8 @@ export function WizardShell({
   title: string
   description?: string
   phone: { display: string; telHref: string }
+  /** WhatsApp link pre-filled with where the customer got to */
+  helpHref?: string
   footer: ReactNode
   children: ReactNode
 }) {
@@ -94,6 +98,11 @@ export function WizardShell({
             >
               {phone.display}
             </a>
+            {helpHref && (
+              <a href={helpHref} target="_blank" rel="noopener noreferrer" className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-gold-ink hover:underline">
+                <WhatsAppIcon className="size-4" /> Need help finishing? Chat with us
+              </a>
+            )}
           </div>
         </aside>
 
@@ -101,6 +110,11 @@ export function WizardShell({
           <div className="border-b border-border/60 px-5 py-5 sm:px-8">
             <h1 className="font-display text-xl font-bold tracking-tight sm:text-2xl">{title}</h1>
             {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+            {helpHref && (
+              <a href={helpHref} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-[0.82rem] font-semibold text-gold-ink hover:underline lg:hidden">
+                <WhatsAppIcon className="size-4" /> Need help finishing? Chat with us
+              </a>
+            )}
           </div>
 
           <div className="flex-1 px-5 py-6 sm:px-8">{children}</div>

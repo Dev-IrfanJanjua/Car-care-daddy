@@ -1,4 +1,6 @@
+import { Button as ButtonPrimitive } from '@base-ui/react/button'
 import { cva, type VariantProps } from 'class-variance-authority'
+import { cn } from '@/lib/utils'
 
 /**
  * The public site's button, per the v3 design. One class string so a `<Link>`,
@@ -19,6 +21,8 @@ export const siteButton = cva(
         gold: 'bg-gold-500 text-gold-foreground shadow-[0_8px_22px_-10px_color-mix(in_oklab,var(--gold-500)_65%,transparent)] hover:brightness-[1.07] dk:bg-gold-500',
         ghost:
           'border border-line-2 bg-card/75 text-foreground shadow-[inset_0_1px_0_#fff] hover:border-gold-700 hover:bg-card hover:text-gold-ink dk:border-gold-500 dk:bg-transparent dk:text-gold-ink dk:shadow-none dk:hover:bg-gold-500/10 dk:hover:text-gold-ink',
+        // text-only: Back links and other low-emphasis actions
+        quiet: 'text-chrome-400 hover:text-gold-ink',
         plain: 'border border-line-2 text-foreground hover:border-gold-500 hover:text-gold-ink',
       },
       size: {
@@ -32,3 +36,24 @@ export const siteButton = cva(
 )
 
 export type SiteButtonProps = VariantProps<typeof siteButton>
+
+/**
+ * The same button as a component, for places that need a real <button> (or
+ * `render={<Link />}`) with the public site's look. Use this on every
+ * customer-facing screen; the shadcn <Button> is for the admin only.
+ */
+export function SiteButton({
+  className,
+  variant,
+  size,
+  nativeButton,
+  ...props
+}: ButtonPrimitive.Props & SiteButtonProps) {
+  return (
+    <ButtonPrimitive
+      nativeButton={nativeButton ?? !props.render}
+      className={cn(siteButton({ variant, size }), 'cursor-pointer', className)}
+      {...props}
+    />
+  )
+}

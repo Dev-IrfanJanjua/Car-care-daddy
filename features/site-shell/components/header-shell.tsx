@@ -37,15 +37,21 @@ export function HeaderShell({ trust, children }: { trust: TrustItem[]; children:
   return (
     <header
       className={cn(
-        'sticky top-0 z-50 border-b border-line bg-background/90 backdrop-blur-xl backdrop-saturate-150 transition-shadow',
+        // The announcement bar scrolls away with the page: the header sticks at
+        // a negative offset equal to the bar's height, so it never changes
+        // size. It used to collapse the bar with a height transition, which
+        // resized the sticky header mid-scroll; on short pages (the booking
+        // steps) that shrank the document, clamped the scroll position and
+        // flickered the header on and off.
+        'sticky z-50 border-b border-line bg-background/95 backdrop-blur-xl backdrop-saturate-150 transition-shadow',
+        item ? '-top-8 sm:-top-9' : 'top-0',
         scrolled && 'shadow-[0_1px_0_var(--line),0_18px_40px_-30px_rgba(18,32,46,0.25)]'
       )}
     >
       {item && (
         <div
           className={cn(
-            'overflow-hidden border-b border-line bg-[linear-gradient(90deg,transparent,color-mix(in_oklab,var(--gold-500)_10%,transparent),transparent)] transition-[height,opacity] duration-300',
-            scrolled ? 'h-0 border-transparent opacity-0' : 'h-8 opacity-100 sm:h-9'
+            'h-8 overflow-hidden border-b border-line bg-[linear-gradient(90deg,transparent,color-mix(in_oklab,var(--gold-500)_10%,transparent),transparent)] sm:h-9'
           )}
           aria-live="polite"
         >

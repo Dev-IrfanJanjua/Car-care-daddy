@@ -1,3 +1,4 @@
+import { waLink } from '@/lib/whatsapp/messages'
 import type { ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -18,6 +19,7 @@ export function PageHero({
   accent,
   description,
   whatsappUrl,
+  whatsappMessage,
   children,
 }: {
   image: string
@@ -27,6 +29,7 @@ export function PageHero({
   accent?: string
   description: string
   whatsappUrl?: string
+  whatsappMessage?: string
   children?: ReactNode
 }) {
   return (
@@ -68,7 +71,7 @@ export function PageHero({
             <Link href="/quote" className={siteButton()}>
               Book now
             </Link>
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className={siteButton({ variant: 'ghost' })}>
+            <a href={whatsappMessage ? waLink(whatsappUrl, whatsappMessage) : whatsappUrl} target="_blank" rel="noopener noreferrer" className={siteButton({ variant: 'ghost' })}>
               <WhatsAppIcon /> WhatsApp us
             </a>
           </div>

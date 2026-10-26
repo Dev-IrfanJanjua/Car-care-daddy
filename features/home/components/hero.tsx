@@ -1,5 +1,6 @@
 'use client'
 
+import { waLink, SITE_MESSAGES } from '@/lib/whatsapp/messages'
 import type { ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -58,7 +59,7 @@ export function Hero({ whatsappUrl, startingPrice, startingLabel, children, medi
             transition={{ duration: 0.7 }}
             className="relative order-first lg:order-last lg:mt-2.5 dk:lg:mb-5"
           >
-            <div className="relative mx-5 h-[260px] overflow-hidden rounded-t-[130px] rounded-b-3xl shadow-[0_40px_70px_-34px_rgba(60,40,10,0.5)] sm:mx-0 lg:mr-4 lg:ml-auto lg:h-[470px] lg:w-[430px] lg:rounded-t-[215px] lg:rounded-b-[28px] dk:mx-[26px] dk:h-[240px] dk:rounded-xs dk:shadow-[0_0_0_6px_var(--background),0_0_0_7px_var(--gold-500),0_40px_80px_-30px_rgba(0,0,0,0.7)] dk:sm:mx-0 dk:lg:mr-11 dk:lg:h-[430px] dk:lg:w-[410px] dk:lg:shadow-[0_0_0_8px_var(--background),0_0_0_9px_var(--gold-500),0_0_0_17px_var(--background),0_0_0_18px_color-mix(in_oklab,var(--gold-500)_45%,transparent),0_40px_80px_-30px_rgba(0,0,0,0.7)]">
+            <div className="relative mx-5 h-[280px] overflow-hidden rounded-3xl shadow-[0_40px_70px_-34px_rgba(60,40,10,0.5)] sm:mx-0 lg:mr-4 lg:ml-auto lg:h-[470px] lg:w-[430px] lg:rounded-t-[215px] lg:rounded-b-[28px] dk:mx-[26px] dk:h-[240px] dk:rounded-xs dk:shadow-[0_0_0_6px_var(--background),0_0_0_7px_var(--gold-500),0_40px_80px_-30px_rgba(0,0,0,0.7)] dk:sm:mx-0 dk:lg:mr-11 dk:lg:h-[430px] dk:lg:w-[410px] dk:lg:shadow-[0_0_0_8px_var(--background),0_0_0_9px_var(--gold-500),0_0_0_17px_var(--background),0_0_0_18px_color-mix(in_oklab,var(--gold-500)_45%,transparent),0_40px_80px_-30px_rgba(0,0,0,0.7)]">
               <Image
                 src={showImage ? media.imageUrl : poster}
                 alt=""
@@ -152,7 +153,7 @@ export function Hero({ whatsappUrl, startingPrice, startingLabel, children, medi
                 <ArrowRight />
               </Link>
               <a
-                href={whatsappUrl}
+                href={waLink(whatsappUrl, SITE_MESSAGES.hero)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={siteButton({ variant: 'ghost', size: 'lg' })}

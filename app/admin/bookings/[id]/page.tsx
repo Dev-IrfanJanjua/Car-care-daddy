@@ -1,3 +1,5 @@
+import { WhatsAppTemplates } from '@/features/admin/components/whatsapp-templates'
+import { bookingTemplates } from '@/lib/whatsapp/customer-messages'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, Car, MapPin, Wrench } from 'lucide-react'
@@ -49,6 +51,20 @@ export default async function BookingDetailPage({
     })
   )
 
+  const waVehicle = [booking.vehicle_year, booking.vehicle_make, booking.vehicle_model].filter(Boolean).join(' ')
+  const waTemplates = bookingTemplates(
+    {
+      id: booking.id,
+      accessToken: booking.access_token,
+      customerName: booking.customer_name,
+      vehicle: waVehicle,
+      scheduledAt: booking.scheduled_at,
+      address: `${booking.service_address}, ${booking.service_city}`,
+      services: lineItems.map((l) => l.name),
+      total: Number(booking.total_amount),
+    }
+  )
+
   return (
     <div className="max-w-2xl space-y-6">
       <div>
@@ -64,6 +80,8 @@ export default async function BookingDetailPage({
           {booking.customer_email} &middot; {booking.customer_phone}
         </p>
       </div>
+
+      <WhatsAppTemplates phone={booking.customer_phone} templates={waTemplates} />
 
       <Card>
         <CardHeader>

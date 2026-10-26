@@ -17,7 +17,7 @@ export function FaqSection({ faqs }: { faqs: Faq[] }) {
   }
 
   return (
-    <section className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-16">
+    <section className="mx-auto max-w-3xl px-4 py-4 sm:px-6 sm:py-6">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
@@ -27,7 +27,7 @@ export function FaqSection({ faqs }: { faqs: Faq[] }) {
         <span className="rule-gold mt-3" />
         <h2 className="mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl">Good to know</h2>
       </Reveal>
-      <div className="mt-8 divide-y divide-border rounded-2xl border border-border bg-card dk:rounded-md">
+      <div className="mt-6 divide-y divide-border rounded-2xl border border-border bg-card dk:rounded-md">
         {faqs.map((f) => (
           <FaqItem key={f.q} q={f.q} a={f.a} />
         ))}

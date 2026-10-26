@@ -1,3 +1,4 @@
+import { waLink, priceRequestMessage } from '@/lib/whatsapp/messages'
 import Image from 'next/image'
 import Link from 'next/link'
 import { WhatsAppIcon } from '@/components/icons/brand-icons'
@@ -112,7 +113,7 @@ export function ServicesList({ services, whatsappBase }: { services: ServiceRow[
                       Book this service
                     </Link>
                     <a
-                      href={`${whatsappBase}?text=${encodeURIComponent(`Hi, I would like a price for ${s.name}`)}`}
+                      href={waLink(whatsappBase, priceRequestMessage(s.name))}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={siteButton({ variant: 'ghost' })}

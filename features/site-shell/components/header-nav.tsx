@@ -1,5 +1,6 @@
 'use client'
 
+import { waLink, helpMessageForPath } from '@/lib/whatsapp/messages'
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -154,7 +155,7 @@ export function HeaderNav({ contact }: { contact: Contact }) {
                   <InstagramIcon className="size-4" />
                 </a>
                 <a
-                  href={contact.whatsappUrl}
+                  href={waLink(contact.whatsappUrl, helpMessageForPath(pathname))}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="WhatsApp"

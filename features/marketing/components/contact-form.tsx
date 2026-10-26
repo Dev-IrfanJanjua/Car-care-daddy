@@ -1,5 +1,6 @@
 'use client'
 
+import { waLink, contactFormMessage } from '@/lib/whatsapp/messages'
 import { useActionState } from 'react'
 import { siteButton } from '@/components/ui/site-button'
 import { cn } from '@/lib/utils'
@@ -9,7 +10,7 @@ const field =
   'w-full rounded-[10px] border border-line-2 bg-ink-950 px-3.5 py-3 text-[0.95rem] text-chrome-100 placeholder:text-chrome-500 outline-none focus:border-gold-500 dk:rounded-sm'
 
 /** Service names come from the catalog, so the list never drifts from what's offered. */
-export function ContactForm({ services }: { services: string[] }) {
+export function ContactForm({ services, whatsappUrl }: { services: string[]; whatsappUrl?: string }) {
   const [state, action, pending] = useActionState<MessageState, FormData>(sendContactMessage, { ok: false })
 
   if (state.ok) {
@@ -17,6 +18,16 @@ export function ContactForm({ services }: { services: string[] }) {
       <div role="status" className="py-10 text-center">
         <h3 className="font-display text-xl font-semibold text-chrome-100">Message sent</h3>
         <p className="mt-2 text-chrome-400">Thanks — we&apos;ll get back to you shortly.</p>
+        {whatsappUrl && state.sent && (
+          <a
+            href={waLink(whatsappUrl, contactFormMessage(state.sent))}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(siteButton({ variant: 'ghost' }), 'mt-5')}
+          >
+            Want a faster reply? Continue on WhatsApp
+          </a>
+        )}
       </div>
     )
   }

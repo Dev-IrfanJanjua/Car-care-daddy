@@ -1,20 +1,11 @@
-import { QuoteShell, VehicleTypePicker } from '@/features/booking'
+import { redirect } from 'next/navigation'
 
-export const metadata = { title: 'Choose your car type' }
-
-export default async function VehicleNotListedPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ services?: string; bundle?: string; type?: string }>
-}) {
+// "Car not listed" is handled on /quote itself (pick a car type there).
+export default async function NotListedRedirect({ searchParams }: { searchParams: Promise<{ services?: string; bundle?: string; type?: string }> }) {
   const { services, bundle, type } = await searchParams
-  return (
-    <QuoteShell
-      backHref="/quote"
-      title="Choose your car type"
-      description="Can't find your car? Pick the body type closest to it and you'll get the same price."
-    >
-      <VehicleTypePicker initialServices={services} initialBundle={bundle} initialType={type} />
-    </QuoteShell>
-  )
+  const q = new URLSearchParams()
+  if (services) q.set('services', services)
+  if (bundle) q.set('bundle', bundle)
+  if (type) q.set('class', type)
+  redirect(`/quote${q.size ? `?${q}` : ''}`)
 }

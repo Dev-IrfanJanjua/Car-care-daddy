@@ -9,6 +9,7 @@ import { SERVICE_CITY } from '@/lib/contact'
 import { rateLimit } from '@/lib/security/rate-limit'
 import { text, email, integerInRange, isUuid, pickImages } from '@/lib/security/validate'
 import { VEHICLE_CLASSES } from '@/lib/vehicles/classes'
+import { BOOKING_GAP_MINUTES } from '@/lib/business-hours'
 import type { Database } from '@/lib/types/database.types'
 
 type VehicleClass = Database['public']['Enums']['vehicle_class']
@@ -76,6 +77,20 @@ export async function createBooking(formData: FormData) {
   }
 
   const admin = createAdminClient()
+
+  // The calendar already greys out taken times, but a form action accepts any
+  // POST (and two people can be on the same slot at once), so the gap between
+  // jobs is enforced here too.
+  const gapMs = BOOKING_GAP_MINUTES * 60 * 1000
+  const { count: clashes } = await admin
+    .from('bookings')
+    .select('id', { count: 'exact', head: true })
+    .gt('scheduled_at', new Date(when.getTime() - gapMs).toISOString())
+    .lt('scheduled_at', new Date(when.getTime() + gapMs).toISOString())
+    .not('status', 'in', '(cancelled,no_show)')
+  if ((clashes ?? 0) > 0) {
+    throw new Error('We already have a booking around that time. Please go back and choose another time.')
+  }
 
   // A standalone "review your quote" step used to create this row and upload
   // photos before handing off to booking; that step is gone (prices are

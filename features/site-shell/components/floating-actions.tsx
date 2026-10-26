@@ -1,5 +1,7 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
+import { waLink, helpMessageForPath } from '@/lib/whatsapp/messages'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Phone } from 'lucide-react'
@@ -13,7 +15,9 @@ import { cn } from '@/lib/utils'
  *  - a Call / WhatsApp / Book now bar along the bottom of a phone, which slides
  *    in once the visitor has scrolled past the hero.
  */
-export function FloatingActions({ whatsappUrl, telHref }: { whatsappUrl: string; telHref: string }) {
+export function FloatingActions({ whatsappUrl: baseUrl, telHref }: { whatsappUrl: string; telHref: string }) {
+  const pathname = usePathname()
+  const whatsappUrl = waLink(baseUrl, helpMessageForPath(pathname))
   const [bar, setBar] = useState(false)
 
   useEffect(() => {

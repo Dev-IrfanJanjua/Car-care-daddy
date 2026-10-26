@@ -1,3 +1,4 @@
+import { waLink, SITE_MESSAGES } from '@/lib/whatsapp/messages'
 import type { ReactNode } from 'react'
 import { Clock, Mail, MapPin, Phone } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/icons/brand-icons'
@@ -66,7 +67,7 @@ export function ContactPage({ contact, services }: { contact: BusinessContact; s
       <SectionShell className="pt-8 sm:pt-12">
         <div className="grid items-start gap-10 lg:grid-cols-[0.9fr_1.1fr]">
           <Reveal>
-            <CCard icon={<WhatsAppIcon />} label="WhatsApp — fastest" title={contact.whatsappDisplay} href={contact.whatsappUrl} external />
+            <CCard icon={<WhatsAppIcon />} label="WhatsApp — fastest" title={contact.whatsappDisplay} href={waLink(contact.whatsappUrl, SITE_MESSAGES.contactCard)} external />
             <CCard icon={<Phone />} label="Call us" title={contact.whatsappDisplay} href={`tel:+${contact.whatsappNumber}`} />
             <CCard icon={<Mail />} label="Email" title={contact.email} href={`mailto:${contact.email}`} />
             <CCard icon={<MapPin />} label="Coverage" title={`Doorstep service across ${SERVICE_CITY}`} />
@@ -91,7 +92,7 @@ export function ContactPage({ contact, services }: { contact: BusinessContact; s
             <div className="rounded-2xl border border-line bg-card p-6 sm:p-9 dk:rounded-sm dk:border-gold-500/45">
               <h3 className="mb-1.5 font-display text-[1.4rem] font-semibold text-chrome-100">Send us a message</h3>
               <p className="mb-6 text-chrome-400">We usually reply within a few hours.</p>
-              <ContactForm services={services} />
+              <ContactForm services={services} whatsappUrl={contact.whatsappUrl} />
             </div>
           </Reveal>
         </div>

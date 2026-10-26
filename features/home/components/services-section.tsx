@@ -105,7 +105,7 @@ export function ServicesSection({ services }: { services: HomeService[] }) {
         })}
       </div>
 
-      <div className="mt-11 text-center">
+      <div className="mt-5 text-center">
         <Link href="/services" className={siteButton({ variant: 'ghost' })}>
           Explore all services <ArrowRight />
         </Link>

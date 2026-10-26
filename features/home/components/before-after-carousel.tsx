@@ -111,7 +111,7 @@ export function BeforeAfterCarousel({ items }: { items: CarouselItem[] }) {
                 aria-label={`Show result ${i + 1}`}
                 aria-current={i === idx}
                 onClick={() => go(i)}
-                className={cn('h-2.5 rounded-[9px] transition-all duration-300', i === idx ? 'w-[38px] bg-gold-500' : 'w-2.5 bg-line-2')}
+                className={cn('h-2.5 rounded-[9px] border transition-all duration-300', i === idx ? 'w-[38px] border-gold-500 bg-gold-500' : 'w-2.5 border-gold-500/70 bg-gold-500/15 hover:bg-gold-500/40')}
               />
             ))}
           </div>

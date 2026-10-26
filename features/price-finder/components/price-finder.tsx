@@ -96,18 +96,19 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
         Instant price · No sign-up
       </span>
 
-      <div className="grid items-start gap-x-[22px] gap-y-3 [grid-template-areas:'t''car''svc''price''btn''m''link'] min-[700px]:grid-cols-2 min-[700px]:[grid-template-areas:'t_t''car_svc''price_btn''m_link'] min-[1100px]:grid-cols-[1fr_1.4fr_.85fr_200px_190px] min-[1100px]:[grid-template-areas:'t_car_svc_price_btn''m_m_m_link_link']">
+      <div className="grid items-start gap-x-8 gap-y-4 [grid-template-areas:'t''fields''price''btn''m''link'] min-[900px]:grid-cols-[minmax(0,1fr)_250px] min-[900px]:[grid-template-areas:'t_price''fields_btn''m_link'] min-[1100px]:grid-cols-[minmax(0,1fr)_280px]">
         <div className="[grid-area:t]">
-          <h2 id="price-finder-title" className="font-display text-[1.35rem] font-semibold tracking-[-0.02em] text-chrome-100 min-[1100px]:whitespace-nowrap">
+          <h2 id="price-finder-title" className="font-display text-[1.5rem] font-semibold tracking-[-0.02em] text-chrome-100">
             Find your price
           </h2>
-          <p className="mt-2 max-w-[24ch] text-[0.82rem] text-chrome-400 max-[1099px]:max-w-none">
+          <p className="mt-1.5 max-w-[52ch] text-[0.9rem] text-chrome-400">
             Type your car&apos;s name — see your exact price instantly. No sign-up.
           </p>
         </div>
 
+        <div className="grid items-start gap-4 [grid-area:fields] min-[700px]:grid-cols-[1.35fr_1fr]">
         {/* Car */}
-        <div className="relative [grid-area:car]">
+        <div className="relative">
           <label htmlFor="pf-car" className={LABEL}>
             Your car
           </label>
@@ -214,15 +215,16 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
         </div>
 
         {/* Service */}
-        <div className="[grid-area:svc]">
+        <div>
           <label htmlFor="pf-service" className={LABEL}>
             Service
           </label>
+          <div className="relative">
           <select
             id="pf-service"
             value={service?.id ?? ''}
             onChange={(e) => setServiceId(e.target.value)}
-            className={cn(FIELD, 'text-ellipsis')}
+            className={cn(FIELD, 'truncate')}
           >
             {services.map((s) => (
               <option key={s.id} value={s.id}>
@@ -230,17 +232,19 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
               </option>
             ))}
           </select>
+          </div>
+        </div>
         </div>
 
         {/* Price */}
-        <div aria-live="polite" className="self-center [grid-area:price]">
+        <div aria-live="polite" className="w-full rounded-[14px] border border-line-2 bg-tint px-5 py-3.5 [grid-area:price] min-[900px]:self-start dk:rounded-sm">
           <p className="text-[0.76rem] font-semibold tracking-[0.1em] text-chrome-400 uppercase">Your price</p>
           {vehicle && price != null ? (
             <>
               <p className="mt-0.5 font-display text-[2.1rem] leading-[1.1] font-semibold tracking-[-0.03em] whitespace-nowrap text-gold-ink">
                 {formatPrice(price)}
               </p>
-              <p className="mt-0.5 max-w-[24ch] text-[0.74rem] leading-snug text-chrome-400">
+              <p className="mt-0.5 text-[0.76rem] leading-snug text-chrome-400">
                 {vehicle.label} · {vehicleClassLabel(vehicle.vehicleClass)}
               </p>
             </>
@@ -258,14 +262,14 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
                   '—'
                 )}
               </p>
-              <p className="mt-0.5 max-w-[24ch] text-[0.74rem] leading-snug text-chrome-400">Pick your car for your exact price</p>
+              <p className="mt-0.5 text-[0.76rem] leading-snug text-chrome-400">Pick your car for your exact price</p>
             </>
           )}
         </div>
 
         <Link
           href={buildQuoteHref(vehicle, service?.id ?? null)}
-          className={cn(siteButton({ size: 'lg' }), 'h-[60px] w-full self-center shadow-[0_18px_36px_-14px_color-mix(in_oklab,var(--gold-500)_75%,transparent)] [grid-area:btn]')}
+          className={cn(siteButton({ size: 'lg' }), 'h-[58px] w-full shadow-[0_18px_36px_-14px_color-mix(in_oklab,var(--gold-500)_75%,transparent)] [grid-area:btn] min-[900px]:mt-[30px]')}
         >
           Book this
           <ArrowRight />
@@ -279,7 +283,7 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
             <ShieldCheck className="size-3.5 text-gold-ink" /> {WARRANTY_YEARS}-year results warranty
           </span>
         </p>
-        <div className="flex flex-col gap-2 [grid-area:link] min-[700px]:items-end">
+        <div className="flex flex-col gap-2 [grid-area:link] min-[900px]:items-end">
           <button
             type="button"
             aria-expanded={typeOpen}
@@ -289,7 +293,7 @@ export function PriceFinder({ data }: { data: PriceFinderData }) {
             Can&apos;t find your car? Choose the type yourself
           </button>
           {typeOpen && (
-            <div role="group" aria-label="Car type" className="flex flex-wrap gap-2 min-[700px]:justify-end">
+            <div role="group" aria-label="Car type" className="flex flex-wrap gap-2 min-[900px]:justify-end">
               {VEHICLE_TYPES.map((t) => (
                 <button
                   key={t.id}
