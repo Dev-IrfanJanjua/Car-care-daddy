@@ -50,6 +50,49 @@ function Picker({ id, label, file, onFile, video = false }: { id: string; label:
   )
 }
 
+/**
+ * Grabs a still from the video in the browser (about 0.5 s in, to skip a black
+ * first frame) and returns it as a JPEG. Resolves null if the browser cannot
+ * decode the file, in which case the video is simply added without a cover.
+ */
+function makePosterFromVideo(file: File): Promise<File | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file)
+    const video = document.createElement('video')
+    let done = false
+    const finish = (result: File | null) => {
+      if (done) return
+      done = true
+      URL.revokeObjectURL(url)
+      resolve(result)
+    }
+    video.muted = true
+    video.playsInline = true
+    video.preload = 'auto'
+    video.onerror = () => finish(null)
+    video.onloadedmetadata = () => {
+      video.currentTime = Math.min(0.5, (video.duration || 1) / 4)
+    }
+    video.onseeked = () => {
+      try {
+        const w = video.videoWidth
+        const h = video.videoHeight
+        if (!w || !h) return finish(null)
+        const scale = Math.min(1, 1280 / w)
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(w * scale)
+        canvas.height = Math.round(h * scale)
+        canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height)
+        canvas.toBlob((blob) => finish(blob ? new File([blob], 'cover.jpg', { type: 'image/jpeg' }) : null), 'image/jpeg', 0.85)
+      } catch {
+        finish(null)
+      }
+    }
+    setTimeout(() => finish(null), 15000)
+    video.src = url
+  })
+}
+
 export function GalleryManager({ items }: { items: AdminGalleryItem[] }) {
   const router = useRouter()
   const [title, setTitle] = useState('')
@@ -59,6 +102,7 @@ export function GalleryManager({ items }: { items: AdminGalleryItem[] }) {
   const [after, setAfter] = useState<File>()
   const [media, setMedia] = useState<File>()
   const [poster, setPoster] = useState<File>()
+  const [autoPoster, setAutoPoster] = useState<File>()
   const [featured, setFeatured] = useState(false)
   const [pending, start] = useTransition()
 
@@ -67,11 +111,23 @@ export function GalleryManager({ items }: { items: AdminGalleryItem[] }) {
       before: before ? URL.createObjectURL(before) : '',
       after: after ? URL.createObjectURL(after) : '',
       media: media ? URL.createObjectURL(media) : '',
-      poster: poster ? URL.createObjectURL(poster) : '',
+      poster: poster || autoPoster ? URL.createObjectURL((poster ?? autoPoster)!) : '',
     }),
-    [before, after, media, poster]
+    [before, after, media, poster, autoPoster]
   )
   useEffect(() => () => Object.values(previews).forEach((u) => u && URL.revokeObjectURL(u)), [previews])
+
+  // Pick a video and a cover photo is made from it automatically.
+  useEffect(() => {
+    if (kind !== 'video' || !media) return
+    let cancelled = false
+    void makePosterFromVideo(media).then((f) => {
+      if (!cancelled && f) setAutoPoster(f)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [kind, media])
 
   async function upload(file: File, as: 'gallery' | 'galleryVideo' = 'gallery') {
     const { path, token, publicUrl } = await createMediaUploadUrl(as, file.name, file.type, file.size)
@@ -84,7 +140,7 @@ export function GalleryManager({ items }: { items: AdminGalleryItem[] }) {
     if (!title.trim()) return toast.error('Give it a short title')
     if (kind === 'compare' && (!before || !after)) return toast.error('Choose both a before and an after photo')
     if (kind === 'image' && !media) return toast.error('Choose a photo')
-    if (kind === 'video' && (!media || !poster)) return toast.error('Choose a video and a cover photo for it')
+    if (kind === 'video' && !media) return toast.error('Choose a video')
     start(async () => {
       try {
         if (kind === 'compare') {
@@ -93,7 +149,10 @@ export function GalleryManager({ items }: { items: AdminGalleryItem[] }) {
         } else if (kind === 'image') {
           await addGalleryItem({ kind, title, service, mediaUrl: await upload(media!), isFeatured: featured })
         } else {
-          const [mediaUrl, posterUrl] = await Promise.all([upload(media!, 'galleryVideo'), upload(poster!)])
+          // Your own cover photo wins; otherwise the one made from the video.
+          // If neither exists the video is added without a cover.
+          const cover = poster ?? autoPoster ?? (await makePosterFromVideo(media!))
+          const [mediaUrl, posterUrl] = await Promise.all([upload(media!, 'galleryVideo'), cover ? upload(cover) : Promise.resolve(null)])
           await addGalleryItem({ kind, title, service, mediaUrl, posterUrl, isFeatured: featured })
         }
         setTitle('')
@@ -102,6 +161,7 @@ export function GalleryManager({ items }: { items: AdminGalleryItem[] }) {
         setAfter(undefined)
         setMedia(undefined)
         setPoster(undefined)
+        setAutoPoster(undefined)
         setFeatured(false)
         toast.success('Added to the gallery')
         router.refresh()
@@ -155,8 +215,11 @@ export function GalleryManager({ items }: { items: AdminGalleryItem[] }) {
             {kind === 'image' && <Picker id="g-media" label="Photo" file={media} onFile={setMedia} />}
             {kind === 'video' && (
               <>
-                <Picker id="g-video" label="Video" file={media} onFile={setMedia} video />
-                <Picker id="g-poster" label="Cover photo (shown before it plays)" file={poster} onFile={setPoster} />
+                <Picker id="g-video" label="Video" file={media} onFile={(f) => { setMedia(f); setAutoPoster(undefined) }} video />
+                <div>
+                  <Picker id="g-poster" label="Cover photo (optional)" file={poster} onFile={setPoster} />
+                  <p className="mt-1.5 text-xs text-muted-foreground">Skip it and a frame from the video is used as the cover.</p>
+                </div>
               </>
             )}
           </div>
@@ -183,12 +246,12 @@ export function GalleryManager({ items }: { items: AdminGalleryItem[] }) {
           {kind === 'video' && (previews.media || previews.poster) && (
             <div className="grid grid-cols-2 gap-3">
               <div className="aspect-video overflow-hidden rounded-lg border border-border bg-black">
-                {previews.media && <video src={previews.media} controls muted playsInline className="size-full object-cover" />}
+                {previews.media && <video src={previews.media} controls muted playsInline className="size-full object-contain" />}
               </div>
               <div className="aspect-video overflow-hidden rounded-lg border border-border bg-muted">
                 {previews.poster && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={previews.poster} alt="Cover preview" className="size-full object-cover" />
+                  <img src={previews.poster} alt="Cover preview" className="size-full object-contain" />
                 )}
               </div>
             </div>

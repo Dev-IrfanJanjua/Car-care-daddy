@@ -23,7 +23,7 @@ function refresh() {
 export type NewGalleryItem =
   | { kind: 'compare'; title: string; service: string; beforeUrl: string; afterUrl: string; isFeatured: boolean }
   | { kind: 'image'; title: string; service: string; mediaUrl: string; isFeatured: boolean }
-  | { kind: 'video'; title: string; service: string; mediaUrl: string; posterUrl: string; isFeatured: boolean }
+  | { kind: 'video'; title: string; service: string; mediaUrl: string; posterUrl: string | null; isFeatured: boolean }
 
 export async function addGalleryItem(input: NewGalleryItem) {
   const { supabase } = await requireAdmin()
@@ -46,8 +46,8 @@ export async function addGalleryItem(input: NewGalleryItem) {
     row = { ...base, media_url: input.mediaUrl }
   } else if (input.kind === 'video') {
     assertOwnUrl(input.mediaUrl)
-    assertOwnUrl(input.posterUrl)
-    row = { ...base, media_url: input.mediaUrl, poster_url: input.posterUrl }
+    if (input.posterUrl) assertOwnUrl(input.posterUrl)
+    row = { ...base, media_url: input.mediaUrl, poster_url: input.posterUrl || null }
   } else {
     throw new Error('Unknown type')
   }

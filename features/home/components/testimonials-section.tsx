@@ -1,12 +1,15 @@
 import { Check } from 'lucide-react'
 import { Reveal } from '@/components/motion/reveal'
 import { SectionHead, SectionShell } from './section-head'
+import { ReviewPhotos } from './review-photos'
 
 type Testimonial = {
   /** null for reviews that carry no name (the database stores rating + comment only) */
   name: string | null
   comment: string
   rating: number
+  city?: string
+  images?: string[]
 }
 
 const placeholders: Testimonial[] = [
@@ -25,6 +28,7 @@ function Card({ t }: { t: Testimonial }) {
         <span className="text-line-2">{'★'.repeat(5 - t.rating)}</span>
       </div>
       <blockquote className="text-[1.02rem] text-chrome-100">&ldquo;{t.comment}&rdquo;</blockquote>
+      {t.images && t.images.length > 0 && <ReviewPhotos urls={t.images} name={t.name ?? 'a customer'} />}
       <figcaption className="mt-auto flex items-center gap-3">
         <span className="grid size-[42px] place-items-center rounded-full bg-gold-500 font-display font-bold text-gold-foreground">
           {t.name ? t.name.charAt(0) : <Check aria-hidden className="size-4" strokeWidth={3} />}
@@ -32,7 +36,7 @@ function Card({ t }: { t: Testimonial }) {
         <div>
           <b className="block text-[0.95rem] font-semibold text-chrome-100">{t.name ?? 'Verified customer'}</b>
           <small className="block text-[0.78rem] text-chrome-400">
-            {t.name ? 'Verified customer · Lahore' : 'Lahore'}
+            {t.name ? `Verified customer · ${t.city ?? 'Lahore'}` : (t.city ?? 'Lahore')}
           </small>
         </div>
       </figcaption>
@@ -45,10 +49,10 @@ function Card({ t }: { t: Testimonial }) {
  * public reviews from the database when there are any, the sample ones until
  * the first review comes in.
  */
-export function TestimonialsSection({ reviews }: { reviews?: { rating: number; comment: string | null }[] }) {
+export function TestimonialsSection({ reviews }: { reviews?: { rating: number; comment: string | null; reviewer_name?: string | null; reviewer_city?: string | null; image_urls?: string[] | null }[] }) {
   const fromDb: Testimonial[] = (reviews ?? [])
     .filter((r) => r.comment)
-    .map((r) => ({ name: null, comment: r.comment!, rating: r.rating }))
+    .map((r) => ({ name: r.reviewer_name ?? null, comment: r.comment!, rating: r.rating, city: r.reviewer_city ?? undefined, images: r.image_urls ?? [] }))
 
   const items = fromDb.length > 0 ? fromDb : placeholders
   // Two copies side by side, translated by half: a seamless loop. Enough

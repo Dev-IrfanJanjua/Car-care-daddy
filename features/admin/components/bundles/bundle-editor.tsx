@@ -14,7 +14,7 @@ import { applyDiscount, sumFor } from '@/features/bundles'
 import { VEHICLE_CLASSES, vehicleClassLabel } from '@/lib/vehicles/classes'
 import { deleteBundle, saveBundle, type BundleInput } from '../../actions/bundles'
 
-export type EditorService = { id: string; name: string; comingSoon: boolean }
+export type EditorService = { id: string; name: string; comingSoon: boolean; exclusiveGroup: string | null }
 export type EditorPrice = { service_id: string; vehicle_class: string; base_price: number }
 export type EditorBundle = BundleInput & { id: string }
 
@@ -116,13 +116,22 @@ function Editor({ initial, services, prices, onDone }: { initial: BundleInput; s
         </div>
         <fieldset className="space-y-1.5">
           <legend className="text-sm font-medium">Services in this bundle</legend>
-          {services.map((s) => (
-            <label key={s.id} className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={draft.serviceIds.includes(s.id)} onChange={() => toggle(s.id)} className="size-4 accent-[var(--brand)]" />
-              {s.name}
-              {s.comingSoon && <span className="text-xs text-muted-foreground">(coming soon)</span>}
-            </label>
-          ))}
+          <p className="text-xs text-muted-foreground">
+            Glass services overlap (windshield is already part of the front &amp; back, doors and full-glass options), so a bundle can include only one of them.
+            Pick one glass service, then add headlights or any other service.
+          </p>
+          {services.map((s) => {
+            const on = draft.serviceIds.includes(s.id)
+            const blocker = !on && s.exclusiveGroup ? services.find((o) => o.id !== s.id && o.exclusiveGroup === s.exclusiveGroup && draft.serviceIds.includes(o.id)) : undefined
+            return (
+              <label key={s.id} className={`flex items-center gap-2 text-sm ${blocker ? 'opacity-50' : ''}`}>
+                <input type="checkbox" checked={on} disabled={!!blocker} onChange={() => toggle(s.id)} className="size-4 accent-[var(--brand)]" />
+                {s.name}
+                {s.comingSoon && <span className="text-xs text-muted-foreground">(coming soon)</span>}
+                {blocker && <span className="text-xs text-muted-foreground">(overlaps with {blocker.name})</span>}
+              </label>
+            )
+          })}
         </fieldset>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={draft.isActive} onChange={(e) => setDraft({ ...draft, isActive: e.target.checked })} className="size-4 accent-[var(--brand)]" />

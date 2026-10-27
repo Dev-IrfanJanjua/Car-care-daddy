@@ -87,6 +87,19 @@ export async function updateService(serviceId: string, formData: FormData) {
   revalidateCatalog()
 }
 
+/** Set or clear (null) a service's own photo. The file is uploaded from the browser first. */
+export async function setServiceImage(serviceId: string, imageUrl: string | null) {
+  const { supabase } = await requireAdmin()
+  if (imageUrl) {
+    const base = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/site-media/services/`
+    if (!imageUrl.startsWith(base)) throw new Error('Photos must be uploaded through the form')
+  }
+  const { error } = await supabase.from('services').update({ image_url: imageUrl }).eq('id', serviceId)
+  if (error) throw new Error(`${error.message} — did you run migration 0022?`)
+  revalidateCatalog()
+  revalidatePath('/services')
+}
+
 export async function toggleServiceActive(serviceId: string, isActive: boolean) {
   const { supabase } = await requireAdmin()
 

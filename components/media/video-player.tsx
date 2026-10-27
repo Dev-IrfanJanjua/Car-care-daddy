@@ -74,14 +74,21 @@ export function VideoPlayer({
   }
 
   return (
-    <div className={cn('absolute inset-0 bg-black', className)}>
+    <div className={cn('absolute inset-0 overflow-hidden bg-black', className)}>
+      {/* Videos are shown whole (never cropped). Whatever space is left around a
+          portrait or ultra-wide clip is filled with a blurred copy of the cover. */}
+      {poster && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={poster} alt="" aria-hidden className="absolute inset-0 size-full scale-110 object-cover opacity-50 blur-2xl" />
+      )}
       <video
         ref={ref}
-        src={src}
+        // Without a cover photo, ask for the first frame so the tile is not black.
+        src={poster ? src : `${src}#t=0.1`}
         poster={poster ?? undefined}
         playsInline
         loop
-        preload="none"
+        preload={poster ? 'none' : 'metadata'}
         aria-label={title}
         onPlay={() => {
           setPlaying(true)
@@ -91,7 +98,7 @@ export function VideoPlayer({
           setPlaying(false)
           onPlayingChange?.(false)
         }}
-        className="size-full object-cover"
+        className="relative size-full object-contain"
       />
 
       {/* One big hit area over the picture: tap to play, pause or resume. */}

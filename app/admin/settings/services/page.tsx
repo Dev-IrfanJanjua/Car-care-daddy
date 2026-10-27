@@ -9,6 +9,8 @@ import {
   toggleServiceComingSoon,
 } from '@/features/admin'
 import { VEHICLE_CLASSES } from '@/lib/vehicles/classes'
+import { categoryStyle } from '@/features/home/lib/category-style'
+import { ServiceImageField } from '@/features/admin/components/services/service-image-field'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,7 +31,7 @@ export default async function ServiceSettingsPage() {
   const [{ data: services }, { data: prices }] = await Promise.all([
     supabase
       .from('services')
-      .select('id, name, description, category, is_active, coming_soon, sort_order')
+      .select('id, name, description, category, is_active, coming_soon, sort_order, image_url')
       .order('sort_order'),
     supabase.from('service_prices').select('service_id, vehicle_class, base_price'),
   ])
@@ -149,7 +151,11 @@ export default async function ServiceSettingsPage() {
                   </div>
                 </form>
 
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="mt-3">
+                  <ServiceImageField serviceId={s.id} name={s.name} imageUrl={s.image_url} defaultImage={categoryStyle(s.category).image} />
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2">
                 <form action={toggleServiceComingSoon.bind(null, s.id, !s.coming_soon)}>
                   <Button type="submit" size="sm" variant="ghost" className={s.coming_soon ? 'bg-amber-500/15 text-amber-600' : 'bg-muted text-muted-foreground'}>
                     {s.coming_soon ? 'Coming soon (on hold) — click to put on sale' : 'On sale — click to put on hold'}

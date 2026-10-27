@@ -70,9 +70,9 @@ export function BeforeAfterCarousel({ items }: { items: CarouselItem[] }) {
               {it.kind === 'video' && it.src ? (
                 <VideoPlayer src={it.src} poster={it.poster} title={it.title} active={i === idx} onPlayingChange={i === idx ? setPlaying : undefined} />
               ) : it.kind === 'image' && it.src ? (
-                <Image src={it.src} alt={it.title} fill sizes="(min-width: 1200px) 1152px, 100vw" className="object-cover brightness-110 saturate-110" />
+                <Image src={it.src} alt={it.title} fill sizes="(min-width: 1200px) 1152px, 100vw" className="object-contain brightness-110 saturate-110" />
               ) : it.before && it.after ? (
-                <BeforeAfterSlider beforeSrc={it.before} afterSrc={it.after} alt={it.title} priority={i === 0} />
+                <BeforeAfterSlider beforeSrc={it.before} afterSrc={it.after} alt={it.title} priority={i === 0} fit="contain" />
               ) : null}
 
               <span className="pointer-events-none absolute top-5 left-5 z-[5] flex items-center gap-2 rounded-[9px] border border-line-2 bg-ink-900/60 px-3.5 py-[7px] text-[0.72rem] font-bold tracking-[0.1em] text-chrome-100 uppercase backdrop-blur-md">

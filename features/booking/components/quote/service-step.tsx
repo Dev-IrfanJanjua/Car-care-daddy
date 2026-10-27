@@ -144,7 +144,12 @@ export function ServiceStep({
 
   const { total, saving } = useMemo(() => {
     const picked = bookable.filter((s) => selected.has(s.id))
-    const price = (s: StepService) => (cls ? (s.prices[cls] ?? 0) : 0)
+    // Before a car type is chosen, show the lowest price ("from ...").
+    const price = (s: StepService) => {
+      if (cls) return s.prices[cls] ?? 0
+      const amounts = Object.values(s.prices).filter((n): n is number => typeof n === 'number' && n > 0)
+      return amounts.length ? Math.min(...amounts) : 0
+    }
     const list = picked.reduce((sum, s) => sum + price(s), 0)
     if (!bundleOn || !bundle) return { total: list, saving: 0 }
     const partsList = picked.filter((s) => bundle.serviceIds.includes(s.id)).reduce((sum, s) => sum + price(s), 0)
@@ -227,8 +232,21 @@ export function ServiceStep({
   if (selected.size === 0) missing.push('a service')
   const canContinue = missing.length === 0
 
+  // Next stays pressable: with something missing it highlights what is needed
+  // (red border + message) and scrolls to the first gap.
+  const [showErrors, setShowErrors] = useState(false)
+  const carTypeErr = showErrors && !cls
+  const yearErr = showErrors && !year
+  const svcErr = showErrors && selected.size === 0
+
   function next() {
-    if (!canContinue || !cls) return
+    if (!canContinue || !cls) {
+      setShowErrors(true)
+      const target = !cls ? 'car-type-h' : !year ? 'step-year' : 'svc-h'
+      const el = document.getElementById(target)
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      return
+    }
     const params = new URLSearchParams({
       make: vehicle ? vehicle.make : 'Other',
       model: vehicle ? vehicle.model : query.trim().slice(0, 60) || 'Not listed',
@@ -252,23 +270,30 @@ export function ServiceStep({
       helpHref={helpHref}
       footer={
         <>
-          <SiteButton variant="quiet" size="sm" className="cursor-pointer" render={<Link href="/" />}>
+          <SiteButton variant="quiet" size="sm" className="px-1 sm:px-5" render={<Link href="/" />}>
             <ArrowLeft className="size-4" data-icon="inline-start" />
             Back
           </SiteButton>
-          <div className="flex items-center gap-4">
-            <span className="text-right leading-tight">
-              <span className="block text-xs text-muted-foreground">
-                {selected.size} service{selected.size === 1 ? '' : 's'}
-                {saving > 0 && <span className="font-medium text-[#1a8f50]"> · saving {formatPrice(saving)}</span>}
-              </span>
-              <span className="block text-lg font-bold tabular-nums">{cls ? formatPrice(total) : '—'}</span>
+          <span className="ml-auto text-right leading-tight whitespace-nowrap sm:order-2 sm:mr-4 sm:ml-auto">
+            <span className="block text-xs text-muted-foreground">
+              {selected.size} service{selected.size === 1 ? '' : 's'}
+              {saving > 0 && <span className="font-medium text-[#1a8f50]"> · saving {formatPrice(saving)}</span>}
             </span>
-            <SiteButton type="button" className="cursor-pointer" disabled={!canContinue} onClick={next}>
-              Next Step
-              <ArrowRight className="size-4" data-icon="inline-end" />
-            </SiteButton>
-          </div>
+            <span className="block text-lg font-bold tabular-nums">
+              {total > 0 ? (
+                <>
+                  {!cls && <span className="mr-1 text-xs font-medium text-muted-foreground">from</span>}
+                  {formatPrice(total)}
+                </>
+              ) : (
+                '—'
+              )}
+            </span>
+          </span>
+          <SiteButton type="button" className="order-last h-11 w-full px-5 sm:order-3 sm:h-[52px] sm:w-auto sm:px-7" onClick={next}>
+            Next Step
+            <ArrowRight className="size-4" data-icon="inline-end" />
+          </SiteButton>
         </>
       }
     >
@@ -278,7 +303,12 @@ export function ServiceStep({
           <h2 id="car-type-h" className="font-display text-base font-semibold">
             1. Your car type
           </h2>
-          <div role="radiogroup" aria-label="Car type" className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {carTypeErr && (
+            <p role="alert" className="mt-2 text-sm font-medium text-red-600">
+              Please choose your car type — the price depends on it.
+            </p>
+          )}
+          <div role="radiogroup" aria-label="Car type" className={cn('mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4', carTypeErr && 'rounded-2xl p-1.5 ring-2 ring-red-500/70')}>
             {VEHICLE_TYPES.map((t) => {
               const on = cls === t.id
               return (
@@ -393,7 +423,8 @@ export function ServiceStep({
                 onChange={(e) => setYear(e.target.value)}
                 className={cn(
                   'h-12 w-full cursor-pointer rounded-xl border border-input bg-background px-3.5 text-[0.95rem] outline-none focus-visible:border-gold-500 focus-visible:ring-4 focus-visible:ring-gold-500/20',
-                  !year && 'text-muted-foreground'
+                  !year && 'text-muted-foreground',
+                  yearErr && 'border-red-500 bg-red-500/5 ring-2 ring-red-500/20'
                 )}
               >
                 <option value="">Year</option>
@@ -403,6 +434,11 @@ export function ServiceStep({
                   </option>
                 ))}
               </select>
+              {yearErr && (
+                <p role="alert" className="mt-1.5 text-xs font-medium text-red-600">
+                  Please select your car&apos;s year.
+                </p>
+              )}
             </div>
           </div>
 
@@ -440,6 +476,11 @@ export function ServiceStep({
           <h2 id="svc-h" className="font-display text-base font-semibold">
             3. Choose your service
           </h2>
+          {svcErr && (
+            <p role="alert" className="mt-2 text-sm font-medium text-red-600">
+              Please select at least one service.
+            </p>
+          )}
 
           {bundle && (
             <p
@@ -573,7 +614,10 @@ export function ServiceStep({
           </div>
 
           {!canContinue && (
-            <p className="mt-5 text-sm text-muted-foreground">
+            <p
+              role={svcErr ? 'alert' : undefined}
+              className={cn('mt-5 text-sm', svcErr ? 'rounded-lg border border-red-500 bg-red-500/5 px-4 py-3 font-medium text-red-600' : 'text-muted-foreground')}
+            >
               To continue, choose {missing.join(', ').replace(/, ([^,]*)$/, ' and $1')}.
             </p>
           )}

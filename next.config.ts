@@ -67,7 +67,13 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "i.pravatar.cc" },
-      ...(supabaseHost ? [{ protocol: "https" as const, hostname: supabaseHost }] : []),
+      // Supabase public storage (hero, gallery, service and review images).
+      // Host comes from NEXT_PUBLIC_SUPABASE_URL, with the project host as a fallback.
+      ...[...new Set([supabaseHost, "stfpwwuqxunkneiipccl.supabase.co"].filter(Boolean))].map((hostname) => ({
+        protocol: "https" as const,
+        hostname,
+        pathname: "/storage/v1/object/public/**",
+      })),
     ],
   },
 };

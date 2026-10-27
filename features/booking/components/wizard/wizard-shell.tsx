@@ -119,7 +119,7 @@ export function WizardShell({
 
           <div className="flex-1 px-5 py-6 sm:px-8">{children}</div>
 
-          <div className="flex items-center justify-between gap-3 border-t border-border/60 px-5 py-4 sm:px-8">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-3 border-t border-border/60 px-5 py-4 sm:px-8">
             {footer}
           </div>
         </div>
