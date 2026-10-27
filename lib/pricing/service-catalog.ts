@@ -24,7 +24,7 @@ export const getServiceCatalog = unstable_cache(
         supabase
           .from('services')
           .select(
-            'id, name, description, category, sort_order, is_active, is_package, coming_soon, exclusive_group'
+            'id, name, description, category, sort_order, is_active, is_package, coming_soon, exclusive_group, image_url'
           )
           .eq('is_active', true)
           .order('sort_order'),

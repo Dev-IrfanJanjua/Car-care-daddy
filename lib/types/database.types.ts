@@ -75,6 +75,7 @@ export type Database = {
           coming_soon: boolean
           exclusive_group: string | null
           sort_order: number
+          image_url: string | null
         }
         Insert: {
           id?: string
@@ -87,6 +88,7 @@ export type Database = {
           coming_soon?: boolean
           exclusive_group?: string | null
           sort_order?: number
+          image_url?: string | null
         }
         Update: {
           id?: string
@@ -99,6 +101,7 @@ export type Database = {
           coming_soon?: boolean
           exclusive_group?: string | null
           sort_order?: number
+          image_url?: string | null
         }
         Relationships: []
       }
@@ -525,30 +528,42 @@ export type Database = {
       reviews: {
         Row: {
           id: string
-          booking_id: string
+          booking_id: string | null
           customer_id: string | null
           rating: number
           comment: string | null
           is_public: boolean
           created_at: string
+          reviewer_name: string | null
+          reviewer_city: string
+          image_urls: string[]
+          source: string
         }
         Insert: {
           id?: string
-          booking_id: string
+          booking_id?: string | null
           customer_id?: string | null
           rating: number
           comment?: string | null
           is_public?: boolean
           created_at?: string
+          reviewer_name?: string | null
+          reviewer_city?: string
+          image_urls?: string[]
+          source?: string
         }
         Update: {
           id?: string
-          booking_id?: string
+          booking_id?: string | null
           customer_id?: string | null
           rating?: number
           comment?: string | null
           is_public?: boolean
           created_at?: string
+          reviewer_name?: string | null
+          reviewer_city?: string
+          image_urls?: string[]
+          source?: string
         }
         Relationships: []
       }

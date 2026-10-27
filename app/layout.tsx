@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Sora } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { RegisterServiceWorker } from "./register-sw";
 import { MotionProvider } from "@/components/motion-provider";
@@ -61,11 +62,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const brandCss = buildBrandCss(brand);
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${sora.variable} h-full antialiased`}>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInit(brand.defaultTheme) }} />
-        {brandCss && <style id="brand-tokens" dangerouslySetInnerHTML={{ __html: brandCss }} />}
-      </head>
-      <body className="min-h-full flex flex-col">
+      <head>{brandCss ? <style id="brand-tokens" dangerouslySetInnerHTML={{ __html: brandCss }} /> : null}</head>
+      <body suppressHydrationWarning className="min-h-full flex flex-col">
+        {/* Sets data-theme before first paint (no flash). A plain <script> inside React
+            logs a console error, so it goes through next/script instead. */}
+        <Script id="theme-init" strategy="beforeInteractive">{themeInit(brand.defaultTheme)}</Script>
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:rounded-md focus:bg-brand focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-brand-foreground"

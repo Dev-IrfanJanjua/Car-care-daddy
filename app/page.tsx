@@ -1,3 +1,4 @@
+import Script from 'next/script'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceCatalog } from '@/lib/pricing/service-catalog'
 import { getBusinessContact } from '@/lib/business-contact'
@@ -30,7 +31,7 @@ export default async function Home() {
   const [{ data: reviews }, { services: allServices, prices }, contact, finder, brand, content, gallery, bundleRows] = await Promise.all([
     supabase
       .from('reviews')
-      .select('rating, comment')
+      .select('rating, comment, reviewer_name, reviewer_city, image_urls')
       .eq('is_public', true)
       .order('created_at', { ascending: false })
       .limit(6),
@@ -64,6 +65,7 @@ export default async function Home() {
       name: s.name,
       description: s.description,
       category: s.category,
+      imageUrl: s.image_url,
       fromPrice: s.coming_soon ? null : fromPrice(s.id),
       comingSoon: s.coming_soon,
     }))
@@ -80,8 +82,10 @@ export default async function Home() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <script
+      <Script
+        id="ld-local-business"
         type="application/ld+json"
+        strategy="afterInteractive"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd(contact)).replace(/</g, '\\u003c') }}
       />
       <SiteHeader />

@@ -29,6 +29,7 @@ export default async function Services() {
     name: s.name,
     description: s.description,
     category: s.category,
+    imageUrl: s.image_url,
     comingSoon: s.coming_soon,
     isPackage: s.is_package,
     prices: Object.fromEntries(prices.filter((p) => p.service_id === s.id).map((p) => [p.vehicle_class, p.base_price])),

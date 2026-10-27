@@ -12,6 +12,8 @@ export type HomeService = {
   name: string
   description: string | null
   category: string | null
+  /** the service's own photo; blank = the default for its category */
+  imageUrl?: string | null
   /** cheapest price across vehicle classes; null when nothing is priced yet */
   fromPrice: number | null
   /** on hold: shown, but not bookable and without a price */
@@ -49,11 +51,11 @@ export function ServicesSection({ services }: { services: HomeService[] }) {
             <Reveal key={s.id} delay={(i % 2) * 0.08} className={`flex ${SPAN[i] ?? 'lg:col-span-4'}`}>
               <article className="zone-dark group relative isolate flex min-h-[340px] w-full items-end overflow-hidden rounded-[26px] border border-line-2 bg-ink-800 transition duration-300 hover:-translate-y-1.5 hover:border-gold-500/60 hover:shadow-[0_30px_60px_-30px_color-mix(in_oklab,var(--gold-500)_35%,transparent)] sm:min-h-[380px] dk:rounded-sm dk:border-gold-500/45">
                 <Image
-                  src={style.image}
+                  src={s.imageUrl || style.image}
                   alt=""
                   fill
                   sizes="(min-width:1024px) 600px, (min-width:640px) 50vw, 100vw"
-                  style={{ objectPosition: style.position }}
+                  style={{ objectPosition: s.imageUrl ? 'center' : style.position }}
                   className={`-z-20 object-cover brightness-110 saturate-110 transition-transform duration-1000 group-hover:scale-[1.06] ${s.comingSoon ? 'grayscale-[0.6]' : ''}`}
                 />
                 <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,color-mix(in_oklab,var(--ink-900)_97%,transparent)_0%,color-mix(in_oklab,var(--ink-900)_82%,transparent)_28%,color-mix(in_oklab,var(--ink-900)_34%,transparent)_60%,transparent_100%)]" />

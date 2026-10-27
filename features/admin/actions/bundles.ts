@@ -37,6 +37,18 @@ export async function saveBundle(input: BundleInput) {
   const ids = Array.from(new Set(input.serviceIds))
   if (ids.length < 2 || !ids.every(isUuid)) throw new Error('Pick at least two services for a bundle')
 
+  // Glass services overlap (windshield is inside front & back, doors and full
+  // glass), so a bundle may hold only one service per exclusive group.
+  const { data: picked, error: pickedError } = await supabase.from('services').select('name, exclusive_group').in('id', ids)
+  if (pickedError) throw pickedError
+  const seen = new Map<string, string>()
+  for (const s of picked ?? []) {
+    if (!s.exclusive_group) continue
+    const other = seen.get(s.exclusive_group)
+    if (other) throw new Error(`“${other}” and “${s.name}” overlap — a bundle can include only one of them.`)
+    seen.set(s.exclusive_group, s.name)
+  }
+
   const row = {
     name,
     badge: input.badge.trim().slice(0, 30) || null,

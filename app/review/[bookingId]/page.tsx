@@ -1,11 +1,8 @@
 import { notFound } from 'next/navigation'
-import { Star } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { submitReview } from '@/lib/actions/reviews'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
-import { SiteButton } from '@/components/ui/site-button'
-import { Label } from '@/components/ui/label'
+import { ReviewForm } from './review-form'
 
 export default async function ReviewPage({
   params,
@@ -60,25 +57,7 @@ export default async function ReviewPage({
           </p>
         </CardHeader>
         <CardContent>
-          <form action={action} className="space-y-4">
-            <fieldset>
-              <Label>Rating</Label>
-              <div className="mt-2 flex gap-2">
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <Label key={n} className="cursor-pointer">
-                    <input type="radio" name="rating" value={n} required className="peer sr-only" />
-                    <Star className="size-8 text-muted-foreground transition-colors peer-checked:fill-brand peer-checked:text-brand" />
-                  </Label>
-                ))}
-              </div>
-            </fieldset>
-
-            <Textarea name="comment" placeholder="Tell us about your experience (optional)" rows={4} />
-
-            <SiteButton type="submit" className="w-full">
-              Submit review
-            </SiteButton>
-          </form>
+          <ReviewForm action={action} bookingId={bookingId} accessToken={accessToken} defaultName={booking.customer_name.split(' ')[0]} />
         </CardContent>
       </Card>
     </main>

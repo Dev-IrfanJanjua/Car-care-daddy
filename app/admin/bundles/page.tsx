@@ -7,7 +7,7 @@ export default async function AdminBundlesPage() {
   const supabase = await createClient()
   const [{ data: bundles }, { data: services }, { data: prices }] = await Promise.all([
     supabase.from('bundles').select('*').order('sort_order'),
-    supabase.from('services').select('id, name, coming_soon').eq('is_active', true).order('sort_order'),
+    supabase.from('services').select('id, name, coming_soon, exclusive_group').eq('is_active', true).order('sort_order'),
     supabase.from('service_prices').select('service_id, vehicle_class, base_price'),
   ])
 
@@ -29,7 +29,7 @@ export default async function AdminBundlesPage() {
           serviceIds: b.service_ids ?? [],
           isActive: b.is_active,
         }))}
-        services={(services ?? []).map((s) => ({ id: s.id, name: s.name, comingSoon: s.coming_soon }))}
+        services={(services ?? []).map((s) => ({ id: s.id, name: s.name, comingSoon: s.coming_soon, exclusiveGroup: s.exclusive_group }))}
         prices={(prices ?? []).map((p) => ({ service_id: p.service_id, vehicle_class: p.vehicle_class, base_price: Number(p.base_price) }))}
       />
     </div>

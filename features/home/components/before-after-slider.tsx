@@ -22,12 +22,15 @@ export function BeforeAfterSlider({
   alt = 'Windshield',
   priority = false,
   sizes = '(min-width: 1200px) 1152px, 100vw',
+  fit = 'cover',
 }: {
   beforeSrc?: string
   afterSrc?: string
   alt?: string
   priority?: boolean
   sizes?: string
+  /** 'contain' shows each photo whole; 'cover' fills the frame (default) */
+  fit?: 'cover' | 'contain'
 }) {
   const [value, setValue] = useState(50)
 
@@ -40,7 +43,7 @@ export function BeforeAfterSlider({
         sizes={sizes}
         priority={priority}
         draggable={false}
-        className="pointer-events-none object-cover brightness-110 saturate-110"
+        className={`pointer-events-none brightness-110 saturate-110 ${fit === 'contain' ? 'object-contain' : 'object-cover'}`}
       />
       <div className="absolute inset-0" style={{ clipPath: `inset(0 0 0 ${value}%)` }}>
         <Image
@@ -50,7 +53,7 @@ export function BeforeAfterSlider({
           sizes={sizes}
           priority={priority}
           draggable={false}
-          className="pointer-events-none object-cover brightness-110 saturate-110"
+          className={`pointer-events-none brightness-110 saturate-110 ${fit === 'contain' ? 'object-contain' : 'object-cover'}`}
         />
       </div>
 

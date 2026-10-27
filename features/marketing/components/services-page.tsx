@@ -14,6 +14,7 @@ export type ServiceRow = {
   name: string
   description: string | null
   category: string | null
+  imageUrl?: string | null
   comingSoon: boolean
   isPackage: boolean
   /** price per vehicle class; missing class = not offered for it */
@@ -45,11 +46,11 @@ export function ServicesList({ services, whatsappBase }: { services: ServiceRow[
                 )}
               >
                 <Image
-                  src={style.image}
+                  src={s.imageUrl || style.image}
                   alt={s.name}
                   fill
                   sizes="(min-width:1024px) 560px, 100vw"
-                  style={{ objectPosition: style.position }}
+                  style={{ objectPosition: s.imageUrl ? 'center' : style.position }}
                   className="object-cover brightness-110 saturate-110"
                 />
               </div>
