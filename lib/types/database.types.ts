@@ -402,6 +402,7 @@ export type Database = {
           hero_image_url: string | null
           hero_poster_url: string | null
           auto_status: boolean
+          og_image_url: string | null
           home_content: Json | null
         }
         Insert: {
@@ -421,6 +422,7 @@ export type Database = {
           hero_image_url?: string | null
           hero_poster_url?: string | null
           auto_status?: boolean
+          og_image_url?: string | null
           home_content?: Json | null
         }
         Update: {
@@ -440,6 +442,7 @@ export type Database = {
           hero_image_url?: string | null
           hero_poster_url?: string | null
           auto_status?: boolean
+          og_image_url?: string | null
           home_content?: Json | null
         }
         Relationships: []

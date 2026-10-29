@@ -26,21 +26,29 @@ const sora = Sora({
   weight: ["400", "500", "600", "700"],
 });
 
-export const metadata: Metadata = {
+const staticMeta: Metadata = {
   metadataBase: new URL(siteUrl()),
   title: { default: "Car Aurum | Premium Auto Care", template: "%s | Car Aurum" },
   description:
     "Professional CeO₂ windshield restoration and full glass polishing at your doorstep in Lahore. Instant transparent pricing, 3-year results warranty.",
-  openGraph: {
-    type: "website",
-    siteName: "Car Aurum",
-    title: "Car Aurum | Premium Auto Care",
-    description:
-      "Doorstep windshield, glass and headlight restoration in Lahore. Instant pricing, 3-year results warranty.",
-    images: [{ url: "/images/hero-poster.jpg", width: 1200, height: 630 }],
-  },
   twitter: { card: "summary_large_image" },
-};
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await getBrandSettings()
+  const ogImage = brand.ogImageUrl || "/images/hero-poster.jpg"
+  return {
+    ...staticMeta,
+    openGraph: {
+      type: "website",
+      siteName: "Car Aurum",
+      title: "Car Aurum | Premium Auto Care",
+      description:
+        "Doorstep windshield, glass and headlight restoration in Lahore. Instant pricing, 3-year results warranty.",
+      images: [{ url: ogImage, width: 1200, height: 630 }],
+    },
+  }
+}
 
 export const viewport = {
   // Browser chrome colour per theme. The in-page toggle overrides the OS

@@ -11,6 +11,7 @@ const LIMITS = {
   video: { max: 50 * 1024 * 1024, types: ['video/mp4', 'video/webm'] },
   image: { max: 8 * 1024 * 1024, types: ['image/jpeg', 'image/png', 'image/webp'] },
   poster: { max: 8 * 1024 * 1024, types: ['image/jpeg', 'image/png', 'image/webp'] },
+  ogImage: { max: 8 * 1024 * 1024, types: ['image/jpeg', 'image/png', 'image/webp'] },
   gallery: { max: 8 * 1024 * 1024, types: ['image/jpeg', 'image/png', 'image/webp'] },
   galleryVideo: { max: 50 * 1024 * 1024, types: ['video/mp4', 'video/webm'] },
   service: { max: 8 * 1024 * 1024, types: ['image/jpeg', 'image/png', 'image/webp'] },
@@ -35,7 +36,7 @@ export async function createMediaUploadUrl(kind: MediaKind, fileName: string, co
   if (size > rule.max) throw new Error(`File too large (max ${Math.round(rule.max / 1024 / 1024)} MB).`)
 
   const ext = (fileName.split('.').pop() ?? '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin'
-  const folder = kind === 'gallery' || kind === 'galleryVideo' ? 'gallery' : kind === 'review' ? 'reviews' : kind === 'service' ? 'services' : 'hero'
+  const folder = kind === 'gallery' || kind === 'galleryVideo' ? 'gallery' : kind === 'review' ? 'reviews' : kind === 'service' ? 'services' : kind === 'ogImage' ? 'og' : 'hero'
   const path = `${folder}/${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`
 
   const admin = createAdminClient()
@@ -65,7 +66,7 @@ export async function saveBrandSettings(input: BrandSettings & { autoStatus?: bo
   // Only URLs inside our own bucket are accepted, so the field can't be used to
   // point the homepage at arbitrary third-party media.
   const base = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${BUCKET}/`
-  for (const url of [input.heroVideoUrl, input.heroImageUrl, input.heroPosterUrl]) {
+  for (const url of [input.heroVideoUrl, input.heroImageUrl, input.heroPosterUrl, input.ogImageUrl]) {
     if (url && !url.startsWith(base)) throw new Error('Media must be uploaded through the editor')
   }
 
@@ -79,6 +80,7 @@ export async function saveBrandSettings(input: BrandSettings & { autoStatus?: bo
       hero_video_url: input.heroVideoUrl || null,
       hero_image_url: input.heroImageUrl || null,
       hero_poster_url: input.heroPosterUrl || null,
+      og_image_url: input.ogImageUrl || null,
       ...(typeof input.autoStatus === 'boolean' ? { auto_status: input.autoStatus } : {}),
     })
     .eq('id', true)
