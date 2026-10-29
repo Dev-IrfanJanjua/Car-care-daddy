@@ -224,7 +224,7 @@ export function BrandEditor({ initial }: { initial: BrandDraft }) {
     startTransition(async () => {
       try {
         const next = { ...draft }
-        const urlKey = { video: 'heroVideoUrl', image: 'heroImageUrl', poster: 'heroPosterUrl' } as const
+        const urlKey = { video: 'heroVideoUrl', image: 'heroImageUrl', poster: 'heroPosterUrl', ogImage: 'ogImageUrl' } as const
         const sb = createClient()
         for (const kind of Object.keys(files) as HeroKind[]) {
           const f = files[kind]
@@ -399,6 +399,43 @@ export function BrandEditor({ initial }: { initial: BrandDraft }) {
                   set('heroImageUrl', '')
                 }}
               />
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Social sharing image</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <p className="text-sm text-muted-foreground">
+              This image appears when someone shares your website link on WhatsApp, Facebook, Twitter, LinkedIn etc.
+            </p>
+            <MediaField
+              kind="ogImage"
+              label="OG image"
+              hint="Recommended 1200×630 px. JPG, PNG or WebP, up to 8 MB."
+              accept="image/jpeg,image/png,image/webp"
+              currentUrl={draft.ogImageUrl}
+              file={files.ogImage}
+              onFile={(f) => setFiles((x) => ({ ...x, ogImage: f }))}
+              onClear={() => {
+                setFiles((f) => without(f, 'ogImage'))
+                set('ogImageUrl', '')
+              }}
+            />
+            {(files.ogImage || draft.ogImageUrl) && (
+              <div className="space-y-1.5">
+                <Label>Preview</Label>
+                <div className="overflow-hidden rounded-lg border border-border">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={files.ogImage ? URL.createObjectURL(files.ogImage) : draft.ogImageUrl}
+                    alt="OG image preview"
+                    className="aspect-[1200/630] w-full object-cover"
+                  />
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>

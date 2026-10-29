@@ -12,6 +12,8 @@ export type BrandSettings = {
   heroVideoUrl: string
   heroImageUrl: string
   heroPosterUrl: string
+  /** Public URL of the custom OG image, or '' for the default poster. */
+  ogImageUrl: string
 }
 
 export const DEFAULT_BRAND: BrandSettings = {
@@ -22,4 +24,5 @@ export const DEFAULT_BRAND: BrandSettings = {
   heroVideoUrl: '',
   heroImageUrl: '',
   heroPosterUrl: '',
+  ogImageUrl: '',
 }

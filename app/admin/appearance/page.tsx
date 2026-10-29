@@ -18,6 +18,7 @@ export default async function AppearancePage() {
     heroImageUrl: data?.hero_image_url ?? '',
     heroPosterUrl: data?.hero_poster_url ?? '',
     autoStatus: data?.auto_status !== false,
+    ogImageUrl: data?.og_image_url ?? '',
   }
 
   return (

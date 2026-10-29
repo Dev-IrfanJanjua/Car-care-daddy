@@ -26,6 +26,7 @@ export const getBrandSettings = unstable_cache(
         heroVideoUrl: data.hero_video_url ?? '',
         heroImageUrl: data.hero_image_url ?? '',
         heroPosterUrl: data.hero_poster_url ?? '',
+        ogImageUrl: data.og_image_url ?? '',
       }
     } catch {
       return DEFAULT_BRAND
