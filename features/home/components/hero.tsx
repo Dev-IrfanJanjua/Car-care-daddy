@@ -1,7 +1,7 @@
 'use client'
 
 import { waLink, SITE_MESSAGES } from '@/lib/whatsapp/messages'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'motion/react'
@@ -44,6 +44,9 @@ type HeroProps = {
  */
 export function Hero({ whatsappUrl, startingPrice, startingLabel, children, media = DEFAULT_MEDIA, content = DEFAULT_CONTENT }: HeroProps) {
   const showImage = media.type === 'image' && !!media.imageUrl
+  // Once the video is actually playing the poster is hidden, so a poster with
+  // a different shape/colour can never show around a letterboxed video.
+  const [playing, setPlaying] = useState(false)
   const poster = media.posterUrl || '/images/hero-poster.jpg'
   const video = media.videoUrl || '/videos/Video1.mp4'
   // "Windshield Restoration" -> "Windshield from"
@@ -59,28 +62,49 @@ export function Hero({ whatsappUrl, startingPrice, startingLabel, children, medi
             transition={{ duration: 0.7 }}
             className="relative order-first lg:order-last lg:mt-2.5 dk:lg:mb-5"
           >
-            <div className="relative mx-5 h-[280px] overflow-hidden rounded-3xl shadow-[0_40px_70px_-34px_rgba(60,40,10,0.5)] sm:mx-0 lg:mr-4 lg:ml-auto lg:h-[470px] lg:w-[430px] lg:rounded-t-[215px] lg:rounded-b-[28px] dk:mx-[26px] dk:h-[240px] dk:rounded-xs dk:shadow-[0_0_0_6px_var(--background),0_0_0_7px_var(--gold-500),0_40px_80px_-30px_rgba(0,0,0,0.7)] dk:sm:mx-0 dk:lg:mr-11 dk:lg:h-[430px] dk:lg:w-[410px] dk:lg:shadow-[0_0_0_8px_var(--background),0_0_0_9px_var(--gold-500),0_0_0_17px_var(--background),0_0_0_18px_color-mix(in_oklab,var(--gold-500)_45%,transparent),0_40px_80px_-30px_rgba(0,0,0,0.7)]">
+            <div className="relative mx-5 h-[340px] overflow-hidden bg-ink-900 sm:bg-transparent rounded-3xl shadow-[0_40px_70px_-34px_rgba(60,40,10,0.5)] sm:mx-0 lg:mr-4 lg:ml-auto lg:h-[470px] lg:w-[430px] lg:rounded-t-[215px] lg:rounded-b-[28px] dk:mx-[26px] dk:h-[320px] dk:rounded-xs dk:shadow-[0_0_0_6px_var(--background),0_0_0_7px_var(--gold-500),0_40px_80px_-30px_rgba(0,0,0,0.7)] dk:sm:mx-0 dk:lg:mr-11 dk:lg:h-[430px] dk:lg:w-[410px] dk:lg:shadow-[0_0_0_8px_var(--background),0_0_0_9px_var(--gold-500),0_0_0_17px_var(--background),0_0_0_18px_color-mix(in_oklab,var(--gold-500)_45%,transparent),0_40px_80px_-30px_rgba(0,0,0,0.7)]">
               <Image
                 src={showImage ? media.imageUrl : poster}
                 alt=""
                 fill
                 priority
                 sizes="(min-width:1024px) 430px, 90vw"
-                className="object-cover object-[55%_center]"
+                className={`object-cover object-[55%_center] transition-opacity duration-300 ${!showImage && playing ? 'opacity-0' : ''}`}
               />
               {!showImage && (
-                <video
-                  key={video}
-                  className="absolute inset-0 size-full object-cover object-[55%_center] brightness-110 saturate-105 motion-reduce:hidden"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  aria-hidden
-                >
-                  <source src={video} type={video.endsWith('.webm') ? 'video/webm' : 'video/mp4'} />
-                </video>
+                <>
+                  {/* Mobile only: the same clip, blurred and zoomed, fills the bars
+                      around a video that doesn't match the frame's shape. */}
+                  <video
+                    key={`bg-${video}`}
+                    className="absolute inset-0 size-full scale-125 object-cover blur-2xl brightness-90 saturate-110 motion-reduce:hidden lg:hidden"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    aria-hidden
+                  >
+                    <source src={video} type={video.endsWith('.webm') ? 'video/webm' : 'video/mp4'} />
+                  </video>
+                  <video
+                    key={video}
+                    ref={(el) => {
+                      if (el && el.readyState >= 3) setPlaying(true)
+                    }}
+                    onPlaying={() => setPlaying(true)}
+                    onLoadedData={() => setPlaying(true)}
+                    className="absolute inset-0 size-full object-cover object-[55%_center] max-lg:object-contain brightness-110 saturate-105 motion-reduce:hidden"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    aria-hidden
+                  >
+                    <source src={video} type={video.endsWith('.webm') ? 'video/webm' : 'video/mp4'} />
+                  </video>
+                </>
               )}
             </div>
 

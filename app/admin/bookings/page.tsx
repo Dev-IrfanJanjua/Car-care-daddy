@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { DeleteBookingButton } from '@/features/admin/components/delete-booking-button'
 import { BOOKING_STATUS_STYLES, formatBookingStatus } from '@/lib/booking-status'
 import { formatPrice, formatAppointment } from '@/lib/format'
 
@@ -85,6 +86,7 @@ export default async function AdminBookingsPage({
                 <TableHead>Scheduled</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Total</TableHead>
+                <TableHead className="w-12" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -109,11 +111,14 @@ export default async function AdminBookingsPage({
                   <TableCell className="text-right font-medium tabular-nums">
                     {formatPrice(Number(b.total_amount))}
                   </TableCell>
+                  <TableCell>
+                    <DeleteBookingButton bookingId={b.id} customerName={b.customer_name} compact />
+                  </TableCell>
                 </TableRow>
               ))}
               {(bookings ?? []).length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                     No bookings found.
                   </TableCell>
                 </TableRow>

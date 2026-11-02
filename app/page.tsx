@@ -105,10 +105,10 @@ export default async function Home() {
         >
           <PriceFinder data={finder} />
         </Hero>
+        <BeforeAfterSection items={pickCarouselItems(gallery)} />
         <StripSection />
         {homeServices.length > 0 && <ServicesSection services={homeServices} />}
         <BundlesSection bundles={homeBundles} />
-        <BeforeAfterSection items={pickCarouselItems(gallery)} />
         <HowItWorksSection />
         <WhyChooseUsSection rating={rating} />
         <TestimonialsSection reviews={reviews ?? undefined} />

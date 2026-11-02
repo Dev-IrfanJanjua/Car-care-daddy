@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/auth/require-admin'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { Database } from '@/lib/types/database.types'
 
 type BookingStatus = Database['public']['Enums']['booking_status']
@@ -62,4 +63,25 @@ export async function rescheduleBooking(bookingId: string, scheduledAt: string) 
 
 export async function updateBookingNotes(bookingId: string, notes: string) {
   await patchBooking(bookingId, { notes })
+}
+
+/**
+ * Permanently removes a booking and its line items. Admin-only (checked
+ * above), and it uses the service-role client so a missing DELETE policy on
+ * public.bookings can't turn it into a silent no-op.
+ */
+export async function deleteBooking(bookingId: string) {
+  await requireAdmin()
+  const admin = createAdminClient()
+
+  // Children first, in case the foreign keys are not ON DELETE CASCADE.
+  const items = await admin.from('booking_services').delete().eq('booking_id', bookingId)
+  if (items.error) throw new Error(`Could not delete the booking items: ${items.error.message}`)
+
+  const { data, error } = await admin.from('bookings').delete().eq('id', bookingId).select('id')
+  if (error) throw new Error(`Could not delete the booking: ${error.message}`)
+  if (!data || data.length === 0) throw new Error('That booking no longer exists.')
+
+  revalidatePath('/admin/bookings')
+  revalidatePath('/admin')
 }
