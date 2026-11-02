@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, Car, MapPin, Wrench } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { BookingDetailActions } from '@/features/admin'
+import { DeleteBookingButton } from '@/features/admin/components/delete-booking-button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { formatPrice, formatAppointment } from '@/lib/format'
@@ -75,7 +76,10 @@ export default async function BookingDetailPage({
           <ArrowLeft className="size-3.5" />
           Back to bookings
         </Link>
-        <h1 className="mt-2 text-2xl font-bold">{booking.customer_name}</h1>
+        <div className="mt-2 flex items-start justify-between gap-3">
+          <h1 className="text-2xl font-bold">{booking.customer_name}</h1>
+          <DeleteBookingButton bookingId={booking.id} customerName={booking.customer_name} redirectTo="/admin/bookings" />
+        </div>
         <p className="text-sm text-muted-foreground">
           {booking.customer_email} &middot; {booking.customer_phone}
         </p>
