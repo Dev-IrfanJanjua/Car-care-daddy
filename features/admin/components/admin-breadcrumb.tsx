@@ -20,6 +20,7 @@ const LABELS: Record<string, string> = {
   gallery: 'Gallery',
   services: 'Services & pricing',
   vehicles: 'Vehicles',
+  team: 'Team',
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
