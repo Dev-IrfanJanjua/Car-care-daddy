@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { isSuperAdminUser } from '@/lib/auth/require-super-admin'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar, AdminBreadcrumb } from '@/features/admin'
 import { ThemeToggle } from '@/features/theme'
@@ -19,10 +20,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .single()
 
   if (profile?.role !== 'admin') redirect('/')
+  // Separate query so the panel still works if migration 0024 hasn't run yet.
+  const isSuperAdmin = await isSuperAdminUser(supabase, user.id)
 
   return (
     <SidebarProvider>
-      <AppSidebar user={{ name: profile.full_name ?? user.email ?? 'Admin', email: user.email ?? '' }} />
+      <AppSidebar user={{ name: profile.full_name ?? user.email ?? 'Admin', email: user.email ?? '' }} isSuperAdmin={isSuperAdmin} />
       <SidebarInset>
         <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-4">
           <SidebarTrigger />

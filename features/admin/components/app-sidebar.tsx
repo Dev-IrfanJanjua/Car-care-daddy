@@ -19,6 +19,7 @@ import {
   Images,
   LogOut,
   Package,
+  ShieldCheck,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -67,7 +68,7 @@ function isActiveHref(pathname: string, href: string) {
   return EXACT_ONLY.includes(href) ? pathname === href : pathname.startsWith(href)
 }
 
-export function AppSidebar({ user }: { user: { name: string; email: string } }) {
+export function AppSidebar({ user, isSuperAdmin = false }: { user: { name: string; email: string }; isSuperAdmin?: boolean }) {
   const pathname = usePathname()
   // On mobile the sidebar is an overlay drawer -- leaving it open on top of the
   // page you just navigated to means you have to dismiss it manually every time.
@@ -109,6 +110,7 @@ export function AppSidebar({ user }: { user: { name: string; email: string } }) 
         {[
           { label: 'Operations', items: NAV_ITEMS },
           { label: 'Catalog', items: CATALOG_ITEMS },
+          ...(isSuperAdmin ? [{ label: 'Access', items: [{ href: '/admin/team', label: 'Team', icon: ShieldCheck }] }] : []),
         ].map((group) => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel>{group.label}</SidebarGroupLabel>

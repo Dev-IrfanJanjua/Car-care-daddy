@@ -19,9 +19,11 @@ export type Database = {
           full_name: string | null
           phone: string | null
           created_at: string
+          is_super_admin: boolean
         }
         Insert: {
           id: string
+          is_super_admin?: boolean
           role?: Database['public']['Enums']['user_role']
           full_name?: string | null
           phone?: string | null
@@ -29,6 +31,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          is_super_admin?: boolean
           role?: Database['public']['Enums']['user_role']
           full_name?: string | null
           phone?: string | null
